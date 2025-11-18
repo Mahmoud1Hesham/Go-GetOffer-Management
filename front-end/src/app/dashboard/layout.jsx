@@ -1,3 +1,5 @@
+import RouteGuard from "../services/routeGaurd.js";
+
 export default function DashboardLayout({ children }) {
     return (
         <div className="flex">
@@ -5,7 +7,9 @@ export default function DashboardLayout({ children }) {
                 Sidebar placeholder
             </aside>
             <main className="flex-1">
-                {children}
+                <RouteGuard>
+                {children}  
+                </RouteGuard>
             </main>
         </div>
     );

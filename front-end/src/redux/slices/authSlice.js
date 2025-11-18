@@ -1,9 +1,10 @@
+// src/store/authSlice.js
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
     isAuthenticated: false,
     token: null,
-    user: null,
+    user: null, // must contain roleId, divisionId, departmentId (after mapping)
 };
 
 const authSlice = createSlice({
@@ -11,12 +12,19 @@ const authSlice = createSlice({
     initialState,
     reducers: {
         setCredentials: (state, action) => {
-            state.isAuthenticated = true;
-            state.token = action.payload.token;
+            const { user, token } = action.payload;
+
+            state.token = token || null;
+            state.isAuthenticated = !!token;
+
+            // overwrite user every time (not merge)
+            state.user = user || null;
         },
+
         setUser: (state, action) => {
-            state.user = action.payload;
+            state.user = action.payload; // full mapped user
         },
+
         logout: (state) => {
             state.isAuthenticated = false;
             state.token = null;
