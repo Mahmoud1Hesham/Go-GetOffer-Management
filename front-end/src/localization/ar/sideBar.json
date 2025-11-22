@@ -1,0 +1,85 @@
+{
+    "teams": "الفروع",
+    "add-team":"إضافة فرع",
+    "branch-Name": "المعادى",
+    "branch-desc": "المقر الرئيسي",
+    "divisions": {
+        "sec-name": "الأقسام",
+        "follow-up": {
+            "name": "المشتريات والمتابعات",
+            "Departments": {
+                "join": "طلبات الانضمام",
+                "order": "تتبع الطلبات",
+                "purchase": "المشتريات",
+                "complains":"الشكاوي"
+            }
+        },
+        "customer-service": {
+            "name": "خدمة العملاء",
+            "Departments": {
+                "join": "طلبات الانضمام",
+                "order": "تتبع الطلبات",
+                "complains":"الشكاوي"
+            }
+        },
+        "receiving": {
+            "name": "الفحص و المراجعة",
+            "Departments": {
+                "receive": "الإستلام والفحص",
+                "returns": "المرتجعات",
+                "complains":"الشكاوي"
+            }
+        },
+        "shipping": {
+            "name": "الشحن والتحصيل",
+            "Departments": {
+                "order-delivery": "شحن الطلبات",
+                "order-pickup": "استلام الطلبات",
+                "complains":"الشكاوي"
+            }
+        },
+        "storage": {
+            "name": "المخزن",
+            "Departments": {
+                "process": "المعالجه",
+                "returns": "المرتجعات",
+                "complains":"الشكاوي"
+            }
+        },
+        "accounting": {
+            "name": "الحسابات والمالية",
+            "Departments": {
+                "receipts": "الفواتير والإيصالات",
+                "supplier-payment": "معاملات الموردين",
+                "client-payment": "معاملات العملاء",
+                "complains":"الشكاوي"
+            }
+        },
+        "marketing": {
+            "name": "التسويق",
+            "Departments": {
+                "general": "عام"
+            }
+        },
+        "complains": {
+            "name": "الشكاوى والمقترحات",
+            "Departments": {
+                "general": "عام"
+            }
+        }
+    },
+    "platform": {
+        "sec-name": "المنصة",
+        "dashboard": "لوحة التحكم",
+        "Management": {
+            "name": "الإدارات",
+            "tabs": {
+                "employees": "الموظفين",
+                "suppliers": "الموردين",
+                "clients": "العملاء",
+                "products": "المنتجات",
+                "branches": "الفروع"
+            }
+        }
+    }
+}

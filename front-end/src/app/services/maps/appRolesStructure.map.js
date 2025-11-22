@@ -7,18 +7,18 @@ export const appMap = {
 
     divisions: {
         followUp: {
-            id: "followUp",
+            id: "FollowUp",
             label: "Follow Up",
             // optional division-level scopes (fallbacks for departments if not set)
             viewScope: "division",    // 'division' by default for division root
             actionScope: "division",
-            divisionHead: { id: "followUpMA", label: "Follow Up Manager" },
+            divisionHead: { id: "FollowUpMA", label: "Follow Up Manager" },
             departments: {
                 supplierJoiningRequests: {
-                    id: "supplierJoiningRequests",
+                    id: "SupplierJoiningRequests",
                     label: "Supplier Joining Requests",
-                    departmentHead: { id: "supplierJoinMA", label: "Supplier Joining Manager" },
-                    employees: [{ id: "supplierJoinEM", label: "Supplier Join Employee" }],
+                    departmentHead: { id: "SupplierJoinMA", label: "Supplier Joining Manager" },
+                    employees: [{ id: "SupplierJoinEM", label: "Supplier Join Employee" }],
 
                     // access control using scopes + optional extras
                     viewScope: "department",      // only dept head & dept employees and allowed extras can view
@@ -29,10 +29,10 @@ export const appMap = {
                 },
 
                 supplierOrderTracking: {
-                    id: "supplierOrderTracking",
+                    id: "SupplierOrderTracking",
                     label: "Supplier Order Tracking",
-                    departmentHead: { id: "supplierOrderTrackingMA", label: "Supplier Order Tracking Manager" },
-                    employees: [{ id: "supplierOrderTrackingEM", label: "Supplier Order Tracking Employee" }],
+                    departmentHead: { id: "SupplierOrderTrackingMA", label: "Supplier Order Tracking Manager" },
+                    employees: [{ id: "SupplierOrderTrackingEM", label: "Supplier Order Tracking Employee" }],
 
                     viewScope: "department",
                     actionScope: "department",
@@ -42,10 +42,10 @@ export const appMap = {
                 },
 
                 purchase: {
-                    id: "purchase",
+                    id: "Purchase",
                     label: "Purchase",
-                    departmentHead: { id: "purchaseMA", label: "Purchase Manager" },
-                    employees: [{ id: "purchaseEM", label: "Purchase Employee" }],
+                    departmentHead: { id: "PurchaseMA", label: "Purchase Manager" },
+                    employees: [{ id: "PurchaseEM", label: "Purchase Employee" }],
 
                     viewScope: "department",
                     actionScope: "department",
@@ -57,17 +57,17 @@ export const appMap = {
         },
 
         customerService: {
-            id: "customerService",
+            id: "CustomerService",
             label: "Customer Service",
             viewScope: "division",
             actionScope: "division",
-            divisionHead: { id: "customerServiceMA", label: "Customer Service Manager" },
+            divisionHead: { id: "CustomerServiceMA", label: "Customer Service Manager" },
             departments: {
                 clientJoiningRequests: {
-                    id: "clientJoiningRequests",
+                    id: "ClientJoiningRequests",
                     label: "Client Joining Requests",
-                    departmentHead: { id: "clientJoinMA", label: "Client Join Manager" },
-                    employees: [{ id: "clientJoinEM", label: "Client Join Employee" }],
+                    departmentHead: { id: "ClientJoinMA", label: "Client Join Manager" },
+                    employees: [{ id: "ClientJoinEM", label: "Client Join Employee" }],
 
                     viewScope: "department",
                     actionScope: "department",
@@ -77,10 +77,10 @@ export const appMap = {
                 },
 
                 clientOrderTracking: {
-                    id: "clientOrderTracking",
+                    id: "ClientOrderTracking",
                     label: "Client Order Tracking",
-                    departmentHead: { id: "clientOrderTrackingMA", label: "Client Order Tracking Manager" },
-                    employees: [{ id: "clientOrderTrackingEM", label: "Client Order Tracking Employee" }],
+                    departmentHead: { id: "ClientOrderTrackingMA", label: "Client Order Tracking Manager" },
+                    employees: [{ id: "ClientOrderTrackingEM", label: "Client Order Tracking Employee" }],
 
                     viewScope: "department",
                     actionScope: "department",
@@ -92,17 +92,17 @@ export const appMap = {
         },
 
         receivingInspection: {
-            id: "receivingInspection",
+            id: "ReceivingInspection",
             label: "Receiving & Inspection",
             viewScope: "division",
             actionScope: "division",
-            divisionHead: { id: "receivingInspectionMA", label: "Receiving & Inspection Manager" },
+            divisionHead: { id: "ReceivingInspectionMA", label: "Receiving & Inspection Manager" },
             departments: {
                 ordersReceiving: {
-                    id: "ordersReceiving",
+                    id: "OrdersReceiving",
                     label: "Orders Receiving",
-                    departmentHead: { id: "ordersReceivingMA", label: "Orders Receiving Manager" },
-                    employees: [{ id: "ordersReceivingEM", label: "Orders Receiving Employee" }],
+                    departmentHead: { id: "OrdersReceivingMA", label: "Orders Receiving Manager" },
+                    employees: [{ id: "OrdersReceivingEM", label: "Orders Receiving Employee" }],
 
                     viewScope: "department",
                     actionScope: "department",
@@ -112,10 +112,10 @@ export const appMap = {
                 },
 
                 missingReturns: {
-                    id: "missingReturns",
+                    id: "MissingReturns",
                     label: "Missing & Returns",
-                    departmentHead: { id: "missingReturnsMA", label: "Missing & Returns Manager" },
-                    employees: [{ id: "missingReturnsEM", label: "Missing & Returns Employee" }],
+                    departmentHead: { id: "MissingReturnsMA", label: "Missing & Returns Manager" },
+                    employees: [{ id: "MissingReturnsEM", label: "Missing & Returns Employee" }],
 
                     viewScope: "department",
                     actionScope: "department",
@@ -127,17 +127,17 @@ export const appMap = {
         },
 
         shipping: {
-            id: "shipping",
+            id: "Shipping",
             label: "Shipping",
             viewScope: "division",
             actionScope: "division",
-            divisionHead: { id: "shippingMA", label: "Shipping Manager" },
+            divisionHead: { id: "ShippingMA", label: "Shipping Manager" },
             departments: {
                 orderShipping: {
-                    id: "orderShipping",
+                    id: "OrderShipping",
                     label: "Order Shipping",
-                    departmentHead: { id: "orderShippingMA", label: "Order Shipping Manager" },
-                    employees: [{ id: "orderShippingEM", label: "Order Shipping Employee" }],
+                    departmentHead: { id: "OrderShippingMA", label: "Order Shipping Manager" },
+                    employees: [{ id: "OrderShippingEM", label: "Order Shipping Employee" }],
 
                     viewScope: "department",
                     actionScope: "department",
@@ -147,10 +147,10 @@ export const appMap = {
                 },
 
                 orderPicking: {
-                    id: "orderPicking",
+                    id: "OrderPicking",
                     label: "Order Picking",
-                    departmentHead: { id: "orderPickingMA", label: "Order Picking Manager" },
-                    employees: [{ id: "orderPickingEM", label: "Order Picking Employee" }],
+                    departmentHead: { id: "OrderPickingMA", label: "Order Picking Manager" },
+                    employees: [{ id: "OrderPickingEM", label: "Order Picking Employee" }],
 
                     viewScope: "department",
                     actionScope: "department",
@@ -162,17 +162,17 @@ export const appMap = {
         },
 
         inventory: {
-            id: "inventory",
+            id: "Inventory",
             label: "Inventory",
             viewScope: "division",
             actionScope: "division",
-            divisionHead: { id: "inventoryMA", label: "Inventory Manager" },
+            divisionHead: { id: "InventoryMA", label: "Inventory Manager" },
             departments: {
                 processing: {
-                    id: "processing",
+                    id: "Processing",
                     label: "Processing",
-                    departmentHead: { id: "processingMA", label: "Processing Manager" },
-                    employees: [{ id: "processingEM", label: "Processing Employee" }],
+                    departmentHead: { id: "ProcessingMA", label: "Processing Manager" },
+                    employees: [{ id: "ProcessingEM", label: "Processing Employee" }],
 
                     viewScope: "department",
                     actionScope: "department",
@@ -182,10 +182,10 @@ export const appMap = {
                 },
 
                 returns: {
-                    id: "returns",
+                    id: "Returns",
                     label: "Returns",
-                    departmentHead: { id: "returnsMA", label: "Returns Manager" },
-                    employees: [{ id: "returnsEM", label: "Returns Employee" }],
+                    departmentHead: { id: "ReturnsMA", label: "Returns Manager" },
+                    employees: [{ id: "ReturnsEM", label: "Returns Employee" }],
 
                     viewScope: "department",
                     actionScope: "department",

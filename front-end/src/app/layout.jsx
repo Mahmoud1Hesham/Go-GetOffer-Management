@@ -3,6 +3,7 @@ import "./globals.css";
 import Providers from "@/providers/providers-wrapper.jsx";
 import { cookies } from "next/headers.js";
 import LanguageProvider from "@/providers/languageProvider.js";
+import { SidebarRunner } from "@/components/ui/common/sideBarRunner.jsx";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,7 +32,11 @@ export default async function RootLayout({ children }) {
     <html lang={lang} dir={dir} key={lang} suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <LanguageProvider defaultLang={lang}>
-          <Providers>{children}</Providers>
+          <Providers>
+            <SidebarRunner>
+            {children}
+            </SidebarRunner>
+            </Providers>
         </LanguageProvider>
       </body>
     </html>

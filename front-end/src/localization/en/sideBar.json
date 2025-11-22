@@ -1,0 +1,85 @@
+{
+    "teams": "Branches",
+    "add-team":"Add Team",
+    "branch-Name": "Maadi",
+    "branch-desc": "Headquarters",
+    "divisions": {
+        "sec-name": "Divisions",
+        "follow-up": {
+            "name": "Purchases & Follow-Ups",
+            "Departments": {
+                "join": "Joining Requests",
+                "order": "Orders Tracking",
+                "purchase": "Purchases",
+                "complains":"Complains"
+            }
+        },
+        "customer-service": {
+            "name": "Customer Services",
+            "Departments": {
+                "join": "Joining Requests",
+                "order": "Orders Tracking",
+                "complains":"Complains"
+            }
+        },
+        "receiving": {
+            "name": "Receiving & Completion",
+            "Departments": {
+                "receive": "Receiving and Inspection",
+                "returns": "Returns",
+                "complains":"Complains"
+            }
+        },
+        "shipping": {
+            "name": "Shipping",
+            "Departments": {
+                "order-delivery": "Order Shipping",
+                "order-pickup": "Order PickUp",
+                "complains":"Complains"
+            }
+        },
+        "storage": {
+            "name": "Storage Management",
+            "Departments": {
+                "process": "Processing",
+                "returns": "Returns",
+                "complains":"Complains"
+            }
+        },
+        "accounting": {
+            "name": "Accounting",
+            "Departments": {
+                "receipts": "Receipts and Invoices",
+                "supplier-payment": "Supplier's Transactions",
+                "client-payment": "Client's Transactions",
+                "complains":"Complains"
+            }
+        },
+        "marketing": {
+            "name": "Marketing",
+            "Departments": {
+                "general": "General"
+            }
+        },
+        "complains": {
+            "name": "Complains & Suggestions",
+            "Departments": {
+                "general": "General"
+            }
+        }
+    },
+    "platform": {
+        "sec-name": "Platform",
+        "dashboard": "Dashboard",
+        "Management": {
+            "name": "Management",
+            "tabs": {
+                "employees": "Employees",
+                "suppliers": "Suppliers",
+                "clients": "Clients",
+                "products": "Products",
+                "branches": "Branches"
+            }
+        }
+    }
+}

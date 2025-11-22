@@ -6,6 +6,8 @@ import LanguageDetector from "i18next-browser-languagedetector";
 // ✅ Translation files
 import enTest from '../../localization/en/test.json'
 import arTest from '../../localization/ar/test.json'
+import enSideBar from '../../localization/en/sideBar.json'
+import arSideBar from '../../localization/ar/sideBar.json'
 
 // Helper: update direction
 const updateHtmlDirection = (lng) => {
@@ -21,10 +23,10 @@ i18n
     .init({
         resources: {
             en: {
-                test:enTest
+                test:enTest,sideBar:enSideBar
             },
             ar: {
-                test:arTest
+                test:arTest,sideBar:arSideBar
             }
         },
         fallbackLng: "en",

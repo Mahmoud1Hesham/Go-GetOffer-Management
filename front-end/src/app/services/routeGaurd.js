@@ -3,50 +3,60 @@
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
-import { getPathsForRole } from '@/services/maps/pathsMap'; 
+import { getPathsForRole } from '@/app/services/maps/appPathsStructure.map.js';
 import { canView } from './workers/pathHelpers.worker.js';
+import LoginDialog from '@/components/ui/common/loginDialog.jsx';
+import Loading from '../loading.jsx';
 
 export default function RouteGuard({ children, fallback = '/not-authorized' }) {
     const router = useRouter();
     const pathname = usePathname();
     const user = useSelector(s => s.auth.user); // user must contain roleId, divisionId, departmentId
     const [ready, setReady] = useState(false);
+    const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
     useEffect(() => {
-        // wait until pathname available (client navigation)
+        process.env.NEXT_PUBLIC_MOOD === 'DEV' ? console.log(user, pathname) : null;
         if (!pathname) return;
-        // if no user => redirect to login
+
+        // لو مفيش user نعرض مودال/كونپوننت تسجيل الدخول
         if (!user) {
-            router.replace('/login');
+            setShowLoginPrompt(true);
+            setReady(false);
             return;
         }
-
-        // if user is allowed to view this path -> render children
+        // لو في user، اتأكد إنه مسموح يدخل الصفحة
         const allowed = canView(user, pathname);
         if (allowed) {
+            setShowLoginPrompt(false);
             setReady(true);
             return;
         }
 
-        // not allowed -> try redirect to first allowed path for this role
+        // لو مش مسموح -> حاول ترجع لأول مسار مسموح لدورته
         const roleId = user.roleId;
         try {
             const allowedPaths = getPathsForRole(roleId) || [];
             if (Array.isArray(allowedPaths) && allowedPaths.length > 0) {
-                // choose first allowed path (prefer dashboard root if present)
                 const prefer = allowedPaths.includes('/') ? '/' : allowedPaths[0];
                 router.replace(prefer);
                 return;
             }
         } catch (err) {
-            // fallback
+            // ignore
         }
 
-        // else go to not-authorized
+        // لو مفيش مسار مسموح -> redirect للـ fallback
         router.replace(fallback);
-    }, [pathname, user, router]);
+    }, [pathname, user, router, fallback]);
 
-    // render null until ready to avoid flicker
-    if (!ready) return null; //user loader when available
+    // لو بنعرض login prompt رجّع الكومبوننت مباشرة
+    if (showLoginPrompt && !user) {
+        return <LoginDialog />;
+    }
+
+    // لو لسه مش جاهز متعرضش حاجة (أو اعرض لودر)
+    if (!ready) return <Loading/>;
+
     return <>{children}</>;
 }

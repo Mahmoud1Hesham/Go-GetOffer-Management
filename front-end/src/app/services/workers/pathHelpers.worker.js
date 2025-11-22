@@ -1,6 +1,5 @@
-// src/helpers/accessHelpers.js
-import { getPathsMap, matchTemplatePath } from '../config/pathsMap.js';
-import { appMap } from '../config/appRolesStructure.map.js'; // path to your appMap
+import { getPathsMap, matchTemplatePath } from '../maps/appPathsStructure.map.js';
+import { appMap } from '../maps/appRolesStructure.map.js'; // path to your appMap
 
 // helper: get dept node by divisionId & departmentId
 function getDeptNode(divisionId, departmentId) {
@@ -205,4 +204,4 @@ export function canAct(user, path) {
 /**
  * utility: expose getPathsMap for consumers
  */
-export { getPathsMap as getPathsMapSync } from '../config/pathsMap.js';
+export { getPathsMap as getPathsMapSync } from '../maps/appPathsStructure.map.js';
