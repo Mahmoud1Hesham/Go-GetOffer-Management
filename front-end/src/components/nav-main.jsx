@@ -1,6 +1,7 @@
 "use client"
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import Link from 'next/link';
 
 import {
   Collapsible,
@@ -17,15 +18,16 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar"
-import { useSearchParams } from "next/navigation.js";
+import { useSearchParams, usePathname } from "next/navigation.js";
 
 export function NavMain({
   items,
   title
 }) {
   const searchParams = useSearchParams()
-  const lang = searchParams.get("lang") || i18n.language || "en"
+  const lang = searchParams.get("lang") || "en"
   const isRtl = lang !== "en"
+  const pathname = usePathname() || '/'
 
   return (
     <SidebarGroup>
@@ -34,14 +36,28 @@ export function NavMain({
         {items.map((item, itemIndex) => {
           const isSimple = item?.['no-chv'] === true || item?.noChv === true;
 
+          // determine active state for this item
+          // - simple links (no-chv) should be active only on exact match
+          // - collapsible parents should be active on exact match or when any nested route starts with the parent url
+          const itemUrl = (item?.url && item.url !== '#') ? item.url : null
+          let itemActive = false
+          if (itemUrl) {
+            if (isSimple) {
+              itemActive = pathname === itemUrl
+            } else {
+              itemActive = pathname === itemUrl || pathname.startsWith(itemUrl + '/')
+            }
+          }
+
           if (isSimple) {
+            const simpleActiveClass = itemActive ? 'bg-go-bg-l-e text-go-primary-g font-semibold' : ''
             return (
               <SidebarMenuItem key={`${item.title ?? "item"}-${itemIndex}`}>
-                <SidebarMenuButton asChild>
-                  <a href={item.url}>
+                <SidebarMenuButton asChild isActive={itemActive} className={simpleActiveClass}>
+                    <Link href={item.url}>
                     {item.icon && <item.icon />}
                     <span>{item.title}</span>
-                  </a>
+                    </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             );
@@ -51,35 +67,40 @@ export function NavMain({
             <Collapsible
               key={`${item.title ?? "item"}-${itemIndex}`} // key فريد باستخدام العنوان + الايندكس
               asChild
-              defaultOpen={item.isActive}
+              defaultOpen={itemActive}
               className="group/collapsible">
               <SidebarMenuItem>
                 <CollapsibleTrigger asChild>
-                  <SidebarMenuButton tooltip={item.title}>
-                    {item.icon && <item.icon />}
-                    <span>{item.title}</span>
-{!isRtl?
-                    <ChevronRight
-                      className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-                      :
-                      <ChevronLeft
-                        className="mr-auto transition-transform duration-200 group-data-[state=open]/collapsible:-rotate-90" />
-                    }      
+                  <SidebarMenuButton asChild tooltip={item.title} isActive={itemActive} className={`${lang === 'en' ? 'text-left' : 'text-right'} ${itemActive ? 'bg-go-bg-l-e text-go-primary-g font-semibold' : ''}`}>
+                    <Link href={item.url} onClick={(e) => e.stopPropagation()} className="flex-1 inline-flex items-center gap-2">
+                      {item.icon && <item.icon />}
+                      <span>{item.title}</span>
+                      {console.log && console.log("NavMain active:", item.title, itemActive)}
+                      {!isRtl ? (
+                        <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                      ) : (
+                        <ChevronLeft className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:-rotate-90" />
+                      )}
+                    </Link>
             </SidebarMenuButton>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
-                  <SidebarMenuSub>
-                    {item.items?.map((subItem, subIndex) => (
-                      <SidebarMenuSubItem
-                        key={`${item.title ?? "item"}-${subItem.title ?? "sub"}-${subIndex}`} // key فريد للمجموعة الفرعية
-                      >
-                        <SidebarMenuSubButton asChild>
-                          <a href={subItem.url}>
-                            <span>{subItem.title}</span>
-                          </a>
-                        </SidebarMenuSubButton>
-                      </SidebarMenuSubItem>
-                    ))}
+                    <SidebarMenuSub lang={lang}>
+                    {item.items?.map((subItem, subIndex) => {
+                      const subUrl = (subItem?.url && subItem.url !== '#') ? subItem.url : null
+                      const subActive = subUrl ? pathname === subUrl : false
+                      return (
+                        <SidebarMenuSubItem rMenuSubItem
+                          key={`${item.title ?? "item"}-${subItem.title ?? "sub"}-${subIndex}`} // key فريد للمجموعة الفرعية
+                        >
+                            <SidebarMenuSubButton asChild isActive={subActive} className={subActive ? 'bg-go-bg-l-e text-go-primary-g font-semibold' : ''}>
+                              <Link href={subItem.url}>
+                              <span>{subItem.title}</span>
+                              </Link>
+                            </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      )
+                    })}
                   </SidebarMenuSub>
                 </CollapsibleContent>
               </SidebarMenuItem>

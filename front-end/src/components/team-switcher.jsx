@@ -25,10 +25,13 @@ export function TeamSwitcher({
   teams
 }) {
   const { isMobile } = useSidebar()
-  const [activeTeam, setActiveTeam] = React.useState(teams[0])
+  // Track active team by index so display updates when `teams` or language change
+  const [activeIndex, setActiveIndex] = React.useState(0)
+  const activeTeam = teams[activeIndex]
   const { t, i18n } = useTranslation(["sideBar"]);
   const searchParams = useSearchParams();
   const lang = searchParams.get("lang") || i18n.language || "en";
+  const isRtl = lang !== 'en'
   if (!activeTeam) {
     return null
   }
@@ -56,28 +59,32 @@ export function TeamSwitcher({
           </DropdownMenuTrigger>
           <DropdownMenuContent
             className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
-            align="start"
-            side={isMobile ? "bottom" : "right"}
+            align={isRtl ? 'end' : 'start'}
+            side={isMobile ? 'bottom' : (isRtl ? 'left' : 'right')}
             sideOffset={4}>
-            <DropdownMenuLabel className="text-xs text-muted-foreground">
+            <DropdownMenuLabel className={`text-xs text-muted-foreground ${lang === 'en' ? "text-left":"text-right" }`}>
               {t('teams')}
             </DropdownMenuLabel>
             {teams.map((team, index) => (
-              <DropdownMenuItem key={team.name} onClick={() => setActiveTeam(team)} className="gap-2 p-2">
+              <DropdownMenuItem
+                key={team.name}
+                onClick={() => setActiveIndex(index)}
+                className={`flex items-center gap-2 p-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
                 <div className="flex size-6 items-center justify-center rounded-sm border">
                   <team.logo className="size-4 shrink-0" />
                 </div>
-                {team.name}
+                <span className={`flex-1 truncate ${isRtl ? 'text-right' : 'text-left'}`}>
+                  {team.name}
+                </span>
                 <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="gap-2 p-2">
-              <div
-                className="flex size-6 items-center justify-center rounded-md border bg-background">
+            <DropdownMenuItem className={`flex items-center gap-2 p-2 ${isRtl ? 'flex-row-reverse' : ''}`}>
+              <div className="flex size-6 items-center justify-center rounded-md border bg-background">
                 <Plus className="size-4" />
               </div>
-              <div className="font-medium text-muted-foreground"> {t("add-team")}</div>
+              <div className={`font-medium text-muted-foreground ${isRtl ? 'text-right flex-1' : ''}`}> {t("add-team")}</div>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

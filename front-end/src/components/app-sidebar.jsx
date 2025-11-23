@@ -73,146 +73,146 @@ export function AppSidebar({
     navMain: [
       {
         title: t("divisions.follow-up.name"),
-        url: "#",
+        url: "/dashboard/divisions/followUp",
         icon: TbCheckupList,
         isActive: true,
         items: [
           {
             title:  t("divisions.follow-up.Departments.join"),
-            url: "#",
+            url: "/dashboard/divisions/followUp/join-requests",
           },
           {
             title: t("divisions.follow-up.Departments.order"),
-            url: "#",
+            url: "/dashboard/divisions/followUp/supplier-order-tracking",
           },
           {
             title: t("divisions.follow-up.Departments.purchase"),
-            url: "#",
+            url: "/dashboard/divisions/followUp/purchases",
           },
           {
             title: t("divisions.follow-up.Departments.complains"),
-            url: "#",
+            url: "/dashboard/divisions/followUp/complains",
           },
         ],
       },
       {
         title:  t("divisions.customer-service.name"),
-        url: "#",
+        url: "/dashboard/divisions/customer-service",
         icon: RiCustomerService2Line  ,
         items: [
           {
             title: t("divisions.customer-service.Departments.join"),
-            url: "#",
+            url: "/dashboard/divisions/customer-service/join-requests",
           },
           {
             title: t("divisions.customer-service.Departments.order"),
-            url: "#",
+            url: "/dashboard/divisions/customer-service/order-tracking",
           },
           {
             title: t("divisions.customer-service.Departments.complains"),
-            url: "#",
+            url: "/dashboard/divisions/customer-service/complains",
           },
         ],
       },
       {
         title:  t("divisions.receiving.name"),
-        url: "#",
+        url: "/dashboard/divisions/receiving-completion",
         icon: LuPackageCheck,
         items: [
           {
             title: t("divisions.receiving.Departments.receive"),
-            url: "#",
+            url: "/dashboard/divisions/receiving-completion/receive",
           },
           {
             title: t("divisions.receiving.Departments.returns"),
-            url: "#",
+            url: "/dashboard/divisions/receiving-completion/returns",
           },
           {
             title: t("divisions.receiving.Departments.complains"),
-            url: "#",
+            url: "/dashboard/divisions/receiving-completion/complains",
           },
         ],
       },
       {
         title:  t("divisions.shipping.name"),
-        url: "#",
+        url: "/dashboard/divisions/shipping",
         icon: LiaShippingFastSolid,
         items: [
           {
             title: t("divisions.shipping.Departments.order-delivery"),
-            url: "#",
+            url: "/dashboard/divisions/shipping/order-shipping",
           },
           {
             title: t("divisions.shipping.Departments.order-pickup"),
-            url: "#",
+            url: "/dashboard/divisions/shipping/order-pickup",
           },
           {
             title: t("divisions.shipping.Departments.complains"),
-            url: "#",
+            url: "/dashboard/divisions/shipping/complains",
           },
         ],
       },
       {
         title:  t("divisions.storage.name"),
-        url: "#",
+        url: "/dashboard/divisions/storage",
         icon: LuWarehouse,
         items: [
           {
             title: t("divisions.storage.Departments.process"),
-            url: "#",
+            url: "/dashboard/divisions/storage/process",
           },
           {
             title: t("divisions.storage.Departments.returns"),
-            url: "#",
+            url: "/dashboard/divisions/storage/returns",
           },
           {
             title: t("divisions.storage.Departments.complains"),
-            url: "#",
+            url: "/dashboard/divisions/storage/complains",
           },
         ],
       },
       {
         title:  t("divisions.accounting.name"),
-        url: "#",
+        url: "/dashboard/divisions/accounting",
         icon: TbReportMoney,
         items: [
           {
             title: t("divisions.accounting.Departments.receipts"),
-            url: "#",
+            url: "/dashboard/divisions/accounting/receipts",
           },
           {
             title: t("divisions.accounting.Departments.supplier-payment"),
-            url: "#",
+            url: "/dashboard/divisions/accounting/supplier-transactions",
           },
           {
             title: t("divisions.accounting.Departments.client-payment"),
-            url: "#",
+            url: "/dashboard/divisions/accounting/client-transactions",
           },
           {
             title: t("divisions.accounting.Departments.complains"),
-            url: "#",
+            url: "/dashboard/divisions/accounting/complains",
           },
         ],
       },
       {
         title:  t("divisions.marketing.name"),
-        url: "#",
+        url: "/dashboard/divisions/marketing",
         icon: LuMessageSquareWarning,
         items: [
           {
             title: t("divisions.marketing.Departments.general"),
-            url: "#",
+            url: "/dashboard/divisions/marketing/general",
           },
         ],
       },
       {
         title:  t("divisions.complains.name"),
-        url: "#",
+        url: "/dashboard/divisions/complains",
         icon: TbBrandGoogleAnalytics,
         items: [
           {
             title: t("divisions.complains.Departments.general"),
-            url: "#",
+            url: "/dashboard/divisions/complains/general",
           },
         ],
       },
@@ -220,7 +220,7 @@ export function AppSidebar({
     projects: [
       {
         name:  t("platform.dashboard"),
-        url: "#",
+        url: "/dashboard",
         icon: TbLayoutDashboardFilled,
         'no-chv': true
       },
@@ -229,11 +229,26 @@ export function AppSidebar({
         url: "#",
         icon: LuSettings2,
               items:[
-          {title:t("platform.Management.tabs.employees"),url:"#"},
-          {title:t("platform.Management.tabs.suppliers"),url:"#"},
-          {title:t("platform.Management.tabs.clients"),url:"#"},
-          {title:t("platform.Management.tabs.products"),url:"#"},
-          {title:t("platform.Management.tabs.branches"),url:"#"},
+          {
+            title:t("platform.Management.tabs.employees"),
+            url:"/dashboard/management/employees"
+          },
+          {
+            title:t("platform.Management.tabs.suppliers"),
+            url:"/dashboard/management/suppliers"
+          },
+          {
+            title:t("platform.Management.tabs.clients"),
+            url:"/dashboard/management/clients"
+          },
+          {
+            title:t("platform.Management.tabs.products"),
+            url:"/dashboard/management/products"
+          },
+          {
+            title:t("platform.Management.tabs.branches"),
+            url:"/dashboard/management/branches"
+          },
         ]
       },
     ],
@@ -251,7 +266,7 @@ export function AppSidebar({
       : undefined,
   }))
   return (
-    <div dir={isRtl ? "rtl" : "ltr"} className={isRtl ? "text-right" : "text-left"}>
+    <div dir={isRtl ? "rtl" : "ltr"} className={isRtl ? "text-right font-honor" : "text-left font-figtree"}>
       <Sidebar
         // لو الـ Sidebar component بيسمح بتمرير className / style فممكن نضيف direction كمان
         {...props}

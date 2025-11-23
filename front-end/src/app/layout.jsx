@@ -3,17 +3,60 @@ import "./globals.css";
 import Providers from "@/providers/providers-wrapper.jsx";
 import { cookies } from "next/headers.js";
 import LanguageProvider from "@/providers/languageProvider.js";
-import { SidebarRunner } from "@/components/ui/common/sideBarRunner.jsx";
+import localFont from "next/font/local";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+// const geistSans = Geist({
+//   variable: "--font-geist-sans",
+//   subsets: ["latin"],
+// });
+
+// const geistMono = Geist_Mono({
+//   variable: "--font-geist-mono",
+//   subsets: ["latin"],
+// });
+
+const figtreeRegular = localFont({
+  src: "../fonts/Figtree-Regular.ttf",
+  variable: "--font-figtree",
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+const hacen = localFont({
+  src: "../fonts/alfont_com_Hacen-Tunisia.ttf",
+  variable: "--font-hacen",
+  display: "swap",
 });
+
+const lemands = localFont({
+  src: "../fonts/LemandsBold-DOXAm.ttf",
+  variable: "--font-lemands",
+  display: "swap",
+});
+
+const honor = localFont({
+  src: "../fonts/HONORSansArabicUI-R.ttf",
+  variable: "--font-honor",
+  display: "swap",
+});
+
+const bavistage = localFont({
+  src: "../fonts/bavistage-rpewe.otf",
+  variable: "--font-bavistage",
+  display: "swap",
+});
+
+const ibm = localFont({
+  src: "../fonts/IBMPlexSansArabic-Regular.ttf",
+  variable: "--font-ibm",
+  display: "swap",
+});
+
+const roboto = localFont({
+  src: "../fonts/RobotoFlex-VariableFont_GRAD,XOPQ,XTRA,YOPQ,YTAS,YTDE,YTFI,YTLC,YTUC,opsz,slnt,wdth,wght.ttf",
+  variable: "--font-roboto",
+  display: "swap",
+});
+
 
 export const metadata = {
   title: "Go-GetOffer Management App",
@@ -27,15 +70,12 @@ export default async function RootLayout({ children }) {
   const lang = cookieStore.get('Next-i18next')?.value || 'en';
   const dir = lang === 'ar' ? 'rtl' : 'ltr';
 
-
   return (
     <html lang={lang} dir={dir} key={lang} suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
+      <body  className={` ${lang == 'ar' ? 'font-honor' : 'font-figtree'} ${figtreeRegular.variable} ${lemands.variable} ${hacen.variable} ${honor.variable} ${bavistage.variable} ${ibm.variable} ${roboto.variable} antialiased`}>
         <LanguageProvider defaultLang={lang}>
           <Providers>
-            <SidebarRunner>
             {children}
-            </SidebarRunner>
             </Providers>
         </LanguageProvider>
       </body>

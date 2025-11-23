@@ -8,12 +8,25 @@ module.exports = {
 	],
 	theme: {
 		extend: {
+			fontFamily: {
+				figtree: ['var(--font-figtree)'],
+				lemands: ['var(--font-lemands)'],
+				hacen: ['var(--font-hacen)'],
+				honor: ['var(--font-honor)'],
+				bavistage: ['var(--font-bavistage)'],
+				ibmPlex: ['var(--font-ibm)'],
+				roboto: ['var(--font-roboto)']
+			},
 			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)'
 			},
 			colors: {
+				// Custom Go-GetOffer color tokens mapped to CSS variables
+				"go-primary-g": "rgb(var(--go-primary-g) / <alpha-value>)",
+				"go-bg-l-e": "rgb(var(--go-bg-l-e) / <alpha-value>)",
+				
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				card: {

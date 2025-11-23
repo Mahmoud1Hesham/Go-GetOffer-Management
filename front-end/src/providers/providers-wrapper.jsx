@@ -8,11 +8,16 @@ import RouteGuard from "@/app/services/routeGaurd.js";
 const queryClient = new QueryClient();
 
 export default function Providers({ children }) {
+
+
+
+
     return (
         <ReduxProvider store={store}>
             <QueryClientProvider client={queryClient}>
                 {/* <RouteGuard> */}
-                    {children}
+
+                {children}
                 {/* </RouteGuard> */}
             </QueryClientProvider>
         </ReduxProvider>

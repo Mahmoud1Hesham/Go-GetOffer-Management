@@ -82,3 +82,50 @@
     @apply bg-background text-foreground;
   }
 }
+
+:root {
+    --go-primary-e: 24 201 192;   /* #18C9C0 */
+    --go-primary-g: 26 86 98;   /* #1A5662 */
+    --go-primary-o: 247 181 59; 
+    --go-primary-cancel: 128 0 0;   /* #F7B53B */
+    --go-bg-l-e: 232 252 251;
+    --go-bg-d-e: 16 137 131;
+    --go-bg-l-gr: 250 249 246;
+    --go-bg-l-g: 253 237 206;
+    --go-bg-l-b: 11 35 40;
+    --go-blog-p: 209 250 248;
+    --land-cards-gap: 29px;
+    --badge-txt-size: 28px;
+    --badge-txt-weight: 600;
+    --badge-padding: 14px 24px;
+    --font-figtree: 'figtree', sans-serif;
+    --font-lemands: 'lemands', sans-serif;
+    --font-hacen: 'hacen', sans-serif;
+    --font-honor: 'honor', sans-serif;
+    --font-bavistage: 'bavistage', sans-serif;
+    --font-ibm : 'ibm-plex', sans-serif;
+    --font-roboto : 'roboto' , sans-serif;
+    --breakpoint-xs: 25rem;
+}
+
+
+@theme inline {
+  --color-go-primary-e: rgb(var(--go-primary-e) / 1);
+  --color-go-primary-g: rgb(var(--go-primary-g) / 1);
+  --color-go-primary-o: rgb(var(--go-primary-o) / 1);
+  --color-go-primary-cancel: rgb(var(--go-primary-cancel) / 1);
+  --color-go-background-gr: rgb(var(--go-bg-l-gr) / 1);
+  --color-go-background-e: rgb(var(--go-bg-l-e) / 1);
+  --color-go-background-d-e: rgb(var(--go-bg-d-e) / 1);
+  --color-go-background-g: rgb(var(--go-bg-l-g) / 1);
+  --color-go-background-b: rgb(var(--go-bg-l-b) / 1);
+  --color-go-blog-p: rgb(var(--go-blog-p) / 1);
+  --font-figtree: var(--font-figtree);
+  --font-lemands: var(--font-lemands);
+  --font-hacen: var(--font-hacen);
+  --font-honor: var(--font-honor);
+  --font-bavistage: var(--font-bavistage);
+  --font-ibm : var(--font-ibm);
+  --font-roboto : var(--font-roboto)
+  
+}

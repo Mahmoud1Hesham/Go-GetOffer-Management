@@ -1,16 +1,11 @@
-import RouteGuard from "../services/routeGaurd.js";
+import { SidebarRunner } from "@/components/ui/common/sideBarRunner.jsx";
 
 export default function DashboardLayout({ children }) {
     return (
-        <div className="flex">
-            <aside className="w-64 bg-gray-200">
-                Sidebar placeholder
-            </aside>
-            <main className="flex-1">
-                <RouteGuard>
-                {children}  
-                </RouteGuard>
-            </main>
-        </div>
+        <main className="w-full">
+            <SidebarRunner>
+                {children}
+            </SidebarRunner>
+        </main>
     );
 }
