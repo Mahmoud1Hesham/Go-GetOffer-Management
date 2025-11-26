@@ -31,10 +31,10 @@
             }
         },
         "shipping": {
-            "name": "Shipping",
+            "name": "Shipping Management",
             "Departments": {
                 "order-delivery": "Order Shipping",
-                "order-pickup": "Order PickUp",
+                "order-pickup": "Order Pickup",
                 "complains":"Complains"
             }
         },
@@ -81,5 +81,9 @@
                 "branches": "Branches"
             }
         }
+    },
+    "user-menu":{
+        "change-password":"Change Password",
+        "logout":"Logout"
     }
 }

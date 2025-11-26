@@ -6,10 +6,10 @@
     "divisions": {
         "sec-name": "الأقسام",
         "follow-up": {
-            "name": "المشتريات والمتابعات",
+            "name": "المشتريات والمتابعة",
             "Departments": {
                 "join": "طلبات الانضمام",
-                "order": "تتبع الطلبات",
+                "order": "تتبع طلبات الموردين",
                 "purchase": "المشتريات",
                 "complains":"الشكاوي"
             }
@@ -18,7 +18,7 @@
             "name": "خدمة العملاء",
             "Departments": {
                 "join": "طلبات الانضمام",
-                "order": "تتبع الطلبات",
+                "order": "تتبع طلبات العملاء",
                 "complains":"الشكاوي"
             }
         },
@@ -41,7 +41,7 @@
         "storage": {
             "name": "المخزن",
             "Departments": {
-                "process": "المعالجه",
+                "process": "المعالجة",
                 "returns": "المرتجعات",
                 "complains":"الشكاوي"
             }
@@ -81,5 +81,9 @@
                 "branches": "الفروع"
             }
         }
+    },
+    "user-menu":{
+        "change-password":"تغيير كلمة المرور",
+        "logout":"تسجيل الخروج"
     }
 }

@@ -12,6 +12,7 @@ import {
     BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
 import Spinner from '../spinner/spinner.jsx'
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 
 export default function DynamicBreadcrumb({
     enLabelsMap = {},
@@ -23,6 +24,8 @@ export default function DynamicBreadcrumb({
     homeLabelAr = "الرئيسية",
     showHome = true,
     className = '',
+    // segments that should be shown as plain text (not links). default contains requested ones
+    nonLinkSegments = ['divisions', 'management'],
 }) {
     const pathname = usePathname() || '/'
 
@@ -51,6 +54,15 @@ export default function DynamicBreadcrumb({
         })
         return arr
     }, [segments, homeLabel, showHome])
+
+    const nonLinkSet = useMemo(() => new Set((nonLinkSegments || []).map(s => String(s).toLowerCase())), [nonLinkSegments])
+
+    // normalize paths (remove trailing slashes) for exact comparison
+    const normalize = (p) => {
+        if (!p) return ''
+        if (p === '/') return '/'
+        return p.replace(/\/+$|\/+$/g, '')
+    }
 
     function findLabelForHref(href, segment) {
         if (labelsMap[href]) return { label: labelsMap[href] }
@@ -88,6 +100,10 @@ export default function DynamicBreadcrumb({
             <Breadcrumb lang={lang}>
                 <BreadcrumbList>
                     {crumbs.map((c, idx) => {
+                        const currentPath = normalize(pathname)
+                        const hrefPath = normalize(c.href)
+                        const isExactMatch = hrefPath === currentPath
+                        const isNonLinkSegment = !!(c.segment && nonLinkSet.has(String(c.segment).toLowerCase()))
                         const found = findLabelForHref(c.href, c.segment)
                         let label = found.label
                         let showSpinner = false
@@ -105,10 +121,24 @@ export default function DynamicBreadcrumb({
                         return (
                             <React.Fragment key={`bc-${idx}-${c.href}`}>
                                 <BreadcrumbItem>
-                                    {c.isLast ? (
-                                        <BreadcrumbPage>
-                                            {showSpinner ? <Spinner/> : label}
-                                        </BreadcrumbPage>
+                                    {(c.isLast || isExactMatch || isNonLinkSegment) ? (
+                                        // For non-link segments we still want to show a tooltip on hover.
+                                        isNonLinkSegment ? (
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <BreadcrumbPage>
+                                                        {showSpinner ? <Spinner/> : label}
+                                                    </BreadcrumbPage>
+                                                </TooltipTrigger>
+                                                <TooltipContent side="bottom">
+                                                    {label}
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        ) : (
+                                            <BreadcrumbPage>
+                                                {showSpinner ? <Spinner/> : label}
+                                            </BreadcrumbPage>
+                                        )
                                     ) : (
                                         <BreadcrumbLink asChild>
                                             <Link href={c.href}>

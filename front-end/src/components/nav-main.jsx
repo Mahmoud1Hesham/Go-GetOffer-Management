@@ -53,7 +53,8 @@ export function NavMain({
             const simpleActiveClass = itemActive ? 'bg-go-bg-l-e text-go-primary-g font-semibold' : ''
             return (
               <SidebarMenuItem key={`${item.title ?? "item"}-${itemIndex}`}>
-                <SidebarMenuButton asChild isActive={itemActive} className={simpleActiveClass}>
+                {/* Pass tooltip so simple (no-chv) items still show tooltips when sidebar is collapsed */}
+                <SidebarMenuButton asChild isActive={itemActive} className={simpleActiveClass} tooltip={item.title}>
                     <Link href={item.url}>
                     {item.icon && <item.icon />}
                     <span>{item.title}</span>
