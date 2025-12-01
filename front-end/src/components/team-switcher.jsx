@@ -30,7 +30,7 @@ export function TeamSwitcher({
   const activeTeam = teams[activeIndex]
   const { t, i18n } = useTranslation(["sideBar"]);
   const searchParams = useSearchParams();
-  const lang = searchParams.get("lang") || i18n.language || "en";
+  const lang = searchParams.get("lang") || i18n.language || "ar";
   const isRtl = lang !== 'en'
   if (!activeTeam) {
     return null

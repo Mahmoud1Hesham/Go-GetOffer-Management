@@ -29,7 +29,7 @@ i18n
                 test:arTest,sideBar:arSideBar
             }
         },
-        fallbackLng: "en",
+        fallbackLng: "ar",
         interpolation: {
             escapeValue: false,
         },

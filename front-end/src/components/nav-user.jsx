@@ -36,7 +36,7 @@ export function NavUser({
   // Use explicit namespace string to avoid ambiguity
   const { t, i18n } = useTranslation('sideBar');
   const searchParams = useSearchParams();
-  const lang = searchParams.get("lang") || i18n.language || "en";
+  const lang = searchParams.get("lang") || i18n.language || "ar";
   const isRtl = lang !== "en";
 
 

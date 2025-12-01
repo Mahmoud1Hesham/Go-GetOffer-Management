@@ -1,0 +1,340 @@
+'use client';
+import React, { useEffect, useMemo, useState } from 'react';
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import {
+    SortableContext,
+    useSortable,
+    verticalListSortingStrategy,
+    arrayMove
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { HiBars3, HiChevronDown, HiChevronLeft, HiChevronRight } from 'react-icons/hi2';
+
+/* shadcn components (عدل المسارات لو عندك structure مختلف) */
+import { Checkbox } from '@/components/ui/checkbox';
+import { Avatar } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+
+/* ---------- SortableRow ---------- */
+function SortableRow({ id, children }) {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging
+    } = useSortable({ id });
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        zIndex: isDragging ? 50 : 'auto'
+    };
+    return (
+        <div ref={setNodeRef} style={style} className="bg-white">
+            <div className="flex items-stretch">
+                <div className="px-2 flex items-center">
+                    <button
+                        {...attributes}
+                        {...listeners}
+                        className="p-2 rounded hover:bg-gray-100"
+                        aria-label="drag-handle"
+                    >
+                        <HiBars3 size={18} />
+                    </button>
+                </div>
+                <div className="flex-1">{children}</div>
+            </div>
+        </div>
+    );
+}
+
+/**
+ * DataTable props:
+ * - columns: [{ key, title, span? (1..12), render?(row) }]
+ * - data: array of rows [{ id, ... }]
+ * - pageSizeOptions: [5,10,20]
+ * - initialPageSize
+ * - totalRows (optional) -> for server pagination show total count
+ * - onPageChange(pageIndex, pageSize)
+ * - onSelectionChange(selectedIds)
+ * - onOrderChange(newRows)  // full rows array after reordering (local)
+ */
+export default function DataTable({
+    columns = [],
+    data = [],
+    pageSizeOptions = [5, 10, 20],
+    initialPageSize = 5,
+    totalRows = null,
+    onPageChange,
+    onSelectionChange,
+    onOrderChange
+}) {
+    const [rows, setRows] = useState(() => data);
+    const [selected, setSelected] = useState(new Set());
+    const [pageIndex, setPageIndex] = useState(0);
+    const [pageSize, setPageSize] = useState(initialPageSize);
+
+    useEffect(() => setRows(data), [data]);
+    useEffect(() => { onSelectionChange && onSelectionChange(Array.from(selected)); }, [selected]);
+    useEffect(() => { onOrderChange && onOrderChange(rows); }, [rows]);
+
+    // Pagination values
+    const total = totalRows ?? rows.length;
+    const pageCount = Math.max(1, Math.ceil(total / pageSize));
+    useEffect(() => { if (pageIndex >= pageCount) setPageIndex(pageCount - 1); }, [pageCount]);
+
+    // Dnd sensors
+    const sensors = useSensors(useSensor(PointerSensor));
+
+    // derived: rows to display on this page (client-side)
+    const start = pageIndex * pageSize;
+    const end = start + pageSize;
+    const pageRows = rows.slice(start, end);
+
+    const allSelected = pageRows.length > 0 && pageRows.every(r => selected.has(r.id));
+
+    function toggleSelectAll() {
+        setSelected(prev => {
+            const next = new Set(prev);
+            if (allSelected) {
+                pageRows.forEach(r => next.delete(r.id));
+            } else {
+                pageRows.forEach(r => next.add(r.id));
+            }
+            return next;
+        });
+    }
+
+    function toggleRow(id) {
+        setSelected(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id); else next.add(id);
+            return next;
+        });
+    }
+
+    function handleDragEnd(event) {
+        const { active, over } = event;
+        if (!over) return;
+        if (String(active.id) === String(over.id)) return;
+
+        // indices in rows array
+        const oldIndex = rows.findIndex(r => String(r.id) === String(active.id));
+        const newIndex = rows.findIndex(r => String(r.id) === String(over.id));
+        if (oldIndex === -1 || newIndex === -1) return;
+
+        const newRows = arrayMove(rows, oldIndex, newIndex);
+        setRows(newRows);
+    }
+
+    // Tailwind needs literal class names; avoid building dynamic `col-span-${span}` strings.
+    const spanClass = {
+        1: 'col-span-1', 2: 'col-span-2', 3: 'col-span-3', 4: 'col-span-4',
+        5: 'col-span-5', 6: 'col-span-6', 7: 'col-span-7', 8: 'col-span-8',
+        9: 'col-span-9', 10: 'col-span-10', 11: 'col-span-11', 12: 'col-span-12'
+    };
+
+    function cellClass(key, span, width) {
+        const spanCls = spanClass[span] || 'col-span-2';
+        const base = `${spanCls} relative text-sm flex items-center justify-center ${width ?? ""}`;
+        if (key === 'code') return `${base} px-2 py-1 text-sm`; // compact
+        if (key === 'badge' || key === 'coloredBadge') return `${base} px-2 py-1 text-xs`; // compact badge
+        if (key === 'date') return `${base} px-2 py-1 text-sm`; // compact
+        if (key === 'avatar') return `${base} px-2 py-1 gap-3 justify-center`; // center avatar
+        if (key === 'actions') return `${base} px-2 py-1 justify-center`; // center actions
+        return `${base} px-3 py-2`; // default
+    }
+
+    // pagination controls
+    const gotoFirst = () => setPageIndex(0);
+    const gotoPrev = () => setPageIndex(p => Math.max(0, p - 1));
+    const gotoNext = () => setPageIndex(p => Math.min(pageCount - 1, p + 1));
+    const gotoLast = () => setPageIndex(pageCount - 1);
+    useEffect(() => { onPageChange && onPageChange(pageIndex, pageSize); }, [pageIndex, pageSize]);
+
+    return (
+        <div className="w-full">
+            {/* Top bar: selection count (select-all moved to table header) */}
+            {/* Table wrapper: single rounded border containing header + rows */}
+            <div className="rounded-md border overflow-hidden">
+                {/* Header row (as a normal row) */}
+                <div className="bg-gray-50">
+                    <div className="flex items-center gap-0 px-2 py-1 mr-4">
+                        {/* placeholder above drag-handle - mirror row drag-handle width */}
+                        <div className="px-0 flex items-center">
+                            <div className="px-1 flex items-center">
+                                <button className="p-2 opacity-0" aria-hidden="true" aria-label="drag-handle-placeholder" />
+                            </div>
+                        </div>
+                        <div className=" grid grid-cols-12 items-center">
+                            {columns.map((col, idx) => {
+                                const span = col.span ?? 2;
+                                const title = col.title ?? '';
+                                const style = col.width ? { width: col.width, minWidth: col.width, maxWidth: col.width } : undefined;
+                                if (col.key === 'checkbox') {
+                                    return (
+                                        <div key={col.key} className={cellClass(col.key, span)} style={style}>
+                                            <div className="flex justify-center items-center gap-2 w-full">
+                                                <div className="text-xs flex items-center">
+                                                <Checkbox checked={allSelected} onCheckedChange={toggleSelectAll} aria-label="select-all" />
+                                                    <span className='ml-1 mr-2'>{Array.from(selected).length}</span>
+                                                    <span> إختيار</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                }
+                                return (
+                                    <div key={col.key} className={cellClass(col.key, span)} style={style}>
+                                        <div className="text-xs font-medium text-center w-full">{title}</div>
+                                        {idx < columns.length && <div className="absolute right-0 top-1/2 transform -translate-y-1/2 h-6 w-px bg-gray-200" />}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Rows list */}
+                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                    <SortableContext items={pageRows.map(r => String(r.id))} strategy={verticalListSortingStrategy}>
+                        <div className="space-y-0">
+                            {pageRows.map((row) => (
+                                <SortableRow key={row.id} id={String(row.id)}>
+                                    {/* Accordion: trigger wraps the visible row */}
+                                    <Accordion type="single" collapsible>
+                                        <AccordionItem value={String(row.id)}>
+                                            {/* Trigger = whole row header */}
+                                            <AccordionTrigger>
+                                                <div className="flex items-center gap-0 px-2 py-1 cursor-pointer ">
+                                                    {/* checkbox near avatar area (you can move by column order) */}
+                                                    {/* We'll render columns in the given order */}
+                                                    <div className="flex-1 grid grid-cols-12  items-center">
+                                                        {columns.map((col, idx) => {
+                                                            const span = col.span ?? 2;
+                                                            const key = col.key;
+                                                            const content = col.render ? col.render(row) : (row[key] ?? '');
+
+                                                            // Use centered and compact classes via helper
+                                                            const cls = cellClass(key, span);
+
+                                                            const style = col.width ? { width: col.width, minWidth: col.width, maxWidth: col.width } : undefined;
+
+
+                                                            if (key === 'checkbox') {
+                                                                return (
+                                                                    <div key={key} className={cls} style={style}>
+                                                                        <Checkbox checked={selected.has(row.id)} onCheckedChange={() => toggleRow(row.id)} />
+                                                                    </div>
+                                                                );
+                                                            }
+
+                                                            if (key === 'avatar') {
+                                                                return (
+                                                                    <div key={key} className={cls} style={style}>
+                                                                        {content}
+                                                                        {idx < columns.length - 1 && <div className="absolute right-0 top-1/2 transform -translate-y-1/2 h-6 w-px bg-gray-200" />}
+                                                                    </div>
+                                                                );
+                                                            }
+
+                                                            if (key === 'actions') {
+                                                                return (
+                                                                    <div key={key} className={cls} style={style}>
+                                                                        {content || (
+                                                                            <DropdownMenu>
+                                                                                <DropdownMenuTrigger asChild>
+                                                                                    <Button size="sm" variant="ghost">إجراءات</Button>
+                                                                                </DropdownMenuTrigger>
+                                                                                <DropdownMenuContent align="end">
+                                                                                    <DropdownMenuItem onClick={() => console.log('view', row.id)}>عرض</DropdownMenuItem>
+                                                                                    <DropdownMenuItem onClick={() => console.log('edit', row.id)}>تعديل</DropdownMenuItem>
+                                                                                    <DropdownMenuItem onClick={() => console.log('delete', row.id)}>حذف</DropdownMenuItem>
+                                                                                </DropdownMenuContent>
+                                                                            </DropdownMenu>
+                                                                        )}
+                                                                        {idx < columns.length  && <div className="absolute right-0 top-1/2 transform -translate-y-1/2 h-6 w-px bg-gray-200" />}
+                                                                    </div>
+                                                                );
+                                                            }
+
+                                                            // default
+                                                            // ensure badge-like cells don't wrap
+                                                            if (key === 'badge' || key === 'coloredBadge') {
+                                                                return (
+                                                                    <div key={key} className={cls} style={style}>
+                                                                        <div className="truncate w-full text-center">{content}</div>
+                                                                        {idx < columns.length - 1 && <div className="absolute right-0 top-1/2 transform -translate-y-1/2 h-6 w-px bg-gray-200" />}
+                                                                    </div>
+                                                                );
+                                                            }
+
+                                                            return (
+                                                                <div key={key} className={cls} style={style}>
+                                                                    {content}
+                                                                    {idx < columns.length - 1 && <div className="absolute right-0 top-1/2 transform -translate-y-1/2 h-6 w-px bg-gray-200" />}
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+                                            </AccordionTrigger>
+
+                                            {/* Accordion content */}
+                                            <AccordionContent className="px-6 pb-4 pt-0 border-t">
+                                                {/* If a 'details' column render exists use it, else default info */}
+                                                {(columns.find(c => c.key === 'details')?.render)
+                                                    ? columns.find(c => c.key === 'details').render(row)
+                                                    : (
+                                                        <div className="text-sm text-muted-foreground">
+                                                            {/* <div><strong>ID:</strong> {row.id}</div> */}
+                                                            <div className="mt-1"><strong>Notes:</strong> {row.notes ?? '-'}</div>
+                                                        </div>
+                                                    )
+                                                }
+                                            </AccordionContent>
+                                        </AccordionItem>
+                                    </Accordion>
+                                </SortableRow>
+                            ))}
+                        </div>
+                    </SortableContext>
+                </DndContext>
+
+            </div>
+
+            {/* Pagination footer */}
+            <div className="flex items-center justify-between mt-4">
+                <div className="flex items-center gap-3">
+                    <div className="text-sm">Rows per page</div>
+                    <Select value={String(pageSize)} onValueChange={(v) => { setPageSize(Number(v)); setPageIndex(0); }}>
+                        <SelectTrigger className="w-20">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {pageSizeOptions.map(opt => <SelectItem key={opt} value={String(opt)}>{opt}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                <div className="flex items-center gap-2">
+                    <div className="text-sm">
+                        {Math.min(start + 1, total)} - {Math.min(end, total)} of {total}
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <Button size="sm" variant="ghost" onClick={gotoFirst} disabled={pageIndex === 0}>|&lt;</Button>
+                        <Button size="sm" variant="ghost" onClick={gotoPrev} disabled={pageIndex === 0}><HiChevronLeft /></Button>
+                        <Button size="sm" variant="ghost" onClick={gotoNext} disabled={pageIndex >= pageCount - 1}><HiChevronRight /></Button>
+                        <Button size="sm" variant="ghost" onClick={gotoLast} disabled={pageIndex >= pageCount - 1}>&gt;|</Button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}

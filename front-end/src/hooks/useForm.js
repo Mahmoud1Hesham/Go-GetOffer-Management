@@ -8,7 +8,7 @@ export default function useForm(initialValues, validationSchema, onSubmit) {
     const [touched, setTouched] = useState({});
     // const { openModal } = useModal();
     const searchParams = useSearchParams();
-    const lang = searchParams.get("lang") || i18n.language || "en";
+    const lang = searchParams.get("lang") || (typeof i18n !== 'undefined' && i18n?.language) || "ar";
 
     const handleChange = async (e) => {
         const { name, value } = e.target;

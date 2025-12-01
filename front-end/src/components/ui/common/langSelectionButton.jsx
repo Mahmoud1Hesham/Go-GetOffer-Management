@@ -11,7 +11,7 @@ export default function LanguageToggler() {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
-    const lang = searchParams.get("lang") || i18n.language || "en";
+    const lang = searchParams.get("lang") || i18n.language || "ar";
     // Sync RTL on client
     useEffect(() => {
         document.documentElement.dir = i18n.language === "ar" ? "rtl" : "ltr";

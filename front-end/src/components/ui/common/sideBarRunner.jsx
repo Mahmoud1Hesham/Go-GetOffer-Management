@@ -14,7 +14,7 @@ import { useSearchParams } from "next/navigation.js"
 
 export function SidebarRunner({ children }) {
     const searchParams = useSearchParams()
-    const lang = searchParams.get("lang") || i18n.language || "en"
+    const lang = searchParams.get("lang") || (typeof i18n !== 'undefined' && i18n?.language) || "ar"
 
     return (
         <SidebarProvider>
@@ -22,7 +22,7 @@ export function SidebarRunner({ children }) {
                 <AppSidebar />
 
                 <SidebarInset>
-                    <div className="flex items-center gap-2 px-4 py-5 mb-4">
+                    <div className="flex items-center gap-2 px-4 py-5">
                         <SidebarTrigger className="-ml-1" />
                         <Separator orientation="vertical" className="mr-2 h-4" />
                         <DynamicBreadcrumb

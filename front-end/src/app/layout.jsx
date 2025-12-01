@@ -67,7 +67,7 @@ export default async function RootLayout({ children }) {
 
   // Get language from cookies on server side
   const cookieStore = await cookies();
-  const lang = cookieStore.get('Next-i18next')?.value || 'en';
+  const lang = cookieStore.get('Next-i18next')?.value || 'ar';
   const dir = lang === 'ar' ? 'rtl' : 'ltr';
 
   return (
