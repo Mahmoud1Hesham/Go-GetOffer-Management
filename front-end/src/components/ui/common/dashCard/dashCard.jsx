@@ -16,7 +16,7 @@ export default function DashCard({
                     <span className="text-xs text-slate-500">{title}</span>
                     <div className="flex items-center gap-2 mt-1">
                         <div className="text-3xl font-semibold">{value}</div>
-                        {unit && <div className="text-3xl mb-2 text-slate-500">{unit}</div>}
+                        {unit && <div className="text-3xl mb-2 ">{unit}</div>}
                     </div>
                 </div>
                 {/* icon + title */}

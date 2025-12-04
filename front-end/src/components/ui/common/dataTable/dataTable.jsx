@@ -8,9 +8,9 @@ import {
     arrayMove
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { HiBars3, HiChevronDown, HiChevronLeft, HiChevronRight } from 'react-icons/hi2';
+import { MdDragIndicator } from "react-icons/md";
+import { HiChevronLeft, HiChevronRight } from 'react-icons/hi2';
 
-/* shadcn components (عدل المسارات لو عندك structure مختلف) */
 import { Checkbox } from '@/components/ui/checkbox';
 import { Avatar } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -18,6 +18,9 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { ChevronDown } from 'lucide-react';
+
+
 
 /* ---------- SortableRow ---------- */
 function SortableRow({ id, children }) {
@@ -35,7 +38,7 @@ function SortableRow({ id, children }) {
         zIndex: isDragging ? 50 : 'auto'
     };
     return (
-        <div ref={setNodeRef} style={style} className="bg-white">
+        <div ref={setNodeRef} style={style} className={`${isDragging ? 'bg-gray-100 animate-pulse duration-400' : ''}`}>
             <div className="flex items-stretch">
                 <div className="px-2 flex items-center">
                     <button
@@ -44,7 +47,7 @@ function SortableRow({ id, children }) {
                         className="p-2 rounded hover:bg-gray-100"
                         aria-label="drag-handle"
                     >
-                        <HiBars3 size={18} />
+                        <MdDragIndicator size={18} />
                     </button>
                 </div>
                 <div className="flex-1">{children}</div>
@@ -72,7 +75,11 @@ export default function DataTable({
     totalRows = null,
     onPageChange,
     onSelectionChange,
-    onOrderChange
+    onOrderChange,
+    // detailsComponentMap: { [typeName]: Component }
+    detailsComponentMap = {},
+    // key on row that identifies type, default 'type'
+    rowTypeKey = 'type'
 }) {
     const [rows, setRows] = useState(() => data);
     const [selected, setSelected] = useState(new Set());
@@ -132,22 +139,69 @@ export default function DataTable({
         setRows(newRows);
     }
 
-    // Tailwind needs literal class names; avoid building dynamic `col-span-${span}` strings.
-    const spanClass = {
-        1: 'col-span-1', 2: 'col-span-2', 3: 'col-span-3', 4: 'col-span-4',
-        5: 'col-span-5', 6: 'col-span-6', 7: 'col-span-7', 8: 'col-span-8',
-        9: 'col-span-9', 10: 'col-span-10', 11: 'col-span-11', 12: 'col-span-12'
-    };
+    // Helper to compute Tailwind width classes for specific columns.
+    function getColClass(col) {
+        const defaultFixed = 'w-[155px] min-w-[155px] max-w-[155px]';
 
-    function cellClass(key, span, width) {
-        const spanCls = spanClass[span] || 'col-span-2';
-        const base = `${spanCls} relative text-sm flex items-center justify-center ${width ?? ""}`;
+        function normalizeWidth(w) {
+            if (w == null) return null;
+            if (typeof w === 'number') return `${w}px`;
+            const s = String(w).trim();
+            if (/^\d+$/.test(s)) return `${s}px`; // numeric string -> px
+            return s; // assume user passed '120px' or '20%'
+        }
+
+        if (col && col.width !== undefined && col.width !== null) {
+            const w = normalizeWidth(col.width);
+            if (w) return `w-[${w}] min-w-[${w}] max-w-[${w}]`;
+        }
+
+        if (col && col.title && String(col.title).trim() === 'اسم الكيان') {
+            return defaultFixed;
+        }
+
+        return 'flex-1';
+    }
+
+    function getColStyle(col) {
+        function normalizeWidth(w) {
+            if (w == null) return null;
+            if (typeof w === 'number') return `${w}px`;
+            const s = String(w).trim();
+            if (/^\d+$/.test(s)) return `${s}px`;
+            return s;
+        }
+
+        if (col && col.width !== undefined && col.width !== null) {
+            const w = normalizeWidth(col.width);
+            if (w) return { width: w, minWidth: w, maxWidth: w };
+        }
+
+        if (col && col.title && String(col.title).trim() === 'اسم الكيان') {
+            const w = '155px';
+            return { width: w, minWidth: w, maxWidth: w };
+        }
+        if (col && col.title && String(col.title).trim() === 'الفرع الرئيسى') {
+            const w = '180px';
+            return { width: w, minWidth: w, maxWidth: w };
+        }
+
+        return undefined;
+    }
+
+    function cellClass(key, widthCls) {
+        if (key === 'checkbox') {
+            return `relative flex items-center justify-center w-6`;
+        }
+        // If widthCls is a fixed width (not 'flex-1'), make the cell non-flexing
+        const fixed = widthCls && widthCls !== 'flex-1';
+        const base = `relative text-sm ${fixed ? 'flex-none' : 'flex'} items-center justify-center ${widthCls ?? ''}`;
         if (key === 'code') return `${base} px-2 py-1 text-sm`; // compact
-        if (key === 'badge' || key === 'coloredBadge') return `${base} px-2 py-1 text-xs`; // compact badge
+        if (key === 'category' || key === 'status') return `${base} px-2 py-2 text-xs`; // compact badge/category/status
         if (key === 'date') return `${base} px-2 py-1 text-sm`; // compact
         if (key === 'avatar') return `${base} px-2 py-1 gap-3 justify-center`; // center avatar
         if (key === 'actions') return `${base} px-2 py-1 justify-center`; // center actions
-        return `${base} px-3 py-2`; // default
+        return `${base} px-3 py-2`;
     }
 
     // pagination controls
@@ -156,6 +210,7 @@ export default function DataTable({
     const gotoNext = () => setPageIndex(p => Math.min(pageCount - 1, p + 1));
     const gotoLast = () => setPageIndex(pageCount - 1);
     useEffect(() => { onPageChange && onPageChange(pageIndex, pageSize); }, [pageIndex, pageSize]);
+    const [expandedId, setExpandedId] = useState(null);
 
     return (
         <div className="w-full">
@@ -167,32 +222,34 @@ export default function DataTable({
                     <div className="flex items-center gap-0 px-2 py-1 mr-4">
                         {/* placeholder above drag-handle - mirror row drag-handle width */}
                         <div className="px-0 flex items-center">
-                            <div className="px-1 flex items-center">
+                            <div className="px-2 flex items-center">
                                 <button className="p-2 opacity-0" aria-hidden="true" aria-label="drag-handle-placeholder" />
                             </div>
                         </div>
-                        <div className=" grid grid-cols-12 items-center">
+
+                        {/* checkbox moved outside the grid so it doesn't consume span */}
+                        <div className={cellClass('checkbox')}>
+                            <div className="flex justify-center items-center w-full">
+                                <div className="text-xs flex items-center gap-2 -mr-9">
+                                    <div className="flex items-center gap-1">
+                                        <span className=''>{Array.from(selected).length}</span>
+                                        <span> إختيار</span>
+                                    </div>
+                                    <Checkbox checked={allSelected} onCheckedChange={toggleSelectAll} aria-label="select-all" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center w-full">
                             {columns.map((col, idx) => {
-                                const span = col.span ?? 2;
+                                if (col.key === 'checkbox') return null; // skipped - rendered outside
                                 const title = col.title ?? '';
-                                const style = col.width ? { width: col.width, minWidth: col.width, maxWidth: col.width } : undefined;
-                                if (col.key === 'checkbox') {
-                                    return (
-                                        <div key={col.key} className={cellClass(col.key, span)} style={style}>
-                                            <div className="flex justify-center items-center gap-2 w-full">
-                                                <div className="text-xs flex items-center">
-                                                <Checkbox checked={allSelected} onCheckedChange={toggleSelectAll} aria-label="select-all" />
-                                                    <span className='ml-1 mr-2'>{Array.from(selected).length}</span>
-                                                    <span> إختيار</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    );
-                                }
+                                const widthCls = getColClass(col);
+
+                                const style = getColStyle(col);
                                 return (
-                                    <div key={col.key} className={cellClass(col.key, span)} style={style}>
+                                    <div key={col.key} className={cellClass(col.key, widthCls)} style={style}>
                                         <div className="text-xs font-medium text-center w-full">{title}</div>
-                                        {idx < columns.length && <div className="absolute right-0 top-1/2 transform -translate-y-1/2 h-6 w-px bg-gray-200" />}
                                     </div>
                                 );
                             })}
@@ -204,104 +261,129 @@ export default function DataTable({
                 <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                     <SortableContext items={pageRows.map(r => String(r.id))} strategy={verticalListSortingStrategy}>
                         <div className="space-y-0">
-                            {pageRows.map((row) => (
-                                <SortableRow key={row.id} id={String(row.id)}>
-                                    {/* Accordion: trigger wraps the visible row */}
-                                    <Accordion type="single" collapsible>
-                                        <AccordionItem value={String(row.id)}>
-                                            {/* Trigger = whole row header */}
-                                            <AccordionTrigger>
-                                                <div className="flex items-center gap-0 px-2 py-1 cursor-pointer ">
-                                                    {/* checkbox near avatar area (you can move by column order) */}
-                                                    {/* We'll render columns in the given order */}
-                                                    <div className="flex-1 grid grid-cols-12  items-center">
-                                                        {columns.map((col, idx) => {
-                                                            const span = col.span ?? 2;
-                                                            const key = col.key;
-                                                            const content = col.render ? col.render(row) : (row[key] ?? '');
+                            {pageRows.map((row) => {
+                                const isExpanded = String(expandedId) === String(row.id);
+                                return (
+                                    <SortableRow key={row.id} id={String(row.id)} isExpanded={isExpanded}>
+                                        {/* Accordion: trigger wraps the visible row */}
+                                        <Accordion type="single" collapsible value={isExpanded ? String(row.id) : null} onValueChange={(val) => setExpandedId(val ? String(val) : null)}>
+                                            <AccordionItem className={`${isExpanded ? 'bg-go-bg-l-e  transition-all duration-300' : 'bg-white'}`} value={String(row.id)}>
+                                                {/* Trigger = whole row header */}
+                                                <AccordionTrigger>
+                                                    <div className={`flex items-center gap-0 px-2 py-1 cursor-pointer ${isExpanded ? 'animate-pulse duration-1100' : ''}`}>
+                                                        {/* checkbox moved outside the grid so it doesn't consume span */}
+                                                        <div className={cellClass('checkbox')}>
+                                                            <Checkbox checked={selected.has(row.id)} onCheckedChange={() => toggleRow(row.id)} />
+                                                        </div>
 
-                                                            // Use centered and compact classes via helper
-                                                            const cls = cellClass(key, span);
+                                                        {/* We'll render the rest of the columns in the given order */}
+                                                        <div className="flex items-center w-full">
+                                                            {columns.map((col, idx) => {
+                                                                if (col.key === 'checkbox') return null; // skipped - rendered outside
+                                                                const key = col.key;
+                                                                const content = col.render ? col.render(row) : (row[key] ?? '');
 
-                                                            const style = col.width ? { width: col.width, minWidth: col.width, maxWidth: col.width } : undefined;
+                                                                // Use centered and compact classes via helper
+                                                                const widthCls = getColClass(col);
+                                                                const style = getColStyle(col);
+                                                                const cls = cellClass(key, widthCls);
 
+                                                                if (key === 'checkbox') {
+                                                                    return null;
+                                                                }
 
-                                                            if (key === 'checkbox') {
-                                                                return (
-                                                                    <div key={key} className={cls} style={style}>
-                                                                        <Checkbox checked={selected.has(row.id)} onCheckedChange={() => toggleRow(row.id)} />
-                                                                    </div>
-                                                                );
-                                                            }
+                                                                if (key === 'code') {
+                                                                    return (
+                                                                        <div key={key} className={cls} style={style}>
+                                                                            {content}
+                                                                        </div>
+                                                                    );
+                                                                }
+                                                                if (key === 'avatar') {
+                                                                    return (
+                                                                        <div key={key} className={cls} style={style}>
+                                                                            {content}
+                                                                            {idx < columns.length - 1 && <div className="absolute right-0 top-1/2 transform -translate-y-1/2 h-6 w-px bg-gray-200" />}
+                                                                        </div>
+                                                                    );
+                                                                }
 
-                                                            if (key === 'avatar') {
+                                                                if (key === 'actions') {
+                                                                    return (
+                                                                        <div key={key} className={cls} style={style}>
+                                                                            {content || (
+                                                                                <DropdownMenu>
+                                                                                    <DropdownMenuTrigger asChild>
+                                                                                        <Button asChild size="sm" className='rounded-2xl' variant="outline">
+                                                                                            <div className="inline-flex items-center justify-center gap-2 whitespace-nowrap">
+                                                                                                إجراءات
+                                                                                                <ChevronDown className="h-4 w-4" />
+                                                                                            </div>
+                                                                                        </Button>
+                                                                                    </DropdownMenuTrigger>
+                                                                                    <DropdownMenuContent className='text-right' align="end">
+                                                                                        {/* <DropdownMenuItem className="w-full justify-end text-right" onClick={() => console.log('view', row.id)}>عرض</DropdownMenuItem> */}
+                                                                                        <DropdownMenuItem className="w-full justify-end text-right" onClick={() => console.log('edit', row.id)}>تعديل</DropdownMenuItem>
+                                                                                        <DropdownMenuItem className="w-full justify-end text-right" onClick={() => console.log('delete', row.id)}>حذف</DropdownMenuItem>
+                                                                                    </DropdownMenuContent>
+                                                                                </DropdownMenu>
+                                                                            )}
+                                                                            {idx < columns.length && <div className="absolute right-0 top-1/2 transform -translate-y-1/2 h-6 w-px bg-gray-200" />}
+                                                                        </div>
+                                                                    );
+                                                                }
+
+                                                                // default
+                                                                // ensure badge-like cells don't wrap
+                                                                if (key === 'badge' || key === 'coloredBadge') {
+                                                                    return (
+                                                                        <div key={key} className={cls} style={style}>
+                                                                            <div className="truncate w-full text-center">{content}</div>
+                                                                            {idx < columns.length - 1 && <div className="absolute right-0 top-1/2 transform -translate-y-1/2 h-6 w-px bg-gray-200" />}
+                                                                        </div>
+                                                                    );
+                                                                }
+
                                                                 return (
                                                                     <div key={key} className={cls} style={style}>
                                                                         {content}
                                                                         {idx < columns.length - 1 && <div className="absolute right-0 top-1/2 transform -translate-y-1/2 h-6 w-px bg-gray-200" />}
                                                                     </div>
                                                                 );
-                                                            }
-
-                                                            if (key === 'actions') {
-                                                                return (
-                                                                    <div key={key} className={cls} style={style}>
-                                                                        {content || (
-                                                                            <DropdownMenu>
-                                                                                <DropdownMenuTrigger asChild>
-                                                                                    <Button size="sm" variant="ghost">إجراءات</Button>
-                                                                                </DropdownMenuTrigger>
-                                                                                <DropdownMenuContent align="end">
-                                                                                    <DropdownMenuItem onClick={() => console.log('view', row.id)}>عرض</DropdownMenuItem>
-                                                                                    <DropdownMenuItem onClick={() => console.log('edit', row.id)}>تعديل</DropdownMenuItem>
-                                                                                    <DropdownMenuItem onClick={() => console.log('delete', row.id)}>حذف</DropdownMenuItem>
-                                                                                </DropdownMenuContent>
-                                                                            </DropdownMenu>
-                                                                        )}
-                                                                        {idx < columns.length  && <div className="absolute right-0 top-1/2 transform -translate-y-1/2 h-6 w-px bg-gray-200" />}
-                                                                    </div>
-                                                                );
-                                                            }
-
-                                                            // default
-                                                            // ensure badge-like cells don't wrap
-                                                            if (key === 'badge' || key === 'coloredBadge') {
-                                                                return (
-                                                                    <div key={key} className={cls} style={style}>
-                                                                        <div className="truncate w-full text-center">{content}</div>
-                                                                        {idx < columns.length - 1 && <div className="absolute right-0 top-1/2 transform -translate-y-1/2 h-6 w-px bg-gray-200" />}
-                                                                    </div>
-                                                                );
-                                                            }
-
-                                                            return (
-                                                                <div key={key} className={cls} style={style}>
-                                                                    {content}
-                                                                    {idx < columns.length - 1 && <div className="absolute right-0 top-1/2 transform -translate-y-1/2 h-6 w-px bg-gray-200" />}
-                                                                </div>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                </div>
-                                            </AccordionTrigger>
-
-                                            {/* Accordion content */}
-                                            <AccordionContent className="px-6 pb-4 pt-0 border-t">
-                                                {/* If a 'details' column render exists use it, else default info */}
-                                                {(columns.find(c => c.key === 'details')?.render)
-                                                    ? columns.find(c => c.key === 'details').render(row)
-                                                    : (
-                                                        <div className="text-sm text-muted-foreground">
-                                                            {/* <div><strong>ID:</strong> {row.id}</div> */}
-                                                            <div className="mt-1"><strong>Notes:</strong> {row.notes ?? '-'}</div>
+                                                            })}
                                                         </div>
-                                                    )
-                                                }
-                                            </AccordionContent>
-                                        </AccordionItem>
-                                    </Accordion>
-                                </SortableRow>
-                            ))}
+                                                    </div>
+                                                </AccordionTrigger>
+
+                                                {/* Accordion content */}
+                                                <AccordionContent className="px-6 pb-4 pt-0 border-t bg-white">
+                                                    {/* Resolve details content:
+                                                        1. If a details component is provided for this row's type, render it.
+                                                        2. Else if a column with key 'details' has a render function, use that.
+                                                        3. Else render a default notes view.
+                                                    */}
+                                                    {(() => {
+                                                        const type = row[rowTypeKey];
+                                                        const Comp = type && detailsComponentMap[type];
+                                                        if (Comp) return <Comp row={row} />;
+
+                                                        const detailsCol = columns.find(c => c.key === 'details');
+                                                        if (detailsCol && typeof detailsCol.render === 'function') {
+                                                            return detailsCol.render(row);
+                                                        }
+
+                                                        return (
+                                                            <div className="text-sm text-muted-foreground">
+                                                                <div className="mt-1"><strong>Notes:</strong> {row.notes ?? '-'}</div>
+                                                            </div>
+                                                        );
+                                                    })()}
+                                                </AccordionContent>
+                                            </AccordionItem>
+                                        </Accordion>
+                                    </SortableRow>
+                                )
+                            })}
                         </div>
                     </SortableContext>
                 </DndContext>
@@ -311,7 +393,7 @@ export default function DataTable({
             {/* Pagination footer */}
             <div className="flex items-center justify-between mt-4">
                 <div className="flex items-center gap-3">
-                    <div className="text-sm">Rows per page</div>
+                    <div className="text-sm">صفوف لكل صفحة</div>
                     <Select value={String(pageSize)} onValueChange={(v) => { setPageSize(Number(v)); setPageIndex(0); }}>
                         <SelectTrigger className="w-20">
                             <SelectValue />
@@ -324,14 +406,14 @@ export default function DataTable({
 
                 <div className="flex items-center gap-2">
                     <div className="text-sm">
-                        {Math.min(start + 1, total)} - {Math.min(end, total)} of {total}
+                        {Math.min(start + 1, total)} - {Math.min(end, total)} من {total}
                     </div>
 
                     <div className="flex items-center gap-2">
-                        <Button size="sm" variant="ghost" onClick={gotoFirst} disabled={pageIndex === 0}>|&lt;</Button>
-                        <Button size="sm" variant="ghost" onClick={gotoPrev} disabled={pageIndex === 0}><HiChevronLeft /></Button>
+                        <Button size="sm" variant="ghost" onClick={gotoLast} disabled={pageIndex >= pageCount - 1}>|&lt;</Button>
                         <Button size="sm" variant="ghost" onClick={gotoNext} disabled={pageIndex >= pageCount - 1}><HiChevronRight /></Button>
-                        <Button size="sm" variant="ghost" onClick={gotoLast} disabled={pageIndex >= pageCount - 1}>&gt;|</Button>
+                        <Button size="sm" variant="ghost" onClick={gotoPrev} disabled={pageIndex === 0}><HiChevronLeft /></Button>
+                        <Button size="sm" variant="ghost" onClick={gotoFirst} disabled={pageIndex === 0}>&gt;|</Button>
                     </div>
                 </div>
             </div>
