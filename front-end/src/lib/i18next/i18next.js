@@ -8,6 +8,8 @@ import enTest from '../../localization/en/test.json'
 import arTest from '../../localization/ar/test.json'
 import enSideBar from '../../localization/en/sideBar.json'
 import arSideBar from '../../localization/ar/sideBar.json'
+import enValidation from '@/localization/en/errors/validation/validation.json'
+import arValidation from '@/localization/ar/errors/validation/validation.json'
 
 // Helper: update direction
 const updateHtmlDirection = (lng) => {
@@ -23,10 +25,10 @@ i18n
     .init({
         resources: {
             en: {
-                test:enTest,sideBar:enSideBar
+                test:enTest,sideBar:enSideBar, validation: enValidation,
             },
             ar: {
-                test:arTest,sideBar:arSideBar
+                test:arTest,sideBar:arSideBar, validation: arValidation,
             }
         },
         fallbackLng: "ar",

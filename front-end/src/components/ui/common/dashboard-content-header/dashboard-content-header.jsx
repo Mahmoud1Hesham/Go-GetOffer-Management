@@ -10,6 +10,7 @@ import { GoColumns } from "react-icons/go";
 export default function DashboardContentHeader({
     title = "",
     createButtonTitle,
+    createComponent, 
     searchPlaceholder = "ابحث...",
     apiFilter1,
     apiFilter2,
@@ -52,16 +53,41 @@ export default function DashboardContentHeader({
                         </Button>
                     )}
 
-                    {createButtonTitle && (
-                        <Button
-                            variant="outline"
-                            className="flex gap-2 rounded-lg"
-                            onClick={apiCreate}
-                        >
-                            <Plus size={16} />
-                            {createButtonTitle}
-                        </Button>
-                    )}
+                    {/* Build the header button once so we can either render it directly
+                        or inject it as the dialog trigger into a provided `createComponent`. */}
+                    {(() => {
+                        const headerButton = (
+                            <Button variant="outline" className="flex gap-2 rounded-lg">
+                                <Plus size={16} />
+                                {createButtonTitle}
+                            </Button>
+                        )
+
+                        if (createComponent) {
+                            // If createComponent is a React element, clone it and pass the header button
+                            // as `triggerNode` so the dialog can use it as its trigger (via `asChild`).
+                            if (React.isValidElement(createComponent)) {
+                                return React.cloneElement(createComponent, { triggerNode: headerButton })
+                            }
+
+                            // Otherwise render whatever was passed (fallback)
+                            return createComponent
+                        }
+
+                        // No createComponent provided: render header button with the supplied apiCreate handler
+                        return (
+                            createButtonTitle && (
+                                <Button
+                                    variant="outline"
+                                    className="flex gap-2 rounded-lg"
+                                    onClick={apiCreate}
+                                >
+                                    <Plus size={16} />
+                                    {createButtonTitle}
+                                </Button>
+                            )
+                        )
+                    })()}
                 </div>
 
             </div>

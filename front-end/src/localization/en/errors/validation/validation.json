@@ -1,0 +1,65 @@
+{
+    "email": {
+        "required": "Email is required",
+        "allowedProviders": "Email must be Gmail, Yahoo, or Outlook with valid domain (.com, .net, .edu, .org)"
+    },
+    "password": {
+        "required": "Password is required",
+        "min": "Password must be at least 8 characters",
+        "uppercase": "Password must contain at least one uppercase letter",
+        "lowercase": "Password must contain at least one lowercase letter",
+        "number": "Password must contain at least one number",
+        "special": "Password must contain at least one special character"
+    },
+    "confirmPassword": {
+        "required": "Confirm Password is required",
+        "mismatch": "Passwords must match"
+    },
+    "companyName": {
+        "required": "Company name is required",
+        "min": "Company name must be at least 2 characters",
+        "max": "Company name must be less than 50 characters"
+    },
+    "phoneNumber": {
+        "required": "Phone number is required",
+        "invalidEgypt": "Invalid Egyptian phone number"
+    },
+    "otp": {
+        "required": "OTP is required",
+        "length": "OTP must be exactly 6 digits",
+        "numberOnly": "OTP must be a number"
+    },
+    "fullName": {
+        "required": "Full name is required",
+        "min": "Full name must be at least 2 characters",
+        "max": "Full name must be less than 50 characters"
+    },
+    "mainBranch": {
+        "required": "Main branch name is required",
+        "min": "Main branch name must be at least 2 characters",
+        "max": "Main branch name must be less than 50 characters"
+    },
+    "activities": {
+        "required": "Activity type is required",
+        "minOne": "Select at least one activity"
+    },
+    "governorate": {
+        "required": "Governorate is required"
+    },
+    "city": {
+        "required": "City is required"
+    },
+    "addressDetails": {
+        "required": "Address details are required",
+        "min": "Address details must be at least 5 characters",
+        "max": "Address details must be less than 100 characters"
+    },
+    "postalCode": {
+        "required": "Postal code is required",
+        "exactFive": "Postal code must be exactly 5 digits"
+    },
+    "phonesArray": {
+        "min": "At least one phone number is required",
+        "max": "You can add up to 3 phone numbers only"
+    }
+}

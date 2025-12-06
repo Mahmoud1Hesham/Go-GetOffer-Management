@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import { getPathsForRole } from '@/app/services/maps/appPathsStructure.map.js';
 import { canView } from './workers/pathHelpers.worker.js';
-import LoginDialog from '@/components/ui/common/loginDialog.jsx';
+import LoginDialog from '@/components/ui/common/dialogs/loginDialog.jsx';
 import Loading from '../loading.jsx';
 
 export default function RouteGuard({ children, fallback = '/not-authorized' }) {

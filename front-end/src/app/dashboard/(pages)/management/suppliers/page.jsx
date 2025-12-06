@@ -5,6 +5,7 @@ import { FaPeopleGroup, FaUserCheck, FaAward } from "react-icons/fa6";
 import { FaShippingFast } from "react-icons/fa";
 import DashCardGroup from '@/components/ui/common/dashCard/dashCardGroup';
 import DashboardContentHeader from '@/components/ui/common/dashboard-content-header/dashboard-content-header';
+import CreateSupplierDialog from '@/components/ui/common/dialogs/createSupplierDialog'
 import DataTableRunner from '@/components/ui/common/dataTable/dataTableRunner';
 
 import { Avatar } from '@/components/ui/avatar';
@@ -199,7 +200,7 @@ const page = () => {
         <DashboardContentHeader
             title="إدارة الموردين"
             createButtonTitle="إضافة مورد"
-            apiCreate={() => console.log("create")}
+            createComponent={<CreateSupplierDialog />}
             apiFilter1={{ title: "تخصيص الأعمدة", onClick: () => console.log("filter 1") }}
             apiFilter2={{ title: "تصفية الأعمدة", onClick: () => console.log("filter 2") }}
             searchPlaceholder="ابحث في الموردين..."

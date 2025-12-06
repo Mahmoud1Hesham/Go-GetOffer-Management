@@ -127,6 +127,8 @@ export const supplierStepThreeSchema = Yup.object({
 });
 
 export const supplierInfoSchema = Yup.object({
+    companyName: companyNameRule,
+    email: emailRule,
     fullName: fullNameRule,
     phoneNumbers: Yup.array()
         .of(phoneNumberRule)

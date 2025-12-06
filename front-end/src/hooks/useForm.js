@@ -49,7 +49,15 @@ export default function useForm(initialValues, validationSchema, onSubmit) {
             console.error("❌ Validation Error (Full):", err);
             const newErrors = {};
             err.inner.forEach((error) => {
-                newErrors[error.path] = error.message;
+                // store the exact path error
+                if (error.path) newErrors[error.path] = error.message;
+
+                // normalize array/item paths like 'phoneNumbers[0]' or nested paths
+                // to their root key so UI that checks `errors[root]` shows a message
+                if (error.path && (error.path.includes("[") || error.path.includes("."))) {
+                    const root = error.path.split(/\.|\[/)[0];
+                    if (!newErrors[root]) newErrors[root] = error.message;
+                }
             });
             setErrors(newErrors);
 
