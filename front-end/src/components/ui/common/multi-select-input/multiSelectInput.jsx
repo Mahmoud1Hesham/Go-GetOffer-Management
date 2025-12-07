@@ -29,7 +29,7 @@ export const activities = [
     }
 ];
 
-export default function MultiSelectInput({ options = activities, value, onValueChange, onBlur, defaultValue ,label="Activity Type",placeholder='Select Activity Types',className }) {
+export default function MultiSelectInput({ options = activities, value, onValueChange, onBlur, defaultValue ,label="Activity Type",placeholder='Select Activity Types',className, disabled = false }) {
         const searchParams = useSearchParams();
         const lang = searchParams.get("lang") || (typeof i18n !== 'undefined' ? i18n.language : 'en') || "en";
     
@@ -50,10 +50,10 @@ export default function MultiSelectInput({ options = activities, value, onValueC
                 placeholder={placeholder}
                 searchable={true}
                 hideSelectAll={false}
-                defaultValue={defaultValue}
-                value={value}
+                defaultValue={value || defaultValue}
                 onValueChange={onValueChange}
                 onBlur={onBlur}
+                disabled={disabled}
                 emptyIndicator={
                     <div className="text-center p-4 text-muted-foreground">
                         <p className="text-sm">

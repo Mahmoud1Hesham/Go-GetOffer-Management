@@ -5,7 +5,7 @@ import { FaPeopleGroup, FaUserCheck, FaAward } from "react-icons/fa6";
 import { FaShippingFast } from "react-icons/fa";
 import DashCardGroup from '@/components/ui/common/dashCard/dashCardGroup';
 import DashboardContentHeader from '@/components/ui/common/dashboard-content-header/dashboard-content-header';
-import CreateSupplierDialog from '@/components/ui/common/dialogs/createSupplierDialog'
+import SupplierDialog from '@/components/ui/common/dialogs/supplierDialog'
 import DataTableRunner from '@/components/ui/common/dataTable/dataTableRunner';
 
 import { Avatar } from '@/components/ui/avatar';
@@ -76,74 +76,74 @@ const columns = [
 
 const rows = [
     {
-        id: '1', type: 'supplier', name: 'محمد سمير', avatar: 'https://avatars.githubusercontent.com/u/124599?v=4', code: 83513, date: '25 نوفمبر 2025', category: 'منتجات غذائية', status: 'قيد الانتظار', branch: 'المعادى', assignedTo: 'سارة', accessedFrom: 'وسائل التواصل الاجتماعي', address: 'العاشر من رمضان', governorate: 'القاهرة', branches: ['السادس من أكتوبر', 'الاسماعيلية'], postalCode: '12345',docs : [
+        id: '1', type: 'supplier', name: 'محمد سمير', avatar: 'https://avatars.githubusercontent.com/u/124599?v=4', code: 83513, date: '25 نوفمبر 2025', category: 'منتجات غذائية', status: 'قيد الانتظار', branch: 'المعادى', assignedTo: 'سارة', accessedFrom: 'وسائل التواصل الاجتماعي', address: 'العاشر من رمضان', governorate: 'cairo', city: 'nasr', phone: '01010000001', fullName: 'محمد سمير', email: 'supplier1@example.com', activities: ['food products'], branches: ['السادس من أكتوبر', 'الاسماعيلية'], postalCode: '12345',docs : [
             { id: 'i1', type: 'image', src: 'https://picsum.photos/800/600?1', title: 'صورة 1' },
             { id: 'i2', type: 'image', src: 'https://picsum.photos/800/600?2', title: 'صورة 2' },
             { id: 'p1', type: 'pdf', src: 'https://unec.edu.az/application/uploads/2014/12/pdf-sample.pdf', title: 'تقرير PDF' },
             { id: 'p2', type: 'pdf', src: 'https://unec.edu.az/application/uploads/2014/12/pdf-sample.pdf', title: 'مثال PDF' },
         ]
     },
-    { id: '2', type: 'supplier', name: 'أحمد علي', avatar: 'https://avatars.githubusercontent.com/u/124599?v=4', code: 44607, date: '25 نوفمبر 2025', category: 'منتجات غذائية', status: 'مقبول', branch: 'جيزة', assignedTo: 'كريم', accessedFrom: 'مندوب', address: "السادس من أكتوبر", branches: ['السويس'], governorate: 'الجيزة', postalCode: '67890',docs : [
+    { id: '2', type: 'supplier', name: 'أحمد علي', avatar: 'https://avatars.githubusercontent.com/u/124599?v=4', code: 44607, date: '25 نوفمبر 2025', category: 'منتجات غذائية', status: 'مقبول', branch: 'جيزة', assignedTo: 'كريم', accessedFrom: 'مندوب', address: "السادس من أكتوبر", governorate: 'giza', city: 'haram', phone: '01010000002', fullName: 'أحمد علي', email: 'supplier2@example.com', activities: ['food products'], branches: ['السويس'], postalCode: '67890',docs : [
             { id: 'i1', type: 'image', src: 'https://picsum.photos/800/600?1', title: 'صورة 1' },
             { id: 'i2', type: 'image', src: 'https://picsum.photos/800/600?2', title: 'صورة 2' },
             { id: 'p1', type: 'pdf', src: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', title: 'تقرير PDF' },
             { id: 'p2', type: 'pdf', src: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', title: 'مثال PDF' },
         ] },
-    { id: '3', type: 'supplier', name: 'أحمد علي عوضين', avatar: 'https://avatars.githubusercontent.com/u/124599?v=4', code: 44607, date: '25 نوفمبر 2025', category: ['منتجات غذائية', 'ادوات مكتبية', 'بوفيه', 'ادوات تنظيف'], status: 'مقبول', branch: 'جيزة', assignedTo: 'ليلى', accessedFrom: 'وسائل التواصل الاجتماعي', address: 'هيليوبوليس', governorate: 'القاهرة', branches: ['مدينة نصر', 'المعادى'], postalCode: '11223',docs : [
+    { id: '3', type: 'supplier', name: 'أحمد علي عوضين', avatar: 'https://avatars.githubusercontent.com/u/124599?v=4', code: 44607, date: '25 نوفمبر 2025', category: ['منتجات غذائية', 'ادوات مكتبية', 'بوفيه', 'ادوات تنظيف'], status: 'مقبول', branch: 'جيزة', assignedTo: 'ليلى', accessedFrom: 'وسائل التواصل الاجتماعي', address: 'هيليوبوليس', governorate: 'cairo', city: 'maadi', phone: '01010000003', fullName: 'أحمد علي عوضين', email: 'supplier3@example.com', activities: ['food products','office supplies','buffet','cleaning supplies'], branches: ['مدينة نصر', 'المعادى'], postalCode: '11223',docs : [
             { id: 'i1', type: 'image', src: 'https://picsum.photos/800/600?1', title: 'صورة 1' },
             { id: 'i2', type: 'image', src: 'https://picsum.photos/800/600?2', title: 'صورة 2' },
             { id: 'p1', type: 'pdf', src: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', title: 'تقرير PDF' },
             { id: 'p2', type: 'pdf', src: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', title: 'مثال PDF' },
         ] },
-    { id: '4', type: 'supplier', name: 'أحمد علي', avatar: 'https://avatars.githubusercontent.com/u/124599?v=4', code: 44607, date: '25 نوفمبر 2025', category: 'منتجات غذائية', status: 'قيد الانتظار', branch: 'جيزة', assignedTo: 'سارة', accessedFrom: 'مندوب', address: 'مدينة نصر', governorate: 'القاهرة', branches: ['القاهرة الجديدة', 'المعادى'], postalCode: '33445',docs : [
+    { id: '4', type: 'supplier', name: 'أحمد علي', avatar: 'https://avatars.githubusercontent.com/u/124599?v=4', code: 44607, date: '25 نوفمبر 2025', category: 'منتجات غذائية', status: 'قيد الانتظار', branch: 'جيزة', assignedTo: 'سارة', accessedFrom: 'مندوب', address: 'مدينة نصر', governorate: 'cairo', city: 'nasr', phone: '01010000004', fullName: 'أحمد علي', email: 'supplier4@example.com', activities: ['food products'], branches: ['القاهرة الجديدة', 'المعادى'], postalCode: '33445',docs : [
             { id: 'i1', type: 'image', src: 'https://picsum.photos/800/600?1', title: 'صورة 1' },
             { id: 'i2', type: 'image', src: 'https://picsum.photos/800/600?2', title: 'صورة 2' },
             { id: 'p1', type: 'pdf', src: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', title: 'تقرير PDF' },
             { id: 'p2', type: 'pdf', src: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', title: 'مثال PDF' },
         ] },
-    { id: '5', type: 'supplier', name: 'أحمد علي', avatar: 'https://avatars.githubusercontent.com/u/124599?v=4', code: 44607, date: '25 نوفمبر 2025', category: 'منتجات غذائية', status: 'مرفوض', branch: 'جيزة', assignedTo: 'كريم', accessedFrom: 'وسائل التواصل الاجتماعي', address: 'معادى', governorate: 'القاهرة', branches: ['المعادى', 'القاهرة الجديدة'], postalCode: '55667', rejectionReasons: ['missing_docs', 'expired_docs'], docs : [
+    { id: '5', type: 'supplier', name: 'أحمد علي', avatar: 'https://avatars.githubusercontent.com/u/124599?v=4', code: 44607, date: '25 نوفمبر 2025', category: 'منتجات غذائية', status: 'مرفوض', branch: 'جيزة', assignedTo: 'كريم', accessedFrom: 'وسائل التواصل الاجتماعي', address: 'معادى', governorate: 'cairo', city: 'maadi', phone: '01010000005', fullName: 'أحمد علي', email: 'supplier5@example.com', activities: ['food products'], branches: ['المعادى', 'القاهرة الجديدة'], postalCode: '55667', rejectionReasons: ['missing_docs', 'expired_docs'], docs : [
             { id: 'i1', type: 'image', src: 'https://picsum.photos/800/600?1', title: 'صورة 1' },
             { id: 'i2', type: 'image', src: 'https://picsum.photos/800/600?2', title: 'صورة 2' },
             { id: 'p1', type: 'pdf', src: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', title: 'تقرير PDF' },
             { id: 'p2', type: 'pdf', src: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', title: 'مثال PDF' },
         ] },
-    { id: '6', type: 'supplier', name: 'أحمد علي حسنين', avatar: 'https://avatars.githubusercontent.com/u/124599?v=4', code: 44607, date: '25 نوفمبر 2025', category: 'منتجات غذائية', status: 'مقبول', branch: 'جيزة', assignedTo: 'ليلى', accessedFrom: 'مندوب', address: 'القاهرة الجديدة', governorate: 'القاهرة', branches: ['القاهرة الجديدة', 'المعادى'], postalCode: '77889',docs : [
+    { id: '6', type: 'supplier', name: 'أحمد علي حسنين', avatar: 'https://avatars.githubusercontent.com/u/124599?v=4', code: 44607, date: '25 نوفمبر 2025', category: 'منتجات غذائية', status: 'مقبول', branch: 'جيزة', assignedTo: 'ليلى', accessedFrom: 'مندوب', address: 'القاهرة الجديدة', governorate: 'cairo', city: 'nasr', phone: '01010000006', fullName: 'أحمد علي حسنين', email: 'supplier6@example.com', activities: ['food products'], branches: ['القاهرة الجديدة', 'المعادى'], postalCode: '77889',docs : [
             { id: 'i1', type: 'image', src: 'https://picsum.photos/800/600?1', title: 'صورة 1' },
             { id: 'i2', type: 'image', src: 'https://picsum.photos/800/600?2', title: 'صورة 2' },
             { id: 'p1', type: 'pdf', src: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', title: 'تقرير PDF' },
             { id: 'p2', type: 'pdf', src: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', title: 'مثال PDF' },
         ] },
-    { id: '7', type: 'supplier', name: 'أحمد علي', avatar: 'https://avatars.githubusercontent.com/u/124599?v=4', code: 44607, date: '25 نوفمبر 2025', category: 'منتجات غذائية', status: 'مقبول', branch: 'جيزة', assignedTo: 'سارة', accessedFrom: 'وسائل التواصل الاجتماعي', address: 'الدقي', governorate: 'جيزة', branches: ['الدقي', 'الجيزة'], postalCode: '99000',docs : [
+    { id: '7', type: 'supplier', name: 'أحمد علي', avatar: 'https://avatars.githubusercontent.com/u/124599?v=4', code: 44607, date: '25 نوفمبر 2025', category: 'منتجات غذائية', status: 'مقبول', branch: 'جيزة', assignedTo: 'سارة', accessedFrom: 'وسائل التواصل الاجتماعي', address: 'الدقي', governorate: 'giza', city: 'giza-city', phone: '01010000007', fullName: 'أحمد علي', email: 'supplier7@example.com', activities: ['food products'], branches: ['الدقي', 'الجيزه'], postalCode: '99000',docs : [
             { id: 'i1', type: 'image', src: 'https://picsum.photos/800/600?1', title: 'صورة 1' },
             { id: 'i2', type: 'image', src: 'https://picsum.photos/800/600?2', title: 'صورة 2' },
             { id: 'p1', type: 'pdf', src: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', title: 'تقرير PDF' },
             { id: 'p2', type: 'pdf', src: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', title: 'مثال PDF' },
         ] },
-    { id: '8', type: 'supplier', name: 'أحمد علي', avatar: 'https://avatars.githubusercontent.com/u/124599?v=4', code: 44607, date: '25 نوفمبر 2025', category: ['منتجات غذائية', 'تعبئه وتغليف'], status: 'مرفوض', branch: 'جيزة', assignedTo: 'كريم', accessedFrom: 'مندوب', address: 'فيصل', governorate: 'الجيزة', branches: ['فيصل', 'الجيزة'], postalCode: '10101', rejectionReasons: ['mismatch'], docs : [
+    { id: '8', type: 'supplier', name: 'أحمد علي', avatar: 'https://avatars.githubusercontent.com/u/124599?v=4', code: 44607, date: '25 نوفمبر 2025', category: ['منتجات غذائية', 'تعبئه وتغليف'], status: 'مرفوض', branch: 'جيزة', assignedTo: 'كريم', accessedFrom: 'مندوب', address: 'فيصل', governorate: 'alex', city: 'sidi', phone: '01010000008', fullName: 'أحمد علي', email: 'supplier8@example.com', activities: ['food products','packaging materials'], branches: ['فيصل', 'الجيزة'], postalCode: '10101', rejectionReasons: ['mismatch'], docs : [
             { id: 'i1', type: 'image', src: 'https://picsum.photos/800/600?1', title: 'صورة 1' },
             { id: 'i2', type: 'image', src: 'https://picsum.photos/800/600?2', title: 'صورة 2' },
             { id: 'p1', type: 'pdf', src: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', title: 'تقرير PDF' },
             { id: 'p2', type: 'pdf', src: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', title: 'مثال PDF' },
         ] },
-    { id: '9', type: 'supplier', name: 'أحمد علي', avatar: 'https://avatars.githubusercontent.com/u/124599?v=4', code: 44607, date: '25 نوفمبر 2025', category: ['منتجات غذائية', 'بوفيه'], status: 'قيد الانتظار', branch: 'جيزة', assignedTo: 'ليلى', accessedFrom: 'وسائل التواصل الاجتماعي', address: 'هيليوبوليس', governorate: 'القاهرة', branches: ['هيليوبوليس', 'القاهرة'], postalCode: '11223',docs : [
+    { id: '9', type: 'supplier', name: 'أحمد علي', avatar: 'https://avatars.githubusercontent.com/u/124599?v=4', code: 44607, date: '25 نوفمبر 2025', category: ['منتجات غذائية', 'بوفيه'], status: 'قيد الانتظار', branch: 'جيزة', assignedTo: 'ليلى', accessedFrom: 'وسائل التواصل الاجتماعي', address: 'هيليوبوليس', governorate: 'cairo', city: 'nasr', phone: '01010000009', fullName: 'أحمد علي', email: 'supplier9@example.com', activities: ['food products','buffet'], branches: ['هيليوبوليس', 'القاهرة'], postalCode: '11223',docs : [
             { id: 'i1', type: 'image', src: 'https://picsum.photos/800/600?1', title: 'صورة 1' },
             { id: 'i2', type: 'image', src: 'https://picsum.photos/800/600?2', title: 'صورة 2' },
             { id: 'p1', type: 'pdf', src: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', title: 'تقرير PDF' },
             { id: 'p2', type: 'pdf', src: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', title: 'مثال PDF' },
         ] },
-    { id: '10', type: 'supplier', name: 'أحمد علي', avatar: 'https://avatars.githubusercontent.com/u/124599?v=4', code: 44607, date: '25 نوفمبر 2025', category: ['منتجات غذائية', 'ادوات مكتبية', 'بوفيه'], status: 'مرفوض', branch: 'جيزة', assignedTo: 'سارة', accessedFrom: 'مندوب', address: 'مدينة نصر', governorate: 'القاهرة', branches: ['مدينة نصر', 'المعادى'], postalCode: '11223', rejectionReasons: ['does_not_match_the_requirements', 'repeated_request'], docs : [
+    { id: '10', type: 'supplier', name: 'أحمد علي', avatar: 'https://avatars.githubusercontent.com/u/124599?v=4', code: 44607, date: '25 نوفمبر 2025', category: ['منتجات غذائية', 'ادوات مكتبية', 'بوفيه'], status: 'مرفوض', branch: 'جيزة', assignedTo: 'سارة', accessedFrom: 'مندوب', address: 'مدينة نصر', governorate: 'cairo', city: 'maadi', phone: '01010000010', fullName: 'أحمد علي', email: 'supplier10@example.com', activities: ['food products','office supplies','buffet'], branches: ['مدينة نصر', 'المعادى'], postalCode: '11223', rejectionReasons: ['does_not_match_the_requirements', 'repeated_request'], docs : [
             { id: 'i1', type: 'image', src: 'https://picsum.photos/800/600?1', title: 'صورة 1' },
             { id: 'i2', type: 'image', src: 'https://picsum.photos/800/600?2', title: 'صورة 2' },
             { id: 'p1', type: 'pdf', src: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', title: 'تقرير PDF' },
             { id: 'p2', type: 'pdf', src: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', title: 'مثال PDF' },
         ] },
-    { id: '11', type: 'supplier', name: 'أحمد علي', avatar: 'https://avatars.githubusercontent.com/u/124599?v=4', code: 44607, date: '25 نوفمبر 2025', category: 'منتجات غذائية', status: 'قيد الانتظار', branch: 'جيزة', assignedTo: 'ليلى', accessedFrom: 'وسائل التواصل الاجتماعي', address: 'هيليوبوليس', governorate: 'القاهرة', branches: ['هيليوبوليس', 'القاهرة'], postalCode: '11223',docs : [
+    { id: '11', type: 'supplier', name: 'أحمد علي', avatar: 'https://avatars.githubusercontent.com/u/124599?v=4', code: 44607, date: '25 نوفمبر 2025', category: 'منتجات غذائية', status: 'قيد الانتظار', branch: 'جيزة', assignedTo: 'ليلى', accessedFrom: 'وسائل التواصل الاجتماعي', address: 'هيليوبوليس', governorate: 'cairo', city: 'nasr', phone: '01010000011', fullName: 'أحمد علي', email: 'supplier11@example.com', activities: ['food products'], branches: ['هيليوبوليس', 'القاهرة'], postalCode: '11223',docs : [
             { id: 'i1', type: 'image', src: 'https://picsum.photos/800/600?1', title: 'صورة 1' },
             { id: 'i2', type: 'image', src: 'https://picsum.photos/800/600?2', title: 'صورة 2' },
             { id: 'p1', type: 'pdf', src: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', title: 'تقرير PDF' },
             { id: 'p2', type: 'pdf', src: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', title: 'مثال PDF' },
         ] },
-    { id: '12', type: 'supplier', name: 'أحمد علي', avatar: 'https://avatars.githubusercontent.com/u/124599?v=4', code: 44607, date: '25 نوفمبر 2025', category: 'منتجات غذائية', status: 'مرفوض', branch: 'جيزة', assignedTo: 'سارة', accessedFrom: 'مندوب', address: 'مدينة نصر', governorate: 'القاهرة', branches: ['مدينة نصر', 'المعادى'], postalCode: '11223', rejectionReasons: ['incomplete'], docs : [
+    { id: '12', type: 'supplier', name: 'أحمد علي', avatar: 'https://avatars.githubusercontent.com/u/124599?v=4', code: 44607, date: '25 نوفمبر 2025', category: 'منتجات غذائية', status: 'مرفوض', branch: 'جيزة', assignedTo: 'سارة', accessedFrom: 'مندوب', address: 'مدينة نصر', governorate: 'cairo', city: 'nasr', phone: '01010000012', fullName: 'أحمد علي', email: 'supplier12@example.com', activities: ['food products'], branches: ['مدينة نصر', 'المعادى'], postalCode: '11223', rejectionReasons: ['incomplete'], docs : [
             { id: 'i1', type: 'image', src: 'https://picsum.photos/800/600?1', title: 'صورة 1' },
             { id: 'i2', type: 'image', src: 'https://picsum.photos/800/600?2', title: 'صورة 2' },
             { id: 'p1', type: 'pdf', src: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', title: 'تقرير PDF' },
@@ -200,7 +200,7 @@ const page = () => {
         <DashboardContentHeader
             title="إدارة الموردين"
             createButtonTitle="إضافة مورد"
-            createComponent={<CreateSupplierDialog />}
+            createComponent={<SupplierDialog />}
             apiFilter1={{ title: "تخصيص الأعمدة", onClick: () => console.log("filter 1") }}
             apiFilter2={{ title: "تصفية الأعمدة", onClick: () => console.log("filter 2") }}
             searchPlaceholder="ابحث في الموردين..."
@@ -210,6 +210,8 @@ const page = () => {
             columns={columns}
             data={rows}
             detailsComponentMap={{ supplier: SuppliersContent }}
+            rowDialog={<SupplierDialog />}
+            
             pageSizeOptions={[5, 10, 25]}
             initialPageSize={5}
             // totalRows={80} // لو server-side pagination

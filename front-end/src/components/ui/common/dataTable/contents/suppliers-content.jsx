@@ -66,6 +66,48 @@ export default function SuppliersContent({ row }) {
         }
     }, [showReject]);
 
+    // governorate & city lookups (keep in sync with supplierDialog mappings)
+    const governorates = [
+        { label: "القاهرة", value: "cairo" },
+        { label: "الجيزة", value: "giza" },
+        { label: "الإسكندرية", value: "alex" },
+    ];
+
+    const citiesMap = {
+        cairo: [
+            { label: "مدينة نصر", value: "nasr" },
+            { label: "المعادي", value: "maadi" },
+        ],
+        giza: [
+            { label: "الهرم", value: "haram" },
+            { label: "الجيزة", value: "giza-city" },
+        ],
+        alex: [
+            { label: "سيدي جابر", value: "sidi" },
+            { label: "ستانلي", value: "stanley" },
+        ],
+    };
+
+    function getGovernorateLabel(val) {
+        if (!val) return null;
+        const direct = governorates.find(g => String(g.value) === String(val));
+        if (direct) return direct.label;
+        const byLabel = governorates.find(g => String(g.label) === String(val));
+        if (byLabel) return byLabel.label;
+        return null;
+    }
+
+    function getCityLabel(govVal, cityVal) {
+        if (!cityVal) return null;
+        // try by governorate first
+        const list = (govVal && citiesMap[govVal]) ? citiesMap[govVal] : Object.values(citiesMap).flat();
+        const direct = list.find(c => String(c.value) === String(cityVal));
+        if (direct) return direct.label;
+        const byLabel = list.find(c => String(c.label) === String(cityVal));
+        if (byLabel) return byLabel.label;
+        return null;
+    }
+
     return (
         <div className="w-full text-sm py-5">
             <div className="grid grid-cols-1  gap-6">
@@ -95,8 +137,8 @@ export default function SuppliersContent({ row }) {
                 <div>
                     <h4 className="font-semibold mb-3 border-b pb-1">تفاصيل الموقع</h4>
                     <div className="space-y-2 pr-4 flex items-center gap-4 justify-between">
-                        <div className='border-r pr-3 flex flex-col gap-2 w-1/5'><span className='font-bold'>المحافظة</span> <span>{row.governorate ?? 'القاهرة'}</span></div>
-                        <div className='border-r pr-3 flex flex-col gap-2 w-1/5'><span className='font-bold'>المدينة</span> <span>{row.city ?? 'المعادى'}</span></div>
+                        <div className='border-r pr-3 flex flex-col gap-2 w-1/5'><span className='font-bold'>المحافظة</span> <span>{getGovernorateLabel(row.governorate) ?? (row.governorate ?? 'القاهرة')}</span></div>
+                        <div className='border-r pr-3 flex flex-col gap-2 w-1/5'><span className='font-bold'>المدينة</span> <span>{getCityLabel(row.governorate, row.city) ?? (row.city ?? 'المعادى')}</span></div>
                         <div className='border-r pr-3 flex flex-col gap-2 w-1/5'><span className='font-bold'>العنوان</span> <span>{row.address ?? '—'}</span></div>
                         <div className='border-r pr-3 flex flex-col gap-2 w-1/5'><span className='font-bold'>الفروع</span> <span>{branchesDisplay}</span></div>
                         <div className='border-r pr-3 flex flex-col gap-2 w-1/5'><span className='font-bold'>الرقم البريدى</span> <span>{row.postalCode ?? '—'}</span></div>

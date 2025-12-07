@@ -19,6 +19,8 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { ChevronDown } from 'lucide-react';
+import { useModal } from '@/hooks/useModal';
+import { registerCallback } from '@/lib/modalCallbacks';
 
 
 
@@ -76,11 +78,16 @@ export default function DataTable({
     onPageChange,
     onSelectionChange,
     onOrderChange,
+    onDelete = null,
+    // Optional: a dialog React element (e.g. <SupplierDialog />) that will be
+    // cloned and opened in `update` mode when the row 'تعديل' action is clicked.
+    rowDialog = null,
     // detailsComponentMap: { [typeName]: Component }
     detailsComponentMap = {},
     // key on row that identifies type, default 'type'
     rowTypeKey = 'type'
 }) {
+    const { openModal, closeModal } = useModal();
     const [rows, setRows] = useState(() => data);
     const [selected, setSelected] = useState(new Set());
     const [pageIndex, setPageIndex] = useState(0);
@@ -211,6 +218,9 @@ export default function DataTable({
     const gotoLast = () => setPageIndex(pageCount - 1);
     useEffect(() => { onPageChange && onPageChange(pageIndex, pageSize); }, [pageIndex, pageSize]);
     const [expandedId, setExpandedId] = useState(null);
+    // State for row-level dialog (edit/update)
+    const [editRow, setEditRow] = useState(null);
+    const [editOpen, setEditOpen] = useState(false);
 
     return (
         <div className="w-full">
@@ -323,8 +333,25 @@ export default function DataTable({
                                                                                     </DropdownMenuTrigger>
                                                                                     <DropdownMenuContent className='text-right' align="end">
                                                                                         {/* <DropdownMenuItem className="w-full justify-end text-right" onClick={() => console.log('view', row.id)}>عرض</DropdownMenuItem> */}
-                                                                                        <DropdownMenuItem className="w-full justify-end text-right" onClick={() => console.log('edit', row.id)}>تعديل</DropdownMenuItem>
-                                                                                        <DropdownMenuItem className="w-full justify-end text-right" onClick={() => console.log('delete', row.id)}>حذف</DropdownMenuItem>
+                                                                                        <DropdownMenuItem className="w-full justify-end text-right" onClick={() => { setEditRow(row); setEditOpen(true); }}>تعديل</DropdownMenuItem>
+                                                                                        <DropdownMenuItem className="w-full justify-end text-right" onClick={() => {
+                                                                                            const key = registerCallback(() => {
+                                                                                                if (onDelete && typeof onDelete === 'function') {
+                                                                                                    onDelete(row.id);
+                                                                                                } else {
+                                                                                                    console.log('delete confirmed', row.id);
+                                                                                                }
+                                                                                            });
+                                                                                            openModal({
+                                                                                                isOpen: true,
+                                                                                                type: 'failure',
+                                                                                                title: 'تأكيد الحذف',
+                                                                                                message: 'هل أنت متأكد أنك تريد حذف هذا العنصر؟ لا يمكن التراجع عن هذا الإجراء.',
+                                                                                                actionName: 'حذف',
+                                                                                                cancelTitle: 'إلغاء',
+                                                                                                customActionKey: key,
+                                                                                            });
+                                                                                        }}>حذف</DropdownMenuItem>
                                                                                     </DropdownMenuContent>
                                                                                 </DropdownMenu>
                                                                             )}
@@ -390,6 +417,22 @@ export default function DataTable({
 
             </div>
 
+            {/* Confirmation modal is provided globally via `GlobalModal` and opened with `openModal(...)` */}
+
+            {/* If a `rowDialog` React element was passed from the parent (e.g. <SupplierDialog />),
+                clone it and inject update-related props so it opens for the selected row. */}
+            {rowDialog && React.isValidElement(rowDialog) && (
+                React.cloneElement(rowDialog, {
+                    mode: 'update',
+                    initialData: editRow,
+                    open: editOpen,
+                    onOpenChange: (v) => setEditOpen(v),
+                    // hide the trigger inside the cloned dialog (we open it programmatically)
+                    triggerNode: <span style={{ display: 'none' }} />,
+                    key: `row-dialog-${editRow ? editRow.id : 'none'}`
+                })
+            )}
+
             {/* Pagination footer */}
             <div className="flex items-center justify-between mt-4">
                 <div className="flex items-center gap-3">
@@ -420,3 +463,8 @@ export default function DataTable({
         </div>
     );
 }
+
+// Note: rendering of `rowDialog` is done by the parent component passing a
+// React element via the `rowDialog` prop. We clone it and inject `mode`,
+// `initialData`, `open`, and `onOpenChange` so the dialog behaves as an
+// update dialog for the selected row.

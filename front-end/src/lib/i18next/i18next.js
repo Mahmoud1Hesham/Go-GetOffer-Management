@@ -10,6 +10,8 @@ import enSideBar from '../../localization/en/sideBar.json'
 import arSideBar from '../../localization/ar/sideBar.json'
 import enValidation from '@/localization/en/errors/validation/validation.json'
 import arValidation from '@/localization/ar/errors/validation/validation.json'
+import enFileUploader from '@/localization/en/file-uploader.json'
+import arFileUploader from '@/localization/ar/file-uploader.json'
 
 // Helper: update direction
 const updateHtmlDirection = (lng) => {
@@ -25,10 +27,10 @@ i18n
     .init({
         resources: {
             en: {
-                test:enTest,sideBar:enSideBar, validation: enValidation,
+                test:enTest,sideBar:enSideBar, validation: enValidation, fileUploader: enFileUploader
             },
             ar: {
-                test:arTest,sideBar:arSideBar, validation: arValidation,
+                test:arTest,sideBar:arSideBar, validation: arValidation, fileUploader: arFileUploader
             }
         },
         fallbackLng: "ar",

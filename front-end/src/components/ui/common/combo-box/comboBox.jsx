@@ -19,7 +19,7 @@ import { useSearchParams } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "../../button"
 
-export function Combobox({ options = [], value, onChange, placeholder = "Select...", className = "" , comboinputclass="" }) {
+export function Combobox({ options = [], value, onChange, placeholder = "Select...", className = "" , comboinputclass="", disabled = false }) {
     const [open, setOpen] = React.useState(false)
         const searchParams = useSearchParams();
         const lang = searchParams.get("lang") || i18n.language || "en";
@@ -45,6 +45,7 @@ export function Combobox({ options = [], value, onChange, placeholder = "Select.
                     role="combobox"
                     aria-expanded={open}
                     className={cn("justify-between w-full h-auto py-3  shadow-lg", className)}
+                    disabled={disabled}
                 >
                     {currentLabel || placeholder}
                     <ChevronsUpDown className="opacity-50" />

@@ -1,0 +1,23 @@
+{
+    "texts": [
+        {
+            "title": "1/2 Commercial Registration Documents",
+            "subtitle": "Upload your company’s legal documents, you can upload up to 8 files max"
+        },
+        {
+            "title": "Drag your file(s) to start uploading",
+            "subtitle": "Only support .jpg, .png, .jpeg and .pdf files",
+            "subtitle2": "When uploading files, please wait for files to finish uploading, to avoid any mistakes."
+        }
+    ],
+    "help-text": "OR",
+    "buttons": {
+        "title": "Browse files"
+    },
+    "text2": {
+        "title": "2/2 Tax Card Documents",
+        "subtitle": "Upload your company’s Tax Card documents, you can upload up to 8 files max"
+    },
+    "help-text2": "Only support .jpg, .png, .jpeg and .pdf files",
+    "subtitle22": "When uploading files, please wait for files to finish uploading, to avoid any mistakes."
+}

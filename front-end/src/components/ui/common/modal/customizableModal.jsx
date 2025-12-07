@@ -10,14 +10,16 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useModal } from "@/hooks/useModal";
-// import { useLottieAnimation } from "@/hooks/useLottieAnimation";
+import { useLottieAnimation } from "@/hooks/useLottieAnimation";
 
-// import thumbsUp from "../../../../public/assets/illustrations/thumbsUp.json";
-// import highFive from "../../../../public/assets/illustrations/highFive.json";
+import thumbsUp from "../../../../../public/assets/illustrations/thumbsUp.json";
+import highFive from "../../../../../public/assets/illustrations/highFive.json";
 import { useRouter, useSearchParams } from "next/navigation";
-// import { useDispatch } from "react-redux";
+import { useDispatch } from "react-redux";
+import { getCallback, removeCallback } from '@/lib/modalCallbacks';
 import useAuth from "@/hooks/useAuth";
-// import Lottie from "lottie-react";
+import Lottie from "lottie-react";
+import { useTranslation } from "react-i18next";
 
 
 export const modalIllustrations = {
@@ -29,8 +31,9 @@ export default function GlobalModal() {
     const { modal, closeModal } = useModal();
     const router = useRouter();
     const { refresh } = useAuth();
+    const { i18n } = useTranslation();
     const searchParams = useSearchParams();
-    const lang = searchParams.get("lang") || i18n.language || "en";
+    const lang = searchParams.get("lang") || (i18n && i18n.language) || "en";
 
     const {
         isOpen,
@@ -40,9 +43,9 @@ export default function GlobalModal() {
         image,
         illustration,
         actionType,
-        customAction,
+        customActionKey,
         actionName,
-        cancelAction,
+        cancelActionKey,
         cancelTitle,
     } = modal || {};
 
@@ -65,8 +68,9 @@ export default function GlobalModal() {
 
     // 🔹 Handle Confirm
     const handleConfirm = () => {
-        if (typeof customAction === "function") {
-            customAction();
+        const cb = customActionKey ? getCallback(customActionKey) : null;
+        if (typeof cb === "function") {
+            try { cb(); } finally { removeCallback(customActionKey); }
         } else if (actionType && modalActionsMap[actionType]) {
             modalActionsMap[actionType]();
         }
@@ -74,8 +78,9 @@ export default function GlobalModal() {
     };
     // 🔹 Handle Cancel
     const handleCancel = () => {
-        if (typeof cancelAction === "function") {
-            cancelAction();
+        const cancelCb = cancelActionKey ? getCallback(cancelActionKey) : null;
+        if (typeof cancelCb === "function") {
+            try { cancelCb(); } finally { removeCallback(cancelActionKey); }
         }
         closeModal();
     };
@@ -122,8 +127,8 @@ export default function GlobalModal() {
                 )}
 
                 <DialogFooter className="flex justify-center gap-2">
-                    {cancelAction && (
-                        <Button variant="outline" onClick={handleCancel} className={`border-go-primary-cancel hover:bg-go-primary-cancel hover:text-white`}>
+                    {cancelTitle && (
+                        <Button variant="outline" onClick={handleCancel} className={``}>
                             {cancelTitle}
                         </Button>
                     )}
