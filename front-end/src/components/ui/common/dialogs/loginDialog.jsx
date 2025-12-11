@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import { useSelector } from 'react-redux'
 import useForm from '@/hooks/useForm'
 import { loginSchema } from '@/app/Validation/ValidationSchemas.js'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import {
     Dialog,
     DialogContent,
@@ -17,9 +17,15 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import useAuth from '@/hooks/useAuth.js'
+import { useModal } from '@/hooks/useModal';
+import { getPermissionMaps } from '@/app/services/auth/permissionMaps.js';
+import { getPathsForRole } from '@/app/services/maps/appPathsStructure.map.js';
+import { mapUserRole } from '@/app/services/workers/userRoleMapper.js';
 
 export default function LoginDialog() {
-    const { login, loginStatus } = useAuth(); // login returns { ok, data?, error? }
+    const router = useRouter();
+    const { login, loginStatus, firstAllowedPath } = useAuth(); // login returns { ok, data?, error? }
+    const { closeModal } = useModal();
     const isAuthenticated = useSelector((s) => s.auth.isAuthenticated)
     const searchParams = useSearchParams()
     const lang = searchParams?.get('lang') || 'en'
@@ -56,7 +62,50 @@ export default function LoginDialog() {
                 return false
             }
 
-            // success: useAuth should have dispatched setCredentials; RouteGuard will react and continue
+            // success: useAuth should have dispatched setCredentials; compute allowed path from returned user
+            try {
+                        const serverUser = res?.data?.user || null;
+                // reuse centralized mapper so mapping logic stays in one place
+                const mappedUser = serverUser ? mapUserRole(serverUser) : null;
+
+                const pm = getPermissionMaps();
+                let target = '/';
+                const candidates = [
+                    mappedUser?.roleId,
+                    mappedUser?.role,
+                    mappedUser?.roleKey,
+                    mappedUser?.role?.roleKey,
+                    mappedUser?.role?.id,
+                ].filter(Boolean).map(String);
+
+                for (const rid of candidates) {
+                    const set = pm?.roleToPaths?.get(rid);
+                    if (set && set.size > 0) {
+                        const arr = Array.from(set);
+                        target = arr.includes('/') ? '/' : arr[0];
+                        break;
+                    }
+                    const paths = getPathsForRole(rid) || [];
+                    if (paths && paths.length > 0) {
+                        target = paths.includes('/') ? '/' : paths[0];
+                        break;
+                    }
+                }
+
+                console.debug('[LoginDialog] redirecting to', target, 'for user', mappedUser);
+                // close any global modal that may be open (e.g., NotAuthorized)
+                try { closeModal(); } catch (e) { }
+                // give React/Redux a brief tick to process modal close/unmounts
+                try {
+                    setTimeout(() => {
+                        try { router.push(target); } catch (e) { console.warn('router.push failed', e); }
+                    }, 40);
+                } catch (e) {
+                    router.push(target);
+                }
+            } catch (e) {
+                console.warn('[LoginDialog] redirect failed', e);
+            }
             return true
         } catch (err) {
             const msg = err?.message || (lang === 'en' ? 'Network error' : 'خطأ في الشبكة')

@@ -26,7 +26,13 @@ export function generatePathsFromAppMap(opts = {}) {
     includeDepartmentHead = true,
     includeEmployeesInActions = true,
     includeOverallAdmin = true,
-    includeOverallSuper = true
+    includeOverallSuper = true,
+    // allow customizing the division segment prefix (default: 'divisions')
+    divisionPrefix = 'divisions',
+    // basePath: prefer env var, otherwise default to '/dashboard' per new routing requirement
+    basePath = (typeof process !== 'undefined' && process.env && process.env.NEXT_PUBLIC_APP_BASE_PATH)
+      ? String(process.env.NEXT_PUBLIC_APP_BASE_PATH)
+      : '/dashboard'
   } = opts;
 
   const res = {};
@@ -36,9 +42,32 @@ export function generatePathsFromAppMap(opts = {}) {
 
   const divisions = appMap?.divisions || {};
 
+  // normalize basePath:
+  // - if a full URL is provided (e.g. ngrok), extract its pathname
+  // - ensure it starts with a single leading slash and has no trailing slash
+  let normalizedBase = '';
+  if (basePath) {
+    try {
+      if (/^https?:\/\//i.test(basePath)) {
+        const u = new URL(basePath);
+        normalizedBase = u.pathname || '';
+      } else {
+        normalizedBase = String(basePath || '');
+      }
+    } catch (e) {
+      normalizedBase = String(basePath || '');
+    }
+
+    normalizedBase = normalizedBase.replace(/\/$/, '');
+    if (normalizedBase === '/') normalizedBase = '';
+    if (normalizedBase && !normalizedBase.startsWith('/')) normalizedBase = '/' + normalizedBase;
+  }
+
   for (const [divKey, divNode] of Object.entries(divisions)) {
     const divisionId = divNode.id || divKey;
-    const divPath = `/${toKebab(divisionId)}`;
+    // produce paths like: /dashboard/divisions/<division>
+    const seg = `/${divisionPrefix}/${toKebab(divisionId)}`;
+    const divPath = `${normalizedBase}${seg}`;
 
     // roles that can view division-level page
     const divViewSet = new Set();
@@ -64,7 +93,9 @@ export function generatePathsFromAppMap(opts = {}) {
     const departments = divNode.departments || {};
     for (const [depKey, depNode] of Object.entries(departments)) {
       const depId = depNode.id || depKey;
-      const depPath = `/${toKebab(divisionId)}/${toKebab(depId)}`;
+      // produce department paths like: /dashboard/divisions/<division>/<department>
+      const depSeg = `/${divisionPrefix}/${toKebab(divisionId)}/${toKebab(depId)}`;
+      const depPath = `${normalizedBase}${depSeg}`;
 
       const viewSet = new Set();
       const actionSet = new Set();
@@ -114,6 +145,18 @@ export function generatePathsFromAppMap(opts = {}) {
         allowEmployeeReports
       };
     }
+  }
+
+  // Add a management page under /dashboard/management reserved for SuperAdmin only
+  try {
+    const managementPath = `${normalizedBase}/management`;
+    // overallSuperId may be undefined; guard it
+    res[managementPath] = {
+      viewRoles: overallSuperId ? [overallSuperId] : [],
+      actionRoles: overallSuperId ? [overallSuperId] : [],
+    };
+  } catch (e) {
+    // ignore
   }
 
   return res;

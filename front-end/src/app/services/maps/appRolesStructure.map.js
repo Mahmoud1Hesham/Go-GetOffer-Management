@@ -1,7 +1,7 @@
 // src/config/appRolesStructure.map.js
 export const appMap = {
     overall: {
-        superAdmin: { id: "ceo", label: "CEO" },
+        SuperAdmin: { id: "ceo", label: "CEO" },
         admin: { id: "branchManager", label: "Branch Manager" }
     },
 

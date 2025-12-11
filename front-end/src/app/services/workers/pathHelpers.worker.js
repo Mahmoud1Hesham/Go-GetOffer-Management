@@ -1,5 +1,13 @@
 import { getPathsMap, matchTemplatePath } from '../maps/appPathsStructure.map.js';
 import { appMap } from '../maps/appRolesStructure.map.js'; // path to your appMap
+import { getPermissionMaps } from '@/app/services/auth/permissionMaps.js';
+
+// local helper: convert label to kebab-case (same logic used when generating paths)
+const toKebab = (s) =>
+    String(s || '')
+        .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
+        .replace(/[_\s]+/g, '-')
+        .toLowerCase();
 
 // helper: get dept node by divisionId & departmentId
 function getDeptNode(divisionId, departmentId) {
@@ -14,26 +22,43 @@ function getDivNode(divisionId) {
 }
 
 const toId = v => (v && typeof v === 'object' ? v.id : v);
+const toStr = v => (v === null || typeof v === 'undefined' ? null : String(v));
+// build candidate role identifiers from user object (same logic used elsewhere)
+function roleCandidates(user) {
+    if (!user) return [];
+    return [
+        user.roleId,
+        user.role,
+        user.roleKey,
+        user?.role?.roleKey,
+        user?.role?.id,
+    ].filter(Boolean).map(toStr);
+}
 
 // shortcuts
 function isSuper(user) {
-    return Boolean(user && toId(appMap.overall?.superAdmin) === user.roleId);
+    if (!user) return false;
+    const overall = appMap?.overall || {};
+    const candidates = [];
+    if (overall.SuperAdmin) candidates.push(toId(overall.SuperAdmin));
+    if (overall.superAdmin) candidates.push(toId(overall.superAdmin));
+    return candidates.some(id => toStr(id) === toStr(user.roleId));
 }
 function isAdmin(user) {
-    return Boolean(user && toId(appMap.overall?.admin) === user.roleId);
+    return Boolean(user && toStr(toId(appMap.overall?.admin)) === toStr(user.roleId));
 }
 function isDeptHead(user, deptNode) {
     if (!deptNode || !user) return false;
-    return user.roleId === toId(deptNode.departmentHead);
+    return toStr(user.roleId) === toStr(toId(deptNode.departmentHead));
 }
 function isDivisionHead(user, divNode) {
     if (!divNode || !user) return false;
-    return user.roleId === toId(divNode.divisionHead || divNode.devHead);
+    return toStr(user.roleId) === toStr(toId(divNode.divisionHead || divNode.devHead));
 }
 function isDeptEmployee(user, deptNode) {
     if (!deptNode || !user) return false;
     const emps = Array.isArray(deptNode.employees) ? deptNode.employees : (deptNode.empName ? [deptNode.empName] : []);
-    return emps.some(e => (typeof e === 'object' ? e.id : e) === user.roleId);
+    return emps.some(e => toStr(typeof e === 'object' ? e.id : e) === toStr(user.roleId));
 }
 
 /**
@@ -53,10 +78,20 @@ export function canView(user, path) {
     // try to map path => division/department
     const tpl = matchTemplatePath(path, getPathsMap());
     if (!tpl) return false;
-    const mapEntry = getPathsMap()[tpl];
 
-    // if user role explicitly listed in mapEntry.viewRoles => allow
-    if (mapEntry.viewRoles && mapEntry.viewRoles.includes(user.roleId)) return true;
+    // fast explicit-role lookup using precomputed sets
+    try {
+        const { pathToViewRoles } = getPermissionMaps();
+        const vset = pathToViewRoles.get(tpl);
+        if (vset) {
+            const candidates = roleCandidates(user);
+            for (const rid of candidates) {
+                if (vset.has(rid)) return true;
+            }
+        }
+    } catch (_) {
+        // fall back to slower path below if permission maps not available
+    }
 
     // else interpret scopes from appMap (preferred)
     const parts = tpl.split('/').filter(Boolean);
@@ -146,10 +181,21 @@ export function canAct(user, path) {
 
     const tpl = matchTemplatePath(path, getPathsMap());
     if (!tpl) return false;
-    const mapEntry = getPathsMap()[tpl];
 
-    // explicit action roles
-    if (mapEntry.actionRoles && mapEntry.actionRoles.includes(user.roleId)) return true;
+    // fast explicit-action lookup using precomputed sets
+    try {
+        const { pathToActionRoles } = getPermissionMaps();
+        const aset = pathToActionRoles.get(tpl);
+        if (aset) {
+            const candidates = roleCandidates(user);
+            for (const rid of candidates) {
+                if (aset.has(rid)) return true;
+            }
+        }
+    } catch (_) {
+        // fall back to slower path below if permission maps not available
+    }
+    const mapEntry = getPathsMap()[tpl];
 
     // derive from appMap scopes for department pages
     const parts = tpl.split('/').filter(Boolean);

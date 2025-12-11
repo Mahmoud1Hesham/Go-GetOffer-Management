@@ -9,7 +9,7 @@ export function useModal() {
     const modal = useSelector((state) => state.modal);
 
     const handleOpen = (payload) => dispatch(openModal(payload));
-    const handleClose = () => dispatch(closeModal());
+    const handleClose = (forPath = null) => dispatch(closeModal({ forPath }));
 
     return { modal, openModal: handleOpen, closeModal: handleClose };
 }

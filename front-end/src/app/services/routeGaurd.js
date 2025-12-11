@@ -1,62 +1,37 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
-import { useSelector } from 'react-redux';
-import { getPathsForRole } from '@/app/services/maps/appPathsStructure.map.js';
-import { canView } from './workers/pathHelpers.worker.js';
-import LoginDialog from '@/components/ui/common/dialogs/loginDialog.jsx';
-import Loading from '../loading.jsx';
+import LoginDialog from "@/components/ui/common/dialogs/loginDialog.jsx";
+import NotAuthorized from "@/components/NotAuthorized.jsx";
+import { usePathname } from "next/navigation";
+import useAuth from "@/hooks/useAuth";
+import { useSelector } from "react-redux";
+import { selectRoleKey } from "@/redux/slices/authSlice";
 
-export default function RouteGuard({ children, fallback = '/not-authorized' }) {
-    const router = useRouter();
-    const pathname = usePathname();
-    const user = useSelector(s => s.auth.user); // user must contain roleId, divisionId, departmentId
-    const [ready, setReady] = useState(false);
-    const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+// RouteGuard: shows `LoginDialog` when not authenticated,
+// and `NotAuthorized` when the authenticated user cannot view the current path.
+export default function RouteGuard({ children }) {
+    const { isAuthenticated, canView ,firstAllowedPath } = useAuth();
+    const selectRoleKeyValue = useSelector(selectRoleKey);
+    const pathname = usePathname() || "/";
 
-    useEffect(() => {
-        process.env.NEXT_PUBLIC_MOOD === 'DEV' ? console.log(user, pathname) : null;
-        if (!pathname) return;
+    // DEBUG: log auth state and requested pathname
+    try { console.log('[RouteGuard] isAuthenticated=', isAuthenticated, 'pathname=', pathname); } catch(e){}
 
-        // لو مفيش user نعرض مودال/كونپوننت تسجيل الدخول
-        if (!user) {
-            setShowLoginPrompt(true);
-            setReady(false);
-            return;
-        }
-        // لو في user، اتأكد إنه مسموح يدخل الصفحة
-        const allowed = canView(user, pathname);
-        if (allowed) {
-            setShowLoginPrompt(false);
-            setReady(true);
-            return;
-        }
+    if (!isAuthenticated) return <LoginDialog />;
 
-        // لو مش مسموح -> حاول ترجع لأول مسار مسموح لدورته
-        const roleId = user.roleId;
-        try {
-            const allowedPaths = getPathsForRole(roleId) || [];
-            if (Array.isArray(allowedPaths) && allowedPaths.length > 0) {
-                const prefer = allowedPaths.includes('/') ? '/' : allowedPaths[0];
-                router.replace(prefer);
-                return;
-            }
-        } catch (err) {
-            // ignore
-        }
-
-        // لو مفيش مسار مسموح -> redirect للـ fallback
-        router.replace(fallback);
-    }, [pathname, user, router, fallback]);
-
-    // لو بنعرض login prompt رجّع الكومبوننت مباشرة
-    if (showLoginPrompt && !user) {
-        return <LoginDialog />;
+    // log evaluated values (call functions) instead of printing function objects
+    try {
+        const canViewResult = typeof canView === 'function' ? canView(pathname) : Boolean(canView);
+        const firstAllowed = typeof firstAllowedPath === 'function' ? firstAllowedPath() : firstAllowedPath;
+        console.log(`[RouteGuard] role=${selectRoleKeyValue} isAuthenticated=${isAuthenticated} canView=${canViewResult} firstAllowedPath=${firstAllowed}`);
+    } catch (e) {
+        console.log('[RouteGuard] debug log error', e);
     }
-
-    // لو لسه مش جاهز متعرضش حاجة (أو اعرض لودر)
-    if (!ready) return <Loading/>;
+    // if user is authenticated but not allowed to view this route
+    if (!canView(pathname)) {
+        try { console.log('[RouteGuard] canView=false for', pathname); } catch(e){}
+        return <NotAuthorized />;
+    }
 
     return <>{children}</>;
 }

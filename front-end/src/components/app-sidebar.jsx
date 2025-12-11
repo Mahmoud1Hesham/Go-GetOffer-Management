@@ -27,6 +27,8 @@ import {
 import LanguageToggler from "./ui/common/langSelectionButton.jsx"
 import { useTranslation } from "react-i18next"
 import { useSearchParams } from "next/navigation.js"
+import { useSelector } from 'react-redux'
+import { selectUsername, selectEmail, selectAvatar, selectBranches, selectRoleKey } from '@/redux/slices/authSlice'
 import { TbCheckupList } from "react-icons/tb";
 import { RiCustomerService2Line } from "react-icons/ri";
 import { LuPackageCheck } from "react-icons/lu";
@@ -47,51 +49,65 @@ export function AppSidebar({
   const searchParams = useSearchParams()
   const lang = searchParams.get("lang") || i18n.language || "ar"
   const isRtl = lang !== "en"
-  const data = {
-    user: {
-      name: "shadcn",
-      email: "m@example.com",
-      avatar: "https://github.com/shadcn.png",
-    },
-    teams: [
+  const username = useSelector(selectUsername) || ''
+  const emailAddr = useSelector(selectEmail) || ''
+  const avatar = useSelector(selectAvatar) || ''
+  const roleKey = useSelector(selectRoleKey) || null
+  const branches = useSelector(selectBranches) || []
+
+  const roleKeyValue = (roleKey && (roleKey.roleKey ?? (typeof roleKey === 'string' ? roleKey : null))) || null
+  const displayName = username ? (roleKeyValue ? `${username} - ${roleKeyValue}` : username) : (roleKeyValue ? `shadcn - ${roleKeyValue}` : 'shadcn')
+  // build teams from branches: name = first word of branchName, plan = last word, logo if provided
+  const teams = Array.isArray(branches) && branches.length > 0
+    ? branches.map((b) => {
+        const branchName = b?.branchName || b?.name || ''
+        const parts = branchName.trim().split(/\s+/).filter(Boolean)
+        const name = parts[0] || branchName || t('branch-Name')
+        const plan = parts.length > 0 ? parts[parts.length - 1] : ''
+        return {
+          name,
+          // ensure logo is never undefined; fallback to GalleryVerticalEnd
+          logo: b?.logo ?? GalleryVerticalEnd,
+          plan,
+        }
+      })
+    : [
       {
         name: t("branch-Name"),
         logo: GalleryVerticalEnd,
         plan: t("branch-desc"),
       },
-      // {
-      //   name: "Acme Corp.",
-      //   logo: AudioWaveform,
-      //   plan: "Startup",
-      // },
-      // {
-      //   name: "Evil Corp.",
-      //   logo: Command,
-      //   plan: "Free",
-      // },
-    ],
+    ]
+
+  const data = {
+    user: {
+      name: displayName,
+      email: emailAddr || 'm@example.com',
+      avatar: avatar || 'https://github.com/shadcn.png',
+    },
+    teams,
     navMain: [
       {
         title: t("divisions.follow-up.name"),
-        url: "/dashboard/divisions/followUp",
+        url: "/dashboard/divisions/follow-up",
         icon: TbCheckupList,
         isActive: true,
         items: [
           {
             title:  t("divisions.follow-up.Departments.join"),
-            url: "/dashboard/divisions/followUp/join-requests",
+            url: "/dashboard/divisions/follow-up/supplier-joining-requests",
           },
           {
             title: t("divisions.follow-up.Departments.order"),
-            url: "/dashboard/divisions/followUp/supplier-order-tracking",
+            url: "/dashboard/divisions/follow-up/supplier-order-tracking",
           },
           {
             title: t("divisions.follow-up.Departments.purchase"),
-            url: "/dashboard/divisions/followUp/purchases",
+            url: "/dashboard/divisions/follow-up/purchases",
           },
           {
             title: t("divisions.follow-up.Departments.complains"),
-            url: "/dashboard/divisions/followUp/complains",
+            url: "/dashboard/divisions/follow-up/complains",
           },
         ],
       },

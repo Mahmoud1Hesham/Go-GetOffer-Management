@@ -1,0 +1,9 @@
+{
+    "header": {
+        "title": "Page Not Found",
+        "subtitle": "Oops! The page you’re looking for doesn’t exist or has been moved."
+    },
+    "button":{
+        "label":"Go Back to Home Page"
+    }
+}

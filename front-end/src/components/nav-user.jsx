@@ -29,6 +29,7 @@ import {
 import { useTranslation } from "react-i18next"
 import { useSearchParams } from "next/navigation.js"
 import { GoPasskeyFill } from "react-icons/go";
+import useAuth from "@/hooks/useAuth"
 export function NavUser({
   user
 }) {
@@ -38,6 +39,7 @@ export function NavUser({
   const searchParams = useSearchParams();
   const lang = searchParams.get("lang") || i18n.language || "ar";
   const isRtl = lang !== "en";
+  const { logout } = useAuth();
 
 
   return (
@@ -45,7 +47,7 @@ export function NavUser({
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-                <SidebarMenuButton
+            <SidebarMenuButton
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
               <Avatar className="h-8 w-8 rounded-lg">
@@ -59,7 +61,7 @@ export function NavUser({
               <ChevronsUpDown className="ml-auto size-4" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
-                <DropdownMenuContent
+          <DropdownMenuContent
             className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
             side={isMobile ? "bottom" : "right"}
             align="end"
@@ -80,7 +82,7 @@ export function NavUser({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-                  <DropdownMenuItem className={`${isRtl ? "flex-row-reverse" : "flex-row"} flex items-center gap-2`}>
+              <DropdownMenuItem className={`${isRtl ? "flex-row-reverse" : "flex-row"} flex items-center gap-2`}>
                 <GoPasskeyFill />
                 <span className={`${isRtl ? "text-right" : "text-left"}`}>{t("user-menu.change-password")}</span>
               </DropdownMenuItem>
@@ -114,7 +116,7 @@ export function NavUser({
             <DropdownMenuSeparator /> */}
             <DropdownMenuSeparator />
 
-            <DropdownMenuItem className={`${isRtl ? "flex-row-reverse" : "flex-row"} flex items-center gap-2`}>
+            <DropdownMenuItem onClick={() => logout()} className={`${isRtl ? "flex-row-reverse" : "flex-row"} flex items-center gap-2`}>
               <LogOut />
               <span className={`${isRtl ? "text-right" : "text-left"}`}>{t("user-menu.logout")}</span>
             </DropdownMenuItem>

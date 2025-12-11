@@ -14,7 +14,7 @@ import { useLottieAnimation } from "@/hooks/useLottieAnimation";
 
 import thumbsUp from "../../../../../public/assets/illustrations/thumbsUp.json";
 import highFive from "../../../../../public/assets/illustrations/highFive.json";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useDispatch } from "react-redux";
 import { getCallback, removeCallback } from '@/lib/modalCallbacks';
 import useAuth from "@/hooks/useAuth";
@@ -29,8 +29,9 @@ export const modalIllustrations = {
 
 export default function GlobalModal() {
     const { modal, closeModal } = useModal();
+    const pathname = usePathname();
     const router = useRouter();
-    const { refresh } = useAuth();
+    const { refresh, firstAllowedPath, logout } = useAuth();
     const { i18n } = useTranslation();
     const searchParams = useSearchParams();
     const lang = searchParams.get("lang") || (i18n && i18n.language) || "en";
@@ -47,13 +48,14 @@ export default function GlobalModal() {
         actionName,
         cancelActionKey,
         cancelTitle,
+        out = false,
     } = modal || {};
 
     const typeStyles = {
-        default: { border: "border-go-primary-e", text: "text-go-primary-e", backGround: "bg-go-primary-e" },
-        success: { border: "border-green-600", text: "text-green-600", backGround: "bg-green-600" },
-        failure: { border: "border-go-primary-cancel", text: "text-go-primary-cancel", backGround: "bg-go-primary-cancel" },
-        warning: { border: "border-yellow-600", text: "text-yellow-600", backGround: "bg-green-600" },
+        default: { border: "border-go-primary-e", text: "text-go-primary-e", backGround: "bg-go-primary-e", hoverBackGround: "hover:bg-go-primary-e" },
+        success: { border: "border-green-600", text: "text-green-600", backGround: "bg-green-600", hoverBackGround: "hover:bg-green-600" },
+        failure: { border: "border-go-primary-cancel", text: "text-go-primary-cancel", backGround: "bg-go-primary-cancel", hoverBackGround: "hover:bg-go-primary-cancel" },
+        warning: { border: "border-yellow-600", text: "text-yellow-600", backGround: "bg-green-600", hoverBackGround: "hover:bg-green-600" },
     };
     const modalActionsMap = {
         ROLE_SELECT: () => router.push("/role-select"),
@@ -63,6 +65,11 @@ export default function GlobalModal() {
             await refresh()
             router.push("/role-select");
         },
+        ALLOWED_PAGE: () => {
+            const target = typeof firstAllowedPath === 'function' ? firstAllowedPath() : '/';
+            try { console.debug('[GlobalModal] navigating to allowed path:', target); } catch (e) { }
+            router.push(target);
+        }
     };
 
 
@@ -74,7 +81,7 @@ export default function GlobalModal() {
         } else if (actionType && modalActionsMap[actionType]) {
             modalActionsMap[actionType]();
         }
-        closeModal();
+        try { closeModal(pathname); } catch (e) { closeModal(); }
     };
     // 🔹 Handle Cancel
     const handleCancel = () => {
@@ -82,11 +89,11 @@ export default function GlobalModal() {
         if (typeof cancelCb === "function") {
             try { cancelCb(); } finally { removeCallback(cancelActionKey); }
         }
-        closeModal();
+        try { closeModal(pathname); } catch (e) { closeModal(); }
     };
 
     return (
-        <Dialog open={!!isOpen} onOpenChange={(open) => !open && closeModal()}>
+        <Dialog open={!!isOpen} onOpenChange={(open) => { if (!open) { try { closeModal(pathname); } catch (e) { closeModal(); } } }}>
             <DialogContent
                 className={`
                         fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2
@@ -132,7 +139,13 @@ export default function GlobalModal() {
                             {cancelTitle}
                         </Button>
                     )}
-                    <Button variant={'outline'} className={`w-full bg-white hover:text-white ${typeStyles[type]?.text}  ${typeStyles[type]?.border} hover:${typeStyles[type]?.backGround}`} onClick={handleConfirm}>{actionName}</Button>
+                    {/* Optional logout button: shown when actionName matches 'logout' or Arabic 'تسجيل الخروج' */}
+                    {out && (
+                        <Button variant="outline" onClick={()=> { logout(); try { closeModal(pathname); } catch (e) { closeModal(); } }} className={`w-full bg-white hover:text-white ${typeStyles[type]?.text}  ${typeStyles[type]?.border} ${typeStyles[type]?.hoverBackGround}`}>
+                            {lang === 'en' ? 'Logout' : 'تسجيل الخروج'}
+                        </Button>
+                    )}
+                    <Button variant={'outline'} className={`w-full bg-white hover:text-white ${typeStyles[type]?.text}  ${typeStyles[type]?.border} ${typeStyles[type]?.hoverBackGround}`} onClick={handleConfirm}>{actionName}</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
