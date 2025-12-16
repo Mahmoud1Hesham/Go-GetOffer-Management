@@ -21,14 +21,16 @@ import { useModal } from '@/hooks/useModal';
 import { getPermissionMaps } from '@/app/services/auth/permissionMaps.js';
 import { getPathsForRole } from '@/app/services/maps/appPathsStructure.map.js';
 import { mapUserRole } from '@/app/services/workers/userRoleMapper.js';
+import { useValidationI18nSchemas } from '@/hooks/useTranslatedValidation'
 
 export default function LoginDialog() {
     const router = useRouter();
-    const { login, loginStatus, firstAllowedPath } = useAuth(); // login returns { ok, data?, error? }
+    const { login, loginStatus } = useAuth(); // login returns { ok, data?, error? }
     const { closeModal } = useModal();
     const isAuthenticated = useSelector((s) => s.auth.isAuthenticated)
     const searchParams = useSearchParams()
     const lang = searchParams?.get('lang') || 'en'
+    const { schemas } = useValidationI18nSchemas();
 
     // server / generic error
     const [serverError, setServerError] = useState('')
@@ -64,7 +66,7 @@ export default function LoginDialog() {
 
             // success: useAuth should have dispatched setCredentials; compute allowed path from returned user
             try {
-                        const serverUser = res?.data?.user || null;
+                const serverUser = res?.data?.user || null;
                 // reuse centralized mapper so mapping logic stays in one place
                 const mappedUser = serverUser ? mapUserRole(serverUser) : null;
 
@@ -123,7 +125,7 @@ export default function LoginDialog() {
         handleSubmit,
         resetForm,
         setErrors,
-    } = useForm(initialValues, loginSchema, onSubmit)
+    } = useForm(initialValues, schemas.loginSchema, onSubmit)
 
     // Dialog open controlled by auth state:
     const open = !isAuthenticated
@@ -131,7 +133,7 @@ export default function LoginDialog() {
     return (
         <Dialog open={open} onOpenChange={() => { /* منع الإغلاق اليدوي */ }}>
             <DialogContent className="max-w-md">
-                <DialogHeader>
+                <DialogHeader className={'text-center'}>
                     <DialogTitle>{lang === 'en' ? 'Sign In' : 'تسجيل الدخول'}</DialogTitle>
                     <DialogDescription>
                         {lang === 'en' ? 'Enter your email and password to continue.' : 'ادخل الايميل وكلمة المرور للمتابعة.'}
@@ -149,9 +151,11 @@ export default function LoginDialog() {
                             onChange={handleChange}
                             onBlur={handleBlur}
                             autoFocus
+                            disabled={loginStatus?.isLoading}
                             aria-invalid={errors.email && touched.email ? 'true' : 'false'}
+                            aria-describedby={errors.email && touched.email ? 'email-error' : undefined}
                         />
-                        {errors.email && touched.email && <p className="text-sm text-red-500">{errors.email}</p>}
+                        {errors.email && touched.email && <p id="email-error" className="text-sm text-red-500">{errors.email}</p>}
                     </div>
 
                     <div>
@@ -163,16 +167,18 @@ export default function LoginDialog() {
                             value={values.passwordHash}
                             onChange={handleChange}
                             onBlur={handleBlur}
+                            disabled={loginStatus?.isLoading}
                             aria-invalid={errors.passwordHash && touched.passwordHash ? 'true' : 'false'}
+                            aria-describedby={errors.passwordHash && touched.passwordHash ? 'password-error' : undefined}
                         />
-                        {errors.passwordHash && touched.passwordHash && <p className="text-sm text-red-500">{errors.passwordHash}</p>}
+                        {errors.passwordHash && touched.passwordHash && <p id="password-error" className="text-sm text-red-500">{errors.passwordHash}</p>}
                     </div>
 
                     {serverError && <p className="text-sm text-red-600">{serverError}</p>}
 
-                    <DialogFooter className="pt-2">
-                        <Button type="submit" disabled={loginStatus?.isLoading}>
-                            {loginStatus?.isLoading ? (lang === 'en' ? 'Signing...' : 'جاري الدخول...') : (lang === 'en' ? 'Sign In' : 'دخول')}
+                    <DialogFooter className="pt-2 flex sm:justify-start">
+                        <Button className='bg-go-primary-e hover:bg-go-primary-o' type="submit" disabled={loginStatus?.isLoading}>
+                            {loginStatus?.isLoading ? (lang === 'en' ? 'Signing...' : 'جاري الدخول...') : (lang === 'en' ? 'Sign In' : 'تسجيل الدخول')}
                         </Button>
                     </DialogFooter>
                 </form>

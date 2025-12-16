@@ -16,7 +16,7 @@ import { Avatar } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
+import { Accordion, AccordionItem, AccordionContent } from '@/components/ui/accordion';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { ChevronDown } from 'lucide-react';
 import { useModal } from '@/hooks/useModal';
@@ -85,7 +85,8 @@ export default function DataTable({
     // detailsComponentMap: { [typeName]: Component }
     detailsComponentMap = {},
     // key on row that identifies type, default 'type'
-    rowTypeKey = 'type'
+    rowTypeKey = 'type',
+    visibleColumns = null
 }) {
     const { openModal, closeModal } = useModal();
     const [rows, setRows] = useState(() => data);
@@ -111,6 +112,10 @@ export default function DataTable({
     const pageRows = rows.slice(start, end);
 
     const allSelected = pageRows.length > 0 && pageRows.every(r => selected.has(r.id));
+
+    // Derive which columns to render based on `visibleColumns` (if provided).
+    const visibleSet = new Set(Array.isArray(visibleColumns) && visibleColumns.length > 0 ? visibleColumns : columns.map(c => c.key));
+    const renderedColumns = (Array.isArray(visibleColumns) && visibleColumns.length > 0) ? columns.filter(c => visibleSet.has(c.key)) : columns;
 
     function toggleSelectAll() {
         setSelected(prev => {
@@ -202,7 +207,7 @@ export default function DataTable({
         }
         // If widthCls is a fixed width (not 'flex-1'), make the cell non-flexing
         const fixed = widthCls && widthCls !== 'flex-1';
-        const base = `relative text-sm ${fixed ? 'flex-none' : 'flex'} items-center justify-center ${widthCls ?? ''}`;
+        const base = `relative text-sm text-center ${fixed ? 'flex-none' : 'flex'} items-center justify-center ${widthCls ?? ''}`;
         if (key === 'code') return `${base} px-2 py-1 text-sm`; // compact
         if (key === 'category' || key === 'status') return `${base} px-2 py-2 text-xs`; // compact badge/category/status
         if (key === 'date') return `${base} px-2 py-1 text-sm`; // compact
@@ -251,7 +256,7 @@ export default function DataTable({
                         </div>
 
                         <div className="flex items-center w-full">
-                            {columns.map((col, idx) => {
+                            {renderedColumns.map((col, idx) => {
                                 if (col.key === 'checkbox') return null; // skipped - rendered outside
                                 const title = col.title ?? '';
                                 const widthCls = getColClass(col);
@@ -278,9 +283,8 @@ export default function DataTable({
                                         {/* Accordion: trigger wraps the visible row */}
                                         <Accordion type="single" collapsible value={isExpanded ? String(row.id) : null} onValueChange={(val) => setExpandedId(val ? String(val) : null)}>
                                             <AccordionItem className={`${isExpanded ? 'bg-go-bg-l-e  transition-all duration-300' : 'bg-white'}`} value={String(row.id)}>
-                                                {/* Trigger = whole row header */}
-                                                <AccordionTrigger>
-                                                    <div className={`flex items-center gap-0 px-2 py-1 cursor-pointer ${isExpanded ? 'animate-pulse duration-1100' : ''}`}>
+                                                {/* Row header (chevron-only toggles expansion) */}
+                                                    <div className={`flex items-center gap-0 px-2 py-1 ${isExpanded ? 'animate-pulse duration-1100' : ''}`}>
                                                         {/* checkbox moved outside the grid so it doesn't consume span */}
                                                         <div className={cellClass('checkbox')}>
                                                             <Checkbox checked={selected.has(row.id)} onCheckedChange={() => toggleRow(row.id)} />
@@ -288,7 +292,7 @@ export default function DataTable({
 
                                                         {/* We'll render the rest of the columns in the given order */}
                                                         <div className="flex items-center w-full">
-                                                            {columns.map((col, idx) => {
+                                                            {renderedColumns.map((col, idx) => {
                                                                 if (col.key === 'checkbox') return null; // skipped - rendered outside
                                                                 const key = col.key;
                                                                 const content = col.render ? col.render(row) : (row[key] ?? '');
@@ -313,7 +317,7 @@ export default function DataTable({
                                                                     return (
                                                                         <div key={key} className={cls} style={style}>
                                                                             {content}
-                                                                            {idx < columns.length - 1 && <div className="absolute right-0 top-1/2 transform -translate-y-1/2 h-6 w-px bg-gray-200" />}
+                                                                            {idx < renderedColumns.length && <div className="absolute right-0 top-1/2 transform -translate-y-1/2 h-6 w-px bg-gray-200" />}
                                                                         </div>
                                                                     );
                                                                 }
@@ -355,7 +359,7 @@ export default function DataTable({
                                                                                     </DropdownMenuContent>
                                                                                 </DropdownMenu>
                                                                             )}
-                                                                            {idx < columns.length && <div className="absolute right-0 top-1/2 transform -translate-y-1/2 h-6 w-px bg-gray-200" />}
+                                                                            {idx < renderedColumns.length && <div className="absolute right-0 top-1/2 transform -translate-y-1/2 h-6 w-px bg-gray-200" />}
                                                                         </div>
                                                                     );
                                                                 }
@@ -366,7 +370,7 @@ export default function DataTable({
                                                                     return (
                                                                         <div key={key} className={cls} style={style}>
                                                                             <div className="truncate w-full text-center">{content}</div>
-                                                                            {idx < columns.length - 1 && <div className="absolute right-0 top-1/2 transform -translate-y-1/2 h-6 w-px bg-gray-200" />}
+                                                                            {idx < renderedColumns.length && <div className="absolute right-0 top-1/2 transform -translate-y-1/2 h-6 w-px bg-gray-200" />}
                                                                         </div>
                                                                     );
                                                                 }
@@ -374,13 +378,23 @@ export default function DataTable({
                                                                 return (
                                                                     <div key={key} className={cls} style={style}>
                                                                         {content}
-                                                                        {idx < columns.length - 1 && <div className="absolute right-0 top-1/2 transform -translate-y-1/2 h-6 w-px bg-gray-200" />}
+                                                                        {idx < renderedColumns.length && <div className="absolute right-0 top-1/2 transform -translate-y-1/2 h-6 w-px bg-gray-200" />}
                                                                     </div>
                                                                 );
                                                             })}
                                                         </div>
+
+                                                        {/* chevron-only toggle at row end */}
+                                                        <div className="px-2 flex items-center">
+                                                            <button
+                                                                aria-label={isExpanded ? 'Collapse details' : 'Expand details'}
+                                                                onClick={(e) => { e.stopPropagation(); setExpandedId(isExpanded ? null : String(row.id)); }}
+                                                                className="p-2 rounded hover:bg-gray-100"
+                                                            >
+                                                                <ChevronDown className={`h-4 w-4 transform transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                                                            </button>
+                                                        </div>
                                                     </div>
-                                                </AccordionTrigger>
 
                                                 {/* Accordion content */}
                                                 <AccordionContent className="px-6 pb-4 pt-0 border-t bg-white">

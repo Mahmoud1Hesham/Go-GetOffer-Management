@@ -8,6 +8,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
+import { toast } from 'sonner';
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -54,11 +55,39 @@ export function NavMain({
             return (
               <SidebarMenuItem key={`${item.title ?? "item"}-${itemIndex}`}>
                 {/* Pass tooltip so simple (no-chv) items still show tooltips when sidebar is collapsed */}
-                <SidebarMenuButton asChild isActive={itemActive} className={simpleActiveClass} tooltip={item.title}>
+                <SidebarMenuButton
+                  asChild
+                  isActive={itemActive}
+                  className={simpleActiveClass}
+                  tooltip={item.title}
+                  onClick={(e) => {
+                    if (item.enabled === false) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      toast('You are not authorized to open this page', { type: 'error' });
+                    }
+                  }}
+                >
+                  {item.enabled === false ? (
+                    <div
+                      role="link"
+                      tabIndex={-1}
+                      className="flex items-center gap-2 px-2 py-1 opacity-60 cursor-not-allowed select-none"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        toast('You are not authorized to open this page', { type: 'error' });
+                      }}
+                    >
+                      {item.icon && <item.icon />}
+                      <span>{item.title}</span>
+                    </div>
+                  ) : (
                     <Link href={item.url}>
-                    {item.icon && <item.icon />}
-                    <span>{item.title}</span>
+                      {item.icon && <item.icon />}
+                      <span>{item.title}</span>
                     </Link>
+                  )}
                 </SidebarMenuButton>
               </SidebarMenuItem>
             );
@@ -72,17 +101,43 @@ export function NavMain({
               className="group/collapsible">
               <SidebarMenuItem>
                 <CollapsibleTrigger asChild>
-                  <SidebarMenuButton asChild tooltip={item.title} isActive={itemActive} className={`${lang === 'en' ? 'text-left' : 'text-right'} ${itemActive ? 'bg-go-bg-l-e text-go-primary-g font-semibold' : ''}`}>
-                    <Link href={item.url} onClick={(e) => e.stopPropagation()} className="flex-1 inline-flex items-center gap-2">
-                      {item.icon && <item.icon />}
-                      <span>{item.title}</span>
-                      {console.log && console.log("NavMain active:", item.title, itemActive)}
-                      {!isRtl ? (
-                        <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-                      ) : (
-                        <ChevronLeft className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:-rotate-90" />
-                      )}
-                    </Link>
+                  <SidebarMenuButton
+                    asChild
+                    tooltip={item.title}
+                    isActive={itemActive}
+                    className={`${lang === 'en' ? 'text-left' : 'text-right'} ${itemActive ? 'bg-go-bg-l-e text-go-primary-g font-semibold' : ''}`}
+                  >
+                    {item.enabled === false ? (
+                      <div
+                        className="flex-1 inline-flex items-center gap-2 px-2 py-1 opacity-60 cursor-not-allowed select-none"
+                        role="link"
+                        tabIndex={-1}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          toast('انت لست بمخول للوصول لهذا القسم', { type: 'error' });
+                        }}
+                      >
+                        {item.icon && <item.icon />}
+                        <span>{item.title}</span>
+                        {!isRtl ? (
+                          <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                        ) : (
+                          <ChevronLeft className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:-rotate-90" />
+                        )}
+                      </div>
+                    ) : (
+                      <Link href={item.url} onClick={(e) => e.stopPropagation()} className="flex-1 inline-flex items-center gap-2">
+                        {item.icon && <item.icon />}
+                        <span>{item.title}</span>
+                        {console.log && console.log("NavMain active:", item.title, itemActive)}
+                        {!isRtl ? (
+                          <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                        ) : (
+                          <ChevronLeft className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:-rotate-90" />
+                        )}
+                      </Link>
+                    )}
             </SidebarMenuButton>
                 </CollapsibleTrigger>
                 <CollapsibleContent>

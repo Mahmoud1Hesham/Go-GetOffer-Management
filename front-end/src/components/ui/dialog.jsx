@@ -46,7 +46,7 @@ const DialogHeader = ({
   ...props
 }) => (
   <div
-    className={cn("flex flex-col space-y-1.5 text-center sm:text-left", className)}
+    className={cn("flex flex-col space-y-1.5", className)}
     {...props} />
 )
 DialogHeader.displayName = "DialogHeader"
@@ -56,7 +56,7 @@ const DialogFooter = ({
   ...props
 }) => (
   <div
-    className={cn("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2", className)}
+    className={cn("flex  sm:flex-row sm:justify-end sm:space-x-2", className)}
     {...props} />
 )
 DialogFooter.displayName = "DialogFooter"

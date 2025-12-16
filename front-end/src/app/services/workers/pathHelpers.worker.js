@@ -68,6 +68,14 @@ function isDeptEmployee(user, deptNode) {
  */
 export function canView(user, path) {
     if (!user || !path) return false;
+    // dev-only debug logging to help trace why permissions fail
+    if (process.env.NODE_ENV !== 'prod') {
+        try {
+            const debugUser = { roleId: user.roleId, role: user.role, roleKey: user.roleKey, divisionId: user.divisionId, departmentId: user.departmentId };
+            console.debug('[pathHelpers.canView] user snapshot:', debugUser, 'path:', path);
+        } catch (e) {}
+    }
+
     if (isSuper(user)) return true;
     if (isAdmin(user)) {
         // admin is allowed to view most pages (policy); if you want admin to be restricted,
@@ -83,8 +91,14 @@ export function canView(user, path) {
     try {
         const { pathToViewRoles } = getPermissionMaps();
         const vset = pathToViewRoles.get(tpl);
+        if (process.env.NODE_ENV !== 'production') {
+            try { console.debug('[pathHelpers.canView] tpl=', tpl, 'vset=', vset ? Array.from(vset) : null); } catch (e) {}
+        }
         if (vset) {
             const candidates = roleCandidates(user);
+            if (process.env.NODE_ENV !== 'production') {
+                try { console.debug('[pathHelpers.canView] roleCandidates=', candidates); } catch (e) {}
+            }
             for (const rid of candidates) {
                 if (vset.has(rid)) return true;
             }

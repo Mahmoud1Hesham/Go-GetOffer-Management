@@ -15,6 +15,7 @@ import {
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
+import useAuth from '@/hooks/useAuth';
 import { NavUser } from "@/components/nav-user"
 import { TeamSwitcher } from "@/components/team-switcher"
 import {
@@ -79,6 +80,21 @@ export function AppSidebar({
       },
     ]
 
+  const { canView } = useAuth();
+
+  // enhance nav items with `enabled` flag based on current user's permissions
+  const enhanceItems = (items) => {
+    return items.map((item) => {
+      const childItems = Array.isArray(item.items)
+        ? item.items.map(si => ({ ...si, enabled: !!canView(si.url) }))
+        : undefined;
+
+      const parentEnabled = !!(item.url && canView(item.url)) || (childItems && childItems.some(ci => ci.enabled));
+
+      return { ...item, enabled: parentEnabled, items: childItems };
+    });
+  };
+
   const data = {
     user: {
       name: displayName,
@@ -103,7 +119,7 @@ export function AppSidebar({
           },
           {
             title: t("divisions.follow-up.Departments.purchase"),
-            url: "/dashboard/divisions/follow-up/purchases",
+            url: "/dashboard/divisions/follow-up/purchase",
           },
           {
             title: t("divisions.follow-up.Departments.complains"),
@@ -281,6 +297,9 @@ export function AppSidebar({
       ? p.items.map((si) => ({ title: si.title || si.name || '', url: si.url }))
       : undefined,
   }))
+  // apply enhancement to nav menus
+  const enhancedNavMain = enhanceItems(data.navMain);
+  const enhancedPlatformItems = enhanceItems(platformItems);
   return (
     <div dir={isRtl ? "rtl" : "ltr"} className={isRtl ? "text-right font-honor" : "text-left font-figtree"}>
       <Sidebar
@@ -296,8 +315,8 @@ export function AppSidebar({
         </SidebarHeader>
         <SidebarContent>
           <LanguageToggler />
-          <NavMain title={t('divisions.sec-name')} items={data.navMain} />
-          <NavMain title={t('platform.sec-name')} items={platformItems} />
+          <NavMain title={t('divisions.sec-name')} items={enhancedNavMain} />
+          <NavMain title={t('platform.sec-name')} items={enhancedPlatformItems} />
           {/* <NavProjects projects={data.projects} /> */}
         </SidebarContent>
         <SidebarFooter>

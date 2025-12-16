@@ -106,6 +106,7 @@ import { jwtDecode } from "jwt-decode";
 import { useRouter } from "next/navigation";
 import useAuth from "@/hooks/useAuth";
 import Loading from "@/app/loading";
+import { mapUserRole } from '@/app/services/workers/userRoleMapper.js';
 
 const AppInitializer = ({ children }) => {
     const dispatch = useDispatch();
@@ -174,14 +175,25 @@ const AppInitializer = ({ children }) => {
                 mappedUser.branchId = mappedUser.branches?.[0]?.id ?? null;
                 mappedUser.branchName = mappedUser.branches?.[0]?.branchName ?? null;
 
-                // Dispatch under `data` so authSlice mapping uses the normalized object
+                // Ensure mappedUser is passed through app mapping to derive `roleId` etc
+                const finalUser = (() => {
+                    try {
+                        return mapUserRole(mappedUser || {});
+                    } catch (e) {
+                        return mappedUser;
+                    }
+                })();
+
+                // Dispatch under `user` so reducer preserves provided user shape
                 dispatch(
                     setCredentials({
-                        data: mappedUser,
+                        user: finalUser,
                         token: newAccessToken,
-                        email: mappedUser.email,
+                        email: finalUser.email,
                     })
                 );
+
+                try { console.debug('[AppInitializer] final mapped user:', finalUser); } catch (e) {}
 
                 // DEBUG: print auth slice after setting credentials (dev only)
                 try {

@@ -4,18 +4,27 @@ import React from "react";
 import { Search, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Combobox } from "../combo-box/comboBox";
 import { IoFilter } from "react-icons/io5";
 import { GoColumns } from "react-icons/go";
+import Tabs, { TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function DashboardContentHeader({
     title = "",
     createButtonTitle,
     createComponent, 
     searchPlaceholder = "ابحث...",
+    tabs,
+    activeTab,
+    onTabChange,
     apiFilter1,
     apiFilter2,
     apiCreate,
     onSearch,
+    // new props for column visibility control
+    columns,
+    visibleColumns,
+    onVisibleColumnsChange,
 }) {
     return (
         <div className="w-full px-5 mt-3">
@@ -26,20 +35,71 @@ export default function DashboardContentHeader({
 
             {/* actions row */}
             <div className="flex justify-between items-center gap-32 flex-wrap">
-                {/* search input */}
-                <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                    <Input
-                        className="pl-10 outline-none"
-                        type="search"
-                        placeholder={searchPlaceholder}
-                        onChange={(e) => onSearch && onSearch(e.target.value)}
-                    />
-                </div>
+                {/* search input or tabs */}
+                {tabs && Array.isArray(tabs) ? (
+                    <div className="">
+                        <Tabs defaultValue={String(activeTab ?? (tabs[0] && tabs[0].value))} value={String(activeTab ?? undefined)} onValueChange={(v) => onTabChange && onTabChange(v)}>
+                            <TabsList className="bg-go-bg-l-e flex gap-2 px-2 rounded-lg">
+                                {tabs.map((t) => (
+                                    <TabsTrigger className="bg-go-bg-l-e rounded-lg" key={t.value} value={String(t.value)}>
+                                        <div className="flex items-center gap-4">
+                                            <span>{t.label}</span>
+                                            {typeof t.count === 'number' && (
+                                                <span className="text-xs text-gray-600 bg-white w-5 h-5 rounded-full flex items-center justify-center">{t.count}</span>
+                                            )}
+                                        </div>
+                                    </TabsTrigger>
+                                ))}
+                            </TabsList>
+                        </Tabs>
+                    </div>
+                ) : (
+                    <div className="relative flex-1">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                        <Input
+                            className="pl-10 outline-none"
+                            type="search"
+                            placeholder={searchPlaceholder}
+                            onChange={(e) => onSearch && onSearch(e.target.value)}
+                        />
+                    </div>
+                )}
                 {/* buttons group */}
                 <div className="flex items-center gap-2">
 
-                    {apiFilter1 && (
+                    {/* Column customization: use Combobox when `columns` prop provided */}
+                    {columns ? (
+                        <div className="w-36">
+                            {(() => {
+                                const options = (columns || []).filter(c => c && c.key !== 'checkbox' && (c.title || '').toString().trim() !== '').map(c => ({ value: c.key, label: c.title }));
+                                const fixed = (columns || []).filter(c => ['code', 'avatar'].includes(c.key)).map(c => c.key);
+
+                                return (
+                                    <Combobox
+                                        multiple
+                                        options={options}
+                                value={visibleColumns}
+                                        fixedValues={fixed}
+                                        onChange={(val) => {
+                                            const incoming = Array.isArray(val) ? val : (val ? [val] : []);
+                                            const merged = Array.from(new Set([...fixed, ...incoming]));
+                                            if (!merged || merged.length === 0) return; // never allow zero
+                                            onVisibleColumnsChange && onVisibleColumnsChange(merged);
+                                        }}
+                                        // Provide a custom trigger node so this instance shows the icon + provided title
+                                        triggerNode={
+                                            <Button variant="outline" className="flex items-center gap-2 justify-start w-full py-2 px-2">
+                                                <GoColumns size={14} />
+                                                <span className="text-sm">{apiFilter1?.title ?? 'أعمدة'}</span>
+                                            </Button>
+                                        }
+                                        className="rounded-lg"
+                                        comboinputclass="px-0"
+                                    />
+                                );
+                            })()}
+                        </div>
+                    ) : apiFilter1 && (
                         <Button variant="outline" className="rounded-lg" onClick={apiFilter1.onClick}>
                             <GoColumns />
                             {apiFilter1.title}

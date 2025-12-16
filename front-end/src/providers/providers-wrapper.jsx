@@ -7,11 +7,11 @@ import RouteGuard from "@/app/services/routeGaurd.js";
 import GlobalModal from "@/components/ui/common/modal/customizableModal";
 import AppInitializer from "@/providers/appInitializer.jsx";
 import ErrorBoundary from '@/components/ErrorBoundary.jsx';
+import { Toaster } from "@/components/ui/sonner";
 
 const queryClient = new QueryClient();
 
 export default function Providers({ children }) {
-
 
 
 
@@ -21,6 +21,7 @@ export default function Providers({ children }) {
                 <ErrorBoundary>
                     <AppInitializer>
                         <GlobalModal />
+                        <Toaster />
                         <RouteGuard>
                             {children}
                         </RouteGuard>

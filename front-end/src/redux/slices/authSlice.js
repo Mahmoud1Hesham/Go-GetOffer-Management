@@ -31,21 +31,27 @@ const authSlice = createSlice({
 
             const accessToken = apiData.accessToken || payload.token || null;
 
-            // map user fields from API data if present
-            const mappedUser = apiData && (apiData.userId || apiData.username || apiData.role || apiData.avatar)
-                ? {
-                    userId: apiData.userId ?? null,
-                    username: apiData.username ?? null,
-                    avatar: apiData.avatar ?? null,
-                    branches: apiData.branches ?? [],
-                    departments: apiData.departments ?? [],
-                    divisions: apiData.divisions ?? [],
-                    role: (apiData.role && (apiData.role.id ?? apiData.role)) ?? null,
-                    roleKey: apiData.role?.roleKey ?? null,
-                    branchId: apiData.branches?.[0]?.id ?? null,
-                    branchName: apiData.branches?.[0]?.branchName ?? null,
-                }
-                : (payload.user || null);
+            // If caller provided an already-mapped `user` object, prefer it and preserve
+            // additional fields like `roleId`, `divisionId`, and `departmentId`.
+            let mappedUser = null;
+            if (payload.user) {
+                mappedUser = payload.user;
+            } else {
+                mappedUser = apiData && (apiData.userId || apiData.username || apiData.role || apiData.avatar)
+                    ? {
+                        userId: apiData.userId ?? null,
+                        username: apiData.username ?? null,
+                        avatar: apiData.avatar ?? null,
+                        branches: apiData.branches ?? [],
+                        departments: apiData.departments ?? [],
+                        divisions: apiData.divisions ?? [],
+                        role: (apiData.role && (apiData.role.id ?? apiData.role)) ?? null,
+                        roleKey: apiData.role?.roleKey ?? null,
+                        branchId: apiData.branches?.[0]?.id ?? null,
+                        branchName: apiData.branches?.[0]?.branchName ?? null,
+                    }
+                    : null;
+            }
 
             try { console.debug('[authSlice] setCredentials token?', !!accessToken, 'userHasRole?', !!(mappedUser && mappedUser.role && mappedUser.role.id)); } catch (_) {}
 

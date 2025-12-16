@@ -18,6 +18,9 @@ function translateSchema(schema, t) {
     const map = {
         "Email must be Gmail, Yahoo, or Outlook with valid domain (.com, .net, .edu, .org)":
             t("email.allowedProviders"),
+        // also accept the shorter/updated message from ValidationSchemas
+        "Email must end with .edu, .net, .com, or .org":
+            t("email.allowedProviders"),
         "Email is required": t("email.required"),
 
         "Password must be at least 8 characters": t("password.min"),
