@@ -114,7 +114,7 @@ export default function SuppliersContent({ row }) {
                 <div>
                     <h4 className="font-semibold mb-3 border-b pb-1">المعلومات الأساسية</h4>
                     <div className="space-y-2 pr-4 flex items-center gap-4 justify-between">
-                        <div className='border-r pr-3 flex flex-col gap-2 w-1/4'><span>اسم المستخدم</span> <span>{row.name}</span></div>
+                        <div className='border-r pr-3 flex flex-col gap-2 w-1/4'><span>اسم المستخدم</span> <span>{row.fullName}</span></div>
                         <div className='border-r pr-3 flex flex-col gap-2 w-1/4'><span>رقم الهاتف</span> <span>{row.phone ?? '+201298754321'}</span></div>
                         <div className='border-r pr-3 flex flex-col gap-2 w-1/4'><span>الفرع الرئيسي</span> <span>{row.branch ?? '-'}</span></div>
                         <div className='border-r pr-3 flex flex-col gap-2 w-1/4'>

@@ -6,7 +6,8 @@ import DashCardGroup from '@/components/ui/common/dashCard/dashCardGroup';
 import SuppliersContent from '@/components/ui/common/dataTable/contents/suppliers-content';
 import DataTable from '@/components/ui/common/dataTable/dataTable';
 import React, { useState } from 'react'
-import { PiClockUser, PiUserMinusLight, PiUserPlus, PiUserSwitch } from 'react-icons/pi';
+import { FaPeopleGroup } from 'react-icons/fa6';
+import { PiClockUser, PiUserMinusLight, PiUserPlus} from 'react-icons/pi';
 
 const columns = [
   { key: 'checkbox', title: '', width: 40 },
@@ -168,6 +169,16 @@ const rows = [
 ];
 const statsConfig = [
   {
+    id: "total_requests",
+    title: "إجمالي الطلبات",
+    value: 12,
+    unit: "طلب",
+    note: "إجمالي عدد طلبات انضمام الموردين المستلمة",
+    icon: FaPeopleGroup, // change icon to sutable one
+    iconBg: "bg-go-bg-l-e",
+    iconColor: "text-go-primary-g"
+  },
+  {
     id: "accepted_requests",
     title: "طلبات مقبولة",
     value: 100,
@@ -196,16 +207,6 @@ const statsConfig = [
     icon: PiUserMinusLight,
     iconBg: "bg-red-100",
     iconColor: "text-go-primary-cancel"
-  },
-  {
-    id: "resubmitted_requests",
-    title: "طلبات معاد تقديمها",
-    value: 12,
-    unit: "طلب",
-    note: "الطلبات التي تم إرسالها مرة أخرى للتصحيح أو الاستكمال",
-    icon: PiUserSwitch,
-    iconBg: "bg-go-bg-l-e",
-    iconColor: "text-go-primary-g"
   },
 ];
 

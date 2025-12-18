@@ -10,7 +10,7 @@ export default function DashCard({
 }) {
     return (
         <div className="flex flex-1 flex-col justify-center rounded-[32px] border bg-white px-4 py-2 shadow-md min-w-[230px]">
-            <div className="flex gap-16 items-center justify-between">
+            <div className="flex gap-5 items-center justify-between">
                 {/* value */}
                 <div className="">
                     <span className="text-xs text-slate-500">{title}</span>
