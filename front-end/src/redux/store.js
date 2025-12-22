@@ -3,6 +3,7 @@ import authReducer from "./slices/authSlice.js";
 import uiReducer from "./slices/uiSlice.js";
 import { modalReducer } from "./slices/modalSlice.js";
 import supplierManagementReducer from "./slices/supplierManagementSlice.js";
+import supplierJoinRequestsReducer from "./slices/supplierJoinRequestsSlice.js";
 
 
 export const store = configureStore({
@@ -11,5 +12,6 @@ export const store = configureStore({
     ui: uiReducer,
     modal: modalReducer,
     supplierManagement: supplierManagementReducer || ((state = null) => state),
+    supplierJoinRequests: supplierJoinRequestsReducer || ((state = null) => state),
   },
 });

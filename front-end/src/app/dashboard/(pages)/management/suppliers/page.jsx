@@ -12,6 +12,8 @@ import DataTable from '@/components/ui/common/dataTable/dataTable';
 import SuppliersContent from '@/components/ui/common/dataTable/contents/suppliers-content';
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchSuppliers } from '@/redux/slices/supplierManagementSlice'
+import UnifiedFilterSheet from '@/components/ui/filters/UnifiedFilterSheet'
+import { applyFilters } from '@/components/ui/filters/filter.service'
 
 const columns = [
     { key: 'checkbox', title: '', width: 40 },
@@ -217,6 +219,8 @@ const statsConfig = [
 
 const page = () => {
     const [visibleColumns, setVisibleColumns] = useState(columns.map(c => c.key));
+    const [filterSheetOpen, setFilterSheetOpen] = useState(false);
+    const [appliedFilters, setAppliedFilters] = useState({});
     const dispatch = useDispatch()
     const supplierState = useSelector((s) => s.supplierManagement || {})
 
@@ -252,7 +256,9 @@ const page = () => {
                 )) ||
                 'https://avatars.githubusercontent.com/u/124599?v=4',
             code: s.code || s.companyNumber || '',
+            // human-friendly display date and a raw ISO date for filtering
             date: s.joinDate ? new Date(s.joinDate).toLocaleDateString('ar-EG') : '',
+            dateRaw: s.joinDate || null,
             // category should display activities
             category: s.activities || s.categories || [],
             status: (() => {
@@ -270,7 +276,7 @@ const page = () => {
             city: s.city || '',
             phoneNumbers: Array.isArray(s.phoneNumbers) && s.phoneNumbers.length ? s.phoneNumbers[0] : '',
             phone: s.companyNumber || '',
-            fullName: s.fullName || '',
+            
             email: s.email || '',
             activities: s.categories || [],
             branches: s.branchName ? [s.branchName] : [],
@@ -280,7 +286,13 @@ const page = () => {
         }
     })
 
-    const dataForTable = mappedRows.length > 0 || mappedRows ? mappedRows : [];
+    const dataForTable = mappedRows;
+
+    // apply filters client-side (categories, date range, status)
+    const filteredData = React.useMemo(() => {
+        if (!appliedFilters || Object.keys(appliedFilters).length === 0) return dataForTable;
+        return applyFilters(dataForTable, appliedFilters)
+    }, [dataForTable, appliedFilters])
 
     // Merge server-provided statusBar items into the static statsConfig.
     // For each statusBar item use `statusKey` (or `id`) as the card id and
@@ -337,14 +349,14 @@ const page = () => {
             visibleColumns={visibleColumns}
             onVisibleColumnsChange={setVisibleColumns}
             apiFilter1={{ title: "تخصيص الأعمدة", onClick: () => console.log("filter 1") }}
-            apiFilter2={{ title: "تصفية الأعمدة", onClick: () => console.log("filter 2") }}
+            apiFilter2={{ title: "تصفية", onClick: () => setFilterSheetOpen(true) }}
             searchPlaceholder="ابحث في الموردين..."
             onSearch={(value) => console.log(value)}
         />
         <DataTable
             columns={columns}
             visibleColumns={visibleColumns}
-            data={dataForTable}
+            data={filteredData}
             detailsComponentMap={{ supplier: SuppliersContent }}
             rowDialog={<SupplierDialog />}
 
@@ -354,6 +366,12 @@ const page = () => {
             onPageChange={(page, size) => console.log('page', page, 'size', size)}
             onSelectionChange={(sel) => console.log('selected', sel)}
             onOrderChange={(newRows) => console.log('new order', newRows.map(r => r.id))}
+        />
+        <UnifiedFilterSheet
+            open={filterSheetOpen}
+            onOpenChange={setFilterSheetOpen}
+            initial={appliedFilters}
+            onApply={(f) => setAppliedFilters(f)}
         />
         {/* Debug panel: full supplier slice report from API */}
         <div className="mt-6 p-4 bg-slate-50 rounded text-xs">
