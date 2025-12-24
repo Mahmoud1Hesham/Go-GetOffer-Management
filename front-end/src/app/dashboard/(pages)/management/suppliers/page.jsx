@@ -1,5 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { mapActivityValues } from '@/lib/activitiesMapper'
 import { FaPeopleGroup, FaUserCheck, FaAward } from "react-icons/fa6";
 import { PiUserMinusLight } from "react-icons/pi";
 import DashCardGroup from '@/components/ui/common/dashCard/dashCardGroup';
@@ -11,9 +13,10 @@ import { Badge } from '@/components/ui/badge';
 import DataTable from '@/components/ui/common/dataTable/dataTable';
 import SuppliersContent from '@/components/ui/common/dataTable/contents/suppliers-content';
 import { useDispatch, useSelector } from 'react-redux'
-import { fetchSuppliers } from '@/redux/slices/supplierManagementSlice'
+import { fetchSuppliers, deleteSupplier } from '@/redux/slices/supplierManagementSlice'
 import UnifiedFilterSheet from '@/components/ui/filters/UnifiedFilterSheet'
 import { applyFilters } from '@/components/ui/filters/filter.service'
+import useSearchPagination from '@/hooks/useSearchPagination'
 
 const columns = [
     { key: 'checkbox', title: '', width: 40 },
@@ -28,13 +31,13 @@ const columns = [
     },
     {
         key: 'category', title: 'النشاط', width: 140, render: (r) => {
-            const cats = Array.isArray(r.category) ? r.category : (r.category ? [r.category] : []);
+            const cats = Array.isArray(r.categoryLabel) ? r.categoryLabel : (r.categoryLabel ? [r.categoryLabel] : []);
             if (cats.length === 0) return <Badge variant={'outline'} className="px-3 py-1 text-xs">فارغ</Badge>;
             if (cats.length === 1) return <Badge variant={'outline'} className="px-3 py-1 text-xs">{cats[0]}</Badge>;
 
-            // show first category and a small +N indicator for the rest
+            // show first category with +N together in a single centered badge
             return (
-                <div className="flex items-center gap-2 font-figtree">
+                <div className="flex items-center justify-center font-figtree">
                     <Badge variant={'outline'} className="px-3 py-1 text-xs">{cats[0]} + {cats.length - 1}</Badge>
                 </div>
             );
@@ -223,6 +226,8 @@ const page = () => {
     const [appliedFilters, setAppliedFilters] = useState({});
     const dispatch = useDispatch()
     const supplierState = useSelector((s) => s.supplierManagement || {})
+    const searchParams = useSearchParams()
+    const lang = searchParams.get('lang') || 'en'
 
 
     useEffect(() => {
@@ -247,7 +252,7 @@ const page = () => {
             id: s.supplierId,
             type: s.type || 'supplier',
             name: s.companyName || '—',
-            fullName : s.fullName || '',
+            fullName: s.fullName || '',
             // prefer explicit logo/profile image fields; avoid using commercial registration docs as avatar
             avatar:
                 s.logoUrl || s.avatar || s.profileImage || s.profileImageUrl ||
@@ -260,7 +265,9 @@ const page = () => {
             date: s.joinDate ? new Date(s.joinDate).toLocaleDateString('ar-EG') : '',
             dateRaw: s.joinDate || null,
             // category should display activities
+            // keep raw keys for filtering, provide `categoryLabel` for display/localized labels
             category: s.activities || s.categories || [],
+            categoryLabel: mapActivityValues(s.activities || s.categories || [], lang),
             status: (() => {
                 const raw = String(s.status ?? '').trim().toLowerCase();
                 if (/قيد|pending/.test(raw)) return 'قيد الإنتظار'
@@ -276,13 +283,21 @@ const page = () => {
             city: s.city || '',
             phoneNumbers: Array.isArray(s.phoneNumbers) && s.phoneNumbers.length ? s.phoneNumbers[0] : '',
             phone: s.companyNumber || '',
-            
+
             email: s.email || '',
-            activities: s.categories || [],
-            branches: s.branchName ? [s.branchName] : [],
+            activities: s.categories || s.activities || [],
+            branches: s.branches || [],
             postalCode: s.postalCode || '',
             docs: docs,
             rejectionReasons: s.rejectionReasons ? (Array.isArray(s.rejectionReasons) ? s.rejectionReasons : [s.rejectionReasons]) : undefined,
+            supplierJoinRequestId: s.supplierJoinRequestId,
+
+            minimumItemInInvoice: s.minimumItemInInvoice,
+            minimumInvoiceAmount: s.minimumInvoiceAmount,
+            maximumInvoiceAmount: s.maximumInvoiceAmount,
+            maximumProcessingDays: s.maximumProcessingDays,
+            hasElectronicInvoice: s.hasElectronicInvoice,
+            hasDeliveryService: s.hasDeliveryService,
         }
     })
 
@@ -294,9 +309,29 @@ const page = () => {
         return applyFilters(dataForTable, appliedFilters)
     }, [dataForTable, appliedFilters])
 
-    // Merge server-provided statusBar items into the static statsConfig.
-    // For each statusBar item use `statusKey` (or `id`) as the card id and
-    // patch/replace the matching base card value. New keys are appended.
+    const fuseOptions = { keys: ["name", "code", "branch", "category"], threshold: 0.35 };
+    // Wire unified search + pagination hook in OFFLINE mode for testing.
+    // We pass the already-filtered dataset as `data` so the hook performs
+    // client-side search (Fuse) and pagination on top of existing filters.
+    const {
+        data: pagedData,
+        searchedData,
+        total,
+        page,
+        limit,
+        setSearch,
+        setPage,
+        setLimit,
+        isLoading,
+        isOnline
+    } = useSearchPagination({
+        queryKey: 'suppliers',
+        isOnline: false,
+        initialLimit: 5,
+        data: filteredData,
+        fuseOptions
+    })
+
     const combinedStats = React.useMemo(() => {
         const sb = Array.isArray(supplierState.statusBar) ? supplierState.statusBar : [];
         const baseMap = new Map(statsConfig.map(item => [item.id, { ...item }]));
@@ -312,7 +347,6 @@ const page = () => {
                 // preserve both the base note and the server-provided note
                 const baseNote = existing.note ? String(existing.note).trim() : '';
                 const serverNote = note ? String(note).trim() : '';
-                // place server note before the base note
                 existing.note = [serverNote, baseNote].filter(Boolean).join('  ');
             } else {
                 baseMap.set(id, {
@@ -351,19 +385,28 @@ const page = () => {
             apiFilter1={{ title: "تخصيص الأعمدة", onClick: () => console.log("filter 1") }}
             apiFilter2={{ title: "تصفية", onClick: () => setFilterSheetOpen(true) }}
             searchPlaceholder="ابحث في الموردين..."
-            onSearch={(value) => console.log(value)}
+            onSearch={(value) => setSearch(value)}
         />
         <DataTable
             columns={columns}
             visibleColumns={visibleColumns}
-            data={filteredData}
+            data={searchedData}
             detailsComponentMap={{ supplier: SuppliersContent }}
             rowDialog={<SupplierDialog />}
+            onDelete={(id) => {
+                try {
+                    console.log('Deleting supplier with id:', id);
+                    dispatch(deleteSupplier(id));
+                    dispatch(fetchSuppliers());
+                } catch (error) {
+                    console.error('Error logging supplier id for deletion:', error);
+                }
+            }}
 
             pageSizeOptions={[5, 10, 25]}
-            initialPageSize={5}
-            // totalRows={80} // لو server-side pagination
-            onPageChange={(page, size) => console.log('page', page, 'size', size)}
+            initialPageSize={limit}
+            totalRows={searchedData?.length || 0}
+            onPageChange={(page, size) => { setPage(page); setLimit(size); }}
             onSelectionChange={(sel) => console.log('selected', sel)}
             onOrderChange={(newRows) => console.log('new order', newRows.map(r => r.id))}
         />

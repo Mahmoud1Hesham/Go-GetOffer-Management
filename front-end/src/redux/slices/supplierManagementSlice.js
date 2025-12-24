@@ -10,7 +10,8 @@ export const fetchSuppliers = createAsyncThunk(
 			console.debug('fetchSuppliers: axios baseURL=', axios.defaults?.baseURL)
 			// eslint-disable-next-line no-console
 			console.debug('fetchSuppliers: calling /api/SupplierProfile')
-			const res = await axios.get('/api/SupplierProfile')
+			// Fetch all suppliers for offline pagination by requesting a large page size
+			const res = await axios.get('/api/SupplierProfile', { params: { pageSize: 10000 } })
 			// eslint-disable-next-line no-console
 			console.debug('fetchSuppliers: response status=', res?.status)
 			return res.data
@@ -20,6 +21,32 @@ export const fetchSuppliers = createAsyncThunk(
 			console.error('fetchSuppliers: request error', err && (err.response || err.message || err))
 			const message = err?.response?.data?.message || err.message || 'Fetch failed'
 			return rejectWithValue(message)
+		}
+	}
+)
+
+export const createSupplier = createAsyncThunk(
+	'supplierManagement/createSupplier',
+	async (payload, { rejectWithValue }) => {
+		try {
+			const res = await axios.post('/api/supplierprofile/newsupplier', payload);
+			return res.data;
+		} catch (err) {
+			const message = err?.response?.data?.message || err.message || 'Create failed';
+			return rejectWithValue(message);
+		}
+	}
+)
+
+export const deleteSupplier = createAsyncThunk(
+	'supplierManagement/deleteSupplier',
+	async (id, { rejectWithValue }) => {
+		try {
+			const res = await axios.delete('/api/SupplierProfile', { data: { Id: id } ,method: 'DELETE' });
+			return res.data;
+		} catch (err) {
+			const message = err?.response?.data?.message || err.message || 'Delete failed';
+			return rejectWithValue(message);
 		}
 	}
 )
@@ -62,7 +89,7 @@ function mapSupplierItem(item = {}) {
 		taxCardDocumentUrl: profile.taxCardDocumentUrl ?? [],
 		taxCardDocumentPublicId: profile.taxCardDocumentPublicId ?? [],
 		categories: profile.activityType ?? [],
-		minimumIteamInInvoice: profile.minimumIteamInInvoice ?? null,
+		minimumItemInInvoice: profile.minimumItemInInvoice ?? null,
 		minimumInvoiceAmount: profile.minimumInvoiceAmount ?? null,
 		maximumInvoiceAmount: profile.maximumInvoiceAmount ?? null,
 		maximumProcessingDays: profile.maximumProcessingDays ?? null,
@@ -71,6 +98,7 @@ function mapSupplierItem(item = {}) {
 		status: profile.status ?? null,
 		code: profile.code ?? null,
 
+		branches: profile.supplierBranches ?? [],
 		branchId: branch.id ?? null,
 		branchName: branch.branchName ?? null,
 		governorateId: branch.governorateId ?? null,
@@ -82,7 +110,7 @@ function mapSupplierItem(item = {}) {
 		phoneNumbers: branch.phoneNumbers ?? [],
 
 		supplierJoinRequestId: joinRequest.id ?? null,
-		rejectionReasons: joinRequest.adminComment ?? null,
+		rejectionReasons: joinRequest.rejectionReasons ?? joinRequest.adminComment ?? null,
 
 		// keep original raw item for reference
 		_raw: item,
@@ -127,6 +155,43 @@ const supplierManagementSlice = createSlice({
 			.addCase(fetchSuppliers.rejected, (state, action) => {
 				state.loading = false
 				state.error = action.payload || action.error?.message || 'Failed to load suppliers'
+			})
+			.addCase(createSupplier.pending, (state) => {
+				state.loading = true
+				state.error = null
+			})
+			.addCase(createSupplier.fulfilled, (state, action) => {
+				state.loading = false
+				state.error = null
+				state.message = action.payload?.message ?? ''
+				// if server returned created item in data.items or data.item, try to append
+				const created = action.payload?.data ?? action.payload?.item ?? action.payload
+				if (created) {
+					try {
+						const mapped = mapSupplierItem(created)
+						state.suppliers = [mapped, ...(state.suppliers || [])]
+					} catch (e) {
+						// fallback: do nothing
+					}
+				}
+			})
+			.addCase(createSupplier.rejected, (state, action) => {
+				state.loading = false
+				state.error = action.payload || action.error?.message || 'Failed to create supplier'
+			})
+			.addCase(deleteSupplier.pending, (state) => {
+				state.loading = true
+				state.error = null
+			})
+			.addCase(deleteSupplier.fulfilled, (state, action) => {
+				state.loading = false
+				state.error = null
+				// Remove the deleted supplier from the list using the argument passed to the thunk
+				state.suppliers = state.suppliers.filter(s => s.supplierId !== action.meta.arg)
+			})
+			.addCase(deleteSupplier.rejected, (state, action) => {
+				state.loading = false
+				state.error = action.payload || action.error?.message || 'Failed to delete supplier'
 			})
 	},
 })

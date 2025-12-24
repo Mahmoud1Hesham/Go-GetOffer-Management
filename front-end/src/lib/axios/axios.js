@@ -104,6 +104,8 @@ axiosRequester.interceptors.response.use(
 
             // start refresh
             isRefreshing = true;
+            let apiUser = null;
+            let newToken = null;
             try {
                 // Send the refresh request through the same axios instance so
                 // the browser will attach cookies (withCredentials is true).
@@ -112,10 +114,12 @@ axiosRequester.interceptors.response.use(
 
                 // tolerate multiple response shapes from backend
                 const r = refreshResp?.data || {};
-                const newToken = r?.data?.accessToken || r?.data?.token || r?.token || r?.accessToken || r?.data?.access_token || r?.access_token || null;
-                const user = r?.data?.user || r?.user || null;
+                newToken = r?.data?.accessToken || r?.data?.token || r?.token || r?.accessToken || r?.data?.access_token || r?.access_token || null;
+                // Use the full API user payload (r.data) when available so mapUserRole
+                // can read `role`, `role.roleKey`, and other fields. Fall back to r.user.
+                apiUser = r?.data || r?.user || null;
 
-                const mappedUser = user ? mapUserRole(user) : null;
+                const mappedUser = apiUser ? mapUserRole(apiUser) : null;
                 if (mappedUser || newToken) {
                     store.dispatch(setCredentials({ user: mappedUser, token: newToken }));
                 }
@@ -127,7 +131,18 @@ axiosRequester.interceptors.response.use(
                 originalRequest.headers['Authorization'] = `Bearer ${newToken}`;
                 return axiosRequester(originalRequest);
             } catch (refreshError) {
-                processQueue(refreshError, null);
+                        let mappedUser = null;
+                        if (apiUser) {
+                            mappedUser = mapUserRole(apiUser);
+                        } else if (newToken) {
+                            // preserve existing user if refresh returned only token
+                            try {
+                                const existingUser = store.getState()?.auth?.user || null;
+                                if (!mappedUser && existingUser) mappedUser = existingUser;
+                            } catch (e) {
+                                // ignore store read errors
+                            }
+                        }
                 isRefreshing = false;
                 store.dispatch(logout());
                 return Promise.reject(refreshError);

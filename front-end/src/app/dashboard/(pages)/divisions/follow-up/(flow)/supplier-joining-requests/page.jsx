@@ -8,10 +8,14 @@ import DataTable from '@/components/ui/common/dataTable/dataTable';
 import UnifiedFilterSheet from '@/components/ui/filters/UnifiedFilterSheet'
 import { applyFilters } from '@/components/ui/filters/filter.service'
 import React, { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { mapActivityValues } from '@/lib/activitiesMapper'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchSupplierJoinRequests, selectStatusBar, selectItems } from '@/redux/slices/supplierJoinRequestsSlice'
 import { FaPeopleGroup } from 'react-icons/fa6';
 import { PiClockUser, PiUserMinusLight, PiUserPlus } from 'react-icons/pi';
+
+const SuppliersContentNoConditions = (props) => <SuppliersContent {...props} showConditions={false} />;
 
 const columns = [
   { key: 'checkbox', title: '', width: 40 },
@@ -26,13 +30,13 @@ const columns = [
   },
   {
     key: 'category', title: 'النشاط', width: 140, render: (r) => {
-      const cats = Array.isArray(r.category) ? r.category : (r.category ? [r.category] : []);
+      const cats = Array.isArray(r.categoryLabel) ? r.categoryLabel : (r.categoryLabel ? [r.categoryLabel] : []);
       if (cats.length === 0) return <Badge variant={'outline'} className="px-3 py-1 text-xs">فارغ</Badge>;
       if (cats.length === 1) return <Badge variant={'outline'} className="px-3 py-1 text-xs">{cats[0]}</Badge>;
 
-      // show first category and a small +N indicator for the rest
+      // show first category with +N together in a single centered badge
       return (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-center">
           <Badge variant={'outline'} className="px-3 py-1 text-xs">{cats[0]} + {cats.length - 1}</Badge>
         </div>
       );
@@ -219,12 +223,14 @@ const statsConfig = [
 
 const page = () => {
   const [visibleColumns, setVisibleColumns] = useState(columns.map(c => c.key));
-  const [activeTab, setActiveTab] = useState('pending');
+  const [activeTab, setActiveTab] = useState('all');
   const dispatch = useDispatch()
   const statusBar = useSelector(selectStatusBar)
   const items = useSelector(selectItems)
   const loading = useSelector((s) => s.supplierJoinRequests?.loading)
   const error = useSelector((s) => s.supplierJoinRequests?.error)
+  const searchParams = useSearchParams()
+  const lang = searchParams.get('lang') || 'en'
 
   useEffect(() => {
     dispatch(fetchSupplierJoinRequests())
@@ -248,7 +254,9 @@ const page = () => {
       code: s.code || '',
       date: s.createdAt ? new Date(s.createdAt).toLocaleDateString('ar-EG') : '',
       dateRaw: s.createdAt || null,
+      // keep raw keys for filtering and provide localized labels for display
       category: s.activityType || [],
+      categoryLabel: mapActivityValues(s.activityType || [], lang),
       status: (() => {
         const raw = String(s.requestStatus ?? s.profileJoinRequestStatus ?? '').trim().toLowerCase();
         if (/قيد|pending/.test(raw)) return 'قيد الإنتظار'
@@ -264,10 +272,11 @@ const page = () => {
       phone: s.number || '',
       email: s.email || '',
       activities: s.activityType || [],
-      branches: s.branchName ? [s.branchName] : [],
+      branches: s.branches || [],
       postalCode: s.postalCode || '',
       docs,
       rejectionReasons: s.profileJoinRequestAdminComment ? (Array.isArray(s.profileJoinRequestAdminComment) ? s.profileJoinRequestAdminComment : [s.profileJoinRequestAdminComment]) : undefined,
+      supplierJoinRequestId: s.profileJoinRequestId,
       _raw: s._raw || null,
     }
   })
@@ -276,15 +285,35 @@ const page = () => {
   const [filterSheetOpen, setFilterSheetOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState({})
 
+  // Sync active tab to `appliedFilters.status` so tabs actually filter by status
+  useEffect(() => {
+    const map = {
+      pending: 'قيد الإنتظار',
+      approved: 'مقبول',
+      rejected: 'مرفوض',
+    }
+
+    setAppliedFilters((prev) => {
+      const next = { ...prev }
+      if (activeTab === 'all') {
+        // remove status filter
+        if (next.status) delete next.status
+      } else {
+        next.status = map[activeTab] || ''
+      }
+      return next
+    })
+  }, [activeTab])
+
   const filteredData = React.useMemo(() => {
     if (!appliedFilters || Object.keys(appliedFilters).length === 0) return dataForTable
     return applyFilters(dataForTable, appliedFilters)
   }, [dataForTable, appliedFilters])
 
   const tabs = [
-    { value: 'pending', label: 'قيد الانتظار', count: 6 },
-    { value: 'approved', label: 'مقبول', count: 2 },
-    { value: 'rejected', label: 'مرفوض', count: 4 },
+    { value: 'pending', label: 'قيد الانتظار' },
+    { value: 'approved', label: 'مقبول' },
+    { value: 'rejected', label: 'مرفوض' },
     { value: 'all', label: 'عرض الكل' }
   ];
 
@@ -353,7 +382,7 @@ const page = () => {
         visibleColumns={visibleColumns}
         data={filteredData}
         rowDialog={typeof SupplierDialog !== 'undefined' ? <SupplierDialog /> : null}
-        detailsComponentMap={{ supplier: SuppliersContent }}
+        detailsComponentMap={{ supplier: SuppliersContentNoConditions }}
         pageSizeOptions={[5, 10, 25]}
         initialPageSize={5}
         // totalRows={80} // لو server-side pagination

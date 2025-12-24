@@ -18,6 +18,7 @@ const FileUploader = ({
         "image/jpg": [],
     },
     apiUrl = "",
+    autoUpload = true,
     onFilesChange,
     showCancel = false,
     showNext = false,
@@ -124,7 +125,8 @@ const FileUploader = ({
         console.log("FileUploader onDrop updated files:", updatedFiles);
         notifyParent(updatedFiles);
 
-        uploadFiles(mappedFiles.map((m) => m.file));
+        // only trigger server upload when autoUpload is true
+        if (autoUpload) uploadFiles(mappedFiles.map((m) => m.file));
     };
 
     const { getRootProps, getInputProps } = useDropzone({ onDrop, accept });

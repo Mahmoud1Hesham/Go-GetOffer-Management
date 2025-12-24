@@ -55,6 +55,7 @@ function mapJoinRequestItem(item = {}) {
         activityType: profile.activityType ?? [],
         code: profile.code ?? null,
 
+        branches: profile.supplierBranches ?? [],
         branchId: branch.id ?? null,
         branchName: branch.branchName ?? null,
         governorateId: branch.governorateId ?? null,
@@ -67,7 +68,7 @@ function mapJoinRequestItem(item = {}) {
 
         profileJoinRequestId: joinRequest.id ?? null,
         profileJoinRequestStatus: joinRequest.status ?? null,
-        profileJoinRequestAdminComment: joinRequest.adminComment ?? null,
+        profileJoinRequestAdminComment: joinRequest.rejectionReasons ?? joinRequest.adminComment ?? null,
 
         _raw: item,
     }

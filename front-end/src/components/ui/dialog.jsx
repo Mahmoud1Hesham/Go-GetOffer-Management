@@ -36,6 +36,7 @@ const DialogContent = React.forwardRef(({ className, children, ...props }, ref) 
       )}
       {...props}>
       {children}
+      <DialogPrimitive.Description className="sr-only" />
     </DialogPrimitive.Content>
   </DialogPortal>
 ))

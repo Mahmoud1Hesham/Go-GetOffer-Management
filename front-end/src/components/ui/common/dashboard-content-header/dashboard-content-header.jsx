@@ -15,7 +15,7 @@ export default function DashboardContentHeader({
     createComponent, 
     searchPlaceholder = "ابحث...",
     tabs,
-    activeTab,
+    activeTab = 'all',
     onTabChange,
     apiFilter1,
     apiFilter2,
@@ -44,9 +44,6 @@ export default function DashboardContentHeader({
                                     <TabsTrigger className="bg-go-bg-l-e rounded-lg" key={t.value} value={String(t.value)}>
                                         <div className="flex items-center gap-4">
                                             <span>{t.label}</span>
-                                            {typeof t.count === 'number' && (
-                                                <span className="text-xs text-gray-600 bg-white w-5 h-5 rounded-full flex items-center justify-center">{t.count}</span>
-                                            )}
                                         </div>
                                     </TabsTrigger>
                                 ))}

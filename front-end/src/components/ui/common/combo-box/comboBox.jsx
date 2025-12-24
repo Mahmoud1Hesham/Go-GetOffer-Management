@@ -112,13 +112,13 @@ export function Combobox({ options = [], value, onChange, placeholder = "Select.
                                     </CommandItem>
                                 </CommandGroup>
                             )}
-                            {options.map((opt) => {
+                            {options.map((opt, idx) => {
                                 const selected = multiple ? (Array.isArray(value) && value.some(v => String(v) === String(opt.value))) : String(value) === String(opt.value);
                                 const isFixed = fixedValues.some(f => String(f) === String(opt.value));
                                 return (
                                     <CommandItem
-                                        key={opt.value}
-                                        value={opt.label}
+                                        key={opt.value ?? `${String(opt.label ?? '')}-${idx}`}
+                                        value={opt.value}
                                         onSelect={() => handleSelect(opt.value)}
                                     >
                                         <span className={isFixed ? 'font-semibold' : ''}>{opt.label}</span>

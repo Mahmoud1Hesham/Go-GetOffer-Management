@@ -193,8 +193,12 @@ export function useAuth() {
                 mappedUser = userObj ? mapUserRole(userObj) : null;
             }
 
-            dispatch(setCredentials({ user: mappedUser, token: accessToken || body?.token || token }));
-            try { qc.setQueryData(['auth', 'refresh'], mappedUser); } catch (e) { }
+            // preserve existing user if backend didn't return user
+            const existingUser = user || null;
+            const finalUser = mappedUser || existingUser || null;
+
+            dispatch(setCredentials({ user: finalUser, token: accessToken || body?.token || token }));
+            try { qc.setQueryData(['auth', 'refresh'], finalUser); } catch (e) { }
         },
         onError: () => {
             dispatch(logoutAction());
@@ -208,29 +212,33 @@ export function useAuth() {
             const accessToken = body?.data?.accessToken || body?.access_token || body?.token || null;
             const serverUser = body?.data && (Object.keys(body.data).length > 0) ? body.data : (body?.user || null);
 
-            let mapped = null;
+            let mappedUser = null;
             if (serverUser) {
-                try { mapped = mapUserRole(serverUser); } catch (e) { mapped = null; }
+                try { mappedUser = mapUserRole(serverUser); } catch (e) { mappedUser = null; }
             } else if (accessToken) {
                 const userObj = extractUserFromAccessToken(accessToken);
-                mapped = userObj ? mapUserRole(userObj) : null;
+                mappedUser = userObj ? mapUserRole(userObj) : null;
             }
 
-            // enrich mappedUser with decoded email/role/branches if available
+            // Preserve existing user if backend didn't return one
+            const finalUser = mappedUser || user || null;
+
+            // enrich finalUser with decoded email/role/branches if available
             let extracted = null;
             if (accessToken) extracted = extractUserFromAccessToken(accessToken);
-            mappedUser = mappedUser || {};
-            mappedUser.email = mappedUser.email ?? extracted?.email ?? null;
-            mappedUser.role = mappedUser.role ?? extracted?.role ?? null;
-            mappedUser.branches = mappedUser.branches ?? (serverUser?.branches ?? []);
-            mappedUser.departments = mappedUser.departments ?? (serverUser?.departments ?? []);
-            mappedUser.divisions = mappedUser.divisions ?? (serverUser?.divisions ?? []);
+            const enriched = finalUser || {};
+            enriched.email = enriched.email ?? extracted?.email ?? null;
+            enriched.role = enriched.role ?? extracted?.role ?? null;
+            enriched.branches = enriched.branches ?? (serverUser?.branches ?? []);
+            enriched.departments = enriched.departments ?? (serverUser?.departments ?? []);
+            enriched.divisions = enriched.divisions ?? (serverUser?.divisions ?? []);
 
-            dispatch(setCredentials({ user: mappedUser, token: accessToken || body?.token || token, email: mappedUser.email ?? extracted?.email ?? null }));
+            dispatch(setCredentials({ user: enriched, token: accessToken || body?.token || token, email: enriched.email ?? extracted?.email ?? null }));
+            return { ok: true };
         } catch (err) {
             return { ok: false, error: err };
         }
-    }, [refreshMutation]);
+    }, [refreshMutation, user]);
 
     // -------------------------
     // setUser manual

@@ -7,8 +7,22 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { MdClose, MdDone } from "react-icons/md";
 import { Badge } from '@/components/ui/badge';
 import DocsGallery from '@/components/ui/common/docsGallery/docs-gallery';
+import { useDispatch } from 'react-redux';
+import { fetchSuppliers } from '@/redux/slices/supplierManagementSlice';
+import { fetchSupplierJoinRequests } from '@/redux/slices/supplierJoinRequestsSlice';
+import { useMutationFetch } from '@/hooks/useQueryFetch';
 
-export default function SuppliersContent({ row }) {
+export const reasons = [
+        { id: 'missing_docs', label: 'المستندات المطلوبة غير صالحة' },
+        { id: 'expired_docs', label: 'انتهاء صلاحية المستندات' },
+        { id: 'mismatch', label: 'عدم تطابق المعلومات المدخلة' },
+        { id: 'incomplete', label: 'البيانات غير مكتملة' },
+        { id: 'does_not_match_the_requirements', label: 'لا يستوفي الشروط المطلوبة' },
+        { id: 'repeated_request', label: 'طلب مكرر' },
+    ];
+
+export default function SuppliersContent({ row, showConditions = true }) {
+    const dispatch = useDispatch();
     const [showReject, setShowReject] = useState(false);
     const [selected, setSelected] = useState(new Set());
     const panelRef = useRef(null);
@@ -25,20 +39,51 @@ export default function SuppliersContent({ row }) {
         }
     }, [isPending]);
 
-    // Normalize category to array so render logic works whether the
-    // caller provides a single string or an array of strings.
-    const categories = Array.isArray(row.category) ? row.category : (row.category ? [row.category] : []);
+    const approveMutation = useMutationFetch({
+        url: (id) => ({
+            url: `/api/SupplierJoinRequest/Approve`,
+            method: 'POST',
+            data: { id }
+        }),
+        mutationOptions: {
+            onSuccess: () => {
+                dispatch(fetchSuppliers());
+                dispatch(fetchSupplierJoinRequests());
+            },
+            onError: (error) => {
+                console.error("Approval failed", error);
+            }
+        }
+    });
+
+    const rejectMutation = useMutationFetch({
+        url: (data) => ({
+            url: `/api/SupplierJoinRequest/Reject`,
+            method: 'POST',
+            data: data
+        }),
+        mutationOptions: {
+            onSuccess: () => {
+                dispatch(fetchSuppliers());
+                dispatch(fetchSupplierJoinRequests());
+                setShowReject(false);
+                setSelected(new Set());
+            },
+            onError: (error) => {
+                console.error("Rejection failed", error);
+            }
+        }
+    });
+
+    // Prefer localized display labels when available (`categoryLabel`),
+    // otherwise fall back to raw `category` keys. Keep `category` untouched
+    // so filtering logic that uses raw keys still works.
+    const displayCats = row.categoryLabel ?? row.category
+    const categories = Array.isArray(displayCats) ? displayCats : (displayCats ? [displayCats] : []);
     // Normalize branches into a display string so arrays render with commas
     const branchesDisplay = Array.isArray(row.branches) ? row.branches.join(', ') : (row.branches ?? '—');
 
-    const reasons = [
-        { id: 'missing_docs', label: 'المستندات المطلوبة غير صالحة' },
-        { id: 'expired_docs', label: 'انتهاء صلاحية المستندات' },
-        { id: 'mismatch', label: 'عدم تطابق المعلومات المدخلة' },
-        { id: 'incomplete', label: 'البيانات غير مكتملة' },
-        { id: 'does_not_match_the_requirements', label: 'لا يستوفي الشروط المطلوبة' },
-        { id: 'repeated_request', label: 'طلب مكرر' },
-    ];
+    
 
     function toggleReason(id) {
         setSelected(prev => {
@@ -49,11 +94,14 @@ export default function SuppliersContent({ row }) {
     }
 
     function sendRejection() {
-        // placeholder: wire to API
-        console.log('send rejection for', row.id, Array.from(selected));
-        // After sending, hide rejection panel
-        setShowReject(false);
-        setSelected(new Set());
+        if (row.supplierJoinRequestId) {
+            rejectMutation.mutate({
+                Id: row.supplierJoinRequestId,
+                rejectionReasons: Array.from(selected)
+            });
+        } else {
+            console.error("No supplierJoinRequestId found", row);
+        }
     }
 
     useEffect(() => {
@@ -108,6 +156,10 @@ export default function SuppliersContent({ row }) {
         return null;
     }
 
+    const allBranches = row.branches || [];
+    const mainBranch = allBranches.find(b => b.main_Branch) || allBranches[0] || {};
+    const otherBranches = allBranches.filter(b => b !== mainBranch);
+
     return (
         <div className="w-full text-sm py-5">
             <div className="grid grid-cols-1  gap-6">
@@ -115,6 +167,7 @@ export default function SuppliersContent({ row }) {
                     <h4 className="font-semibold mb-3 border-b pb-1">المعلومات الأساسية</h4>
                     <div className="space-y-2 pr-4 flex items-center gap-4 justify-between">
                         <div className='border-r pr-3 flex flex-col gap-2 w-1/4'><span>اسم المستخدم</span> <span>{row.fullName}</span></div>
+                        <div className='border-r pr-3 flex flex-col gap-2 w-1/4'><span>البريد الإلكتروني</span> <span>{row.email}</span></div>
                         <div className='border-r pr-3 flex flex-col gap-2 w-1/4'><span>رقم الهاتف</span> <span>{row.phone ?? '+201298754321'}</span></div>
                         <div className='border-r pr-3 flex flex-col gap-2 w-1/4'><span>الفرع الرئيسي</span> <span>{row.branch ?? '-'}</span></div>
                         <div className='border-r pr-3 flex flex-col gap-2 w-1/4'>
@@ -133,16 +186,59 @@ export default function SuppliersContent({ row }) {
                         </div>
                     </div>
                 </div>
+                {showConditions && (
+                    <div>
+                        <h4 className="font-semibold mb-3 border-b pb-1">شروط المورد</h4>
+                        <div className="space-y-2 pr-4 flex items-center gap-4 justify-between">
+                            <div className='border-r pr-3 flex flex-col gap-2 w-1/4'><span>أقل قيمة للفاتورة</span> <span>{row.minimumInvoiceAmount} جنيه</span></div>
+                            <div className='border-r pr-3 flex flex-col gap-2 w-1/4'><span>أقصى قيمة للفاتورة</span> <span>{row.maximumInvoiceAmount} جنيه</span></div>
+                            <div className='border-r pr-3 flex flex-col gap-2 w-1/4'><span>أقل عدد منتجات فى الفاتورة</span> <span>{row.minimumItemInInvoice ?? '-'}</span></div>
+                            <div className='border-r pr-3 flex flex-col gap-2 w-1/4'><span>أقصى مدة لتجهيز الطلب</span> <span>{row.maximumProcessingDays ?? '-'}</span></div>
+                            <div className='border-r pr-3 flex flex-col gap-2 w-1/4'>
+                                <span>فاتورة إلكترونية</span>
+                                <span>
+                                    {row.hasElectronicInvoice ? 'نعم' : 'لا'}
+                                </span>
+                            </div>
+                            <div className='border-r pr-3 flex flex-col gap-2 w-1/4'>
+                                <span>خدمة التوصيل</span>
+                                <span>
+                                    {row.hasDeliveryService ? 'نعم' : 'لا'}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 <div>
-                    <h4 className="font-semibold mb-3 border-b pb-1">تفاصيل الموقع</h4>
-                    <div className="space-y-2 pr-4 flex items-center gap-4 justify-between">
-                        <div className='border-r pr-3 flex flex-col gap-2 w-1/5'><span className='font-bold'>المحافظة</span> <span>{getGovernorateLabel(row.governorate) ?? (row.governorate ?? 'القاهرة')}</span></div>
-                        <div className='border-r pr-3 flex flex-col gap-2 w-1/5'><span className='font-bold'>المدينة</span> <span>{getCityLabel(row.governorate, row.city) ?? (row.city ?? 'المعادى')}</span></div>
-                        <div className='border-r pr-3 flex flex-col gap-2 w-1/5'><span className='font-bold'>العنوان</span> <span>{row.address ?? '—'}</span></div>
-                        <div className='border-r pr-3 flex flex-col gap-2 w-1/5'><span className='font-bold'>الفروع</span> <span>{branchesDisplay}</span></div>
-                        <div className='border-r pr-3 flex flex-col gap-2 w-1/5'><span className='font-bold'>الرقم البريدى</span> <span>{row.postalCode ?? '—'}</span></div>
+                    <h4 className="font-semibold mb-3 border-b pb-1">تفاصيل الموقع (الفرع الأساسي)</h4>
+                    <div className="space-y-2 pr-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                        <div className='border-r pr-3 flex flex-col gap-2'><span className='font-bold'>اسم الفرع</span> <span>{mainBranch.branchName ?? '—'}</span></div>
+                        <div className='border-r pr-3 flex flex-col gap-2'><span className='font-bold'>المحافظة</span> <span>{getGovernorateLabel(mainBranch.governorate) ?? (mainBranch.governorate ?? '—')}</span></div>
+                        <div className='border-r pr-3 flex flex-col gap-2'><span className='font-bold'>المدينة</span> <span>{getCityLabel(mainBranch.governorate, mainBranch.city) ?? (mainBranch.city ?? '—')}</span></div>
+                        <div className='border-r pr-3 flex flex-col gap-2'><span className='font-bold'>العنوان</span> <span>{mainBranch.addressDetails ?? '—'}</span></div>
+                        <div className='border-r pr-3 flex flex-col gap-2'><span className='font-bold'>الرقم البريدى</span> <span>{mainBranch.postalCode ?? '—'}</span></div>
+                        <div className='border-r pr-3 flex flex-col gap-2'><span className='font-bold'>أرقام الهاتف</span> <span>{(mainBranch.phoneNumbers && mainBranch.phoneNumbers.length > 0) ? mainBranch.phoneNumbers.join(', ') : '—'}</span></div>
                     </div>
+                </div>
+                <div>
+                    <h4 className="font-semibold mb-3 border-b pb-1">الفروع ({otherBranches.length})</h4>
+                    {otherBranches.length > 0 ? (
+                        <div className="space-y-4">
+                            {otherBranches.map((branch, idx) => (
+                                <div key={branch.id || idx} className="space-y-2 pr-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 border-b pb-2 last:border-0">
+                                    <div className='border-r pr-3 flex flex-col gap-2'><span className='font-bold'>اسم الفرع</span> <span>{branch.branchName ?? '—'}</span></div>
+                                    <div className='border-r pr-3 flex flex-col gap-2'><span className='font-bold'>المحافظة</span> <span>{getGovernorateLabel(branch.governorate) ?? (branch.governorate ?? '—')}</span></div>
+                                    <div className='border-r pr-3 flex flex-col gap-2'><span className='font-bold'>المدينة</span> <span>{getCityLabel(branch.governorate, branch.city) ?? (branch.city ?? '—')}</span></div>
+                                    <div className='border-r pr-3 flex flex-col gap-2'><span className='font-bold'>العنوان</span> <span>{branch.addressDetails ?? '—'}</span></div>
+                                    <div className='border-r pr-3 flex flex-col gap-2'><span className='font-bold'>الرقم البريدى</span> <span>{branch.postalCode ?? '—'}</span></div>
+                                    <div className='border-r pr-3 flex flex-col gap-2'><span className='font-bold'>أرقام الهاتف</span> <span>{(branch.phoneNumbers && branch.phoneNumbers.length > 0) ? branch.phoneNumbers.join(', ') : '—'}</span></div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="pr-4 text-muted-foreground">لا توجد فروع أخرى</div>
+                    )}
                 </div>
 
                 <div>
@@ -180,7 +276,15 @@ export default function SuppliersContent({ row }) {
             {/* main actions: only show when row is pending and hide when rejection panel is open */}
             {!showReject && isPending && (
                 <div className="col-span-3 mt-4 flex items-center justify-end gap-4">
-                    <Button size="sm" variant="outline" className="rounded-md px-8 hover:text-white hover:bg-green-500 border-green-500 text-green-500" onClick={() => console.log('accept', row.id)}>قبول <MdDone /></Button>
+                    <Button size="sm" variant="outline" className="rounded-md px-8 hover:text-white hover:bg-green-500 border-green-500 text-green-500" onClick={() => {
+                        if (row.supplierJoinRequestId) {
+                            approveMutation.mutate(row.supplierJoinRequestId);
+                        } else {
+                            console.error("No supplierJoinRequestId found", row);
+                        }
+                    }} disabled={approveMutation.isPending}>
+                        {approveMutation.isPending ? 'جاري القبول...' : 'قبول'} <MdDone />
+                    </Button>
                     <Button size="sm" variant="outline" className="rounded-md px-8 hover:text-white hover:bg-red-500 border-red-500 text-red-500" onClick={() => setShowReject(true)}>رفض <MdClose /></Button>
                 </div>
             )}
@@ -205,9 +309,10 @@ export default function SuppliersContent({ row }) {
                             <Button size="sm" variant="default" className="bg-amber-500 text-white"
                                 onClick={() => {
                                     sendRejection();
-                                    console.log('Rejection reasons', Array.from(selected));
                                 }}
-                                disabled={selected.size === 0}>إرسال أسباب الرفض</Button>
+                                disabled={selected.size === 0 || rejectMutation.isPending}>
+                                {rejectMutation.isPending ? 'جاري الإرسال...' : 'إرسال أسباب الرفض'}
+                            </Button>
                         </div>
                         {selected.size === 0 && (
                             <div className="text-xs text-muted-foreground">اختر سببًا واحدًا على الأقل قبل الإرسال</div>
