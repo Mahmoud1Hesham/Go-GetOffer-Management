@@ -104,15 +104,20 @@ const AddProductPage = () => {
             }
             formData.append(`ProductVariantDTOs[${index}].IsMainImg`, variant.isMain);
 
-            // Variant Translations - EN
-            formData.append(`ProductVariantDTOs[${index}].ProductVariantTranslationDTOs[0].LanguageCode`, 'en-US');
-            formData.append(`ProductVariantDTOs[${index}].ProductVariantTranslationDTOs[0].Description`, variant.descEn);
-            formData.append(`ProductVariantDTOs[${index}].ProductVariantTranslationDTOs[0].WeightDisplay`, `${variant.weight} ${variant.unit}`);
+            // Dictionary lookup for unit labels
+            const unitObj = units.find(u => u.value === variant.unit);
+            const unitEn = unitObj ? unitObj.labelEn : variant.unit;
+            const unitAr = unitObj ? unitObj.labelAr : variant.unit;
 
             // Variant Translations - AR
-            formData.append(`ProductVariantDTOs[${index}].ProductVariantTranslationDTOs[1].LanguageCode`, 'ar-EG');
-            formData.append(`ProductVariantDTOs[${index}].ProductVariantTranslationDTOs[1].Description`, variant.descAr);
-            formData.append(`ProductVariantDTOs[${index}].ProductVariantTranslationDTOs[1].WeightDisplay`, `${variant.weight} ${variant.unit}`);
+            formData.append(`ProductVariantDTOs[${index}].ProductVariantTranslationDTOs[0].LanguageCode`, 'ar-EG');
+            formData.append(`ProductVariantDTOs[${index}].ProductVariantTranslationDTOs[0].Description`, variant.descAr);
+            formData.append(`ProductVariantDTOs[${index}].ProductVariantTranslationDTOs[0].WeightDisplay`, `${variant.weight} ${unitAr}`);
+
+            // Variant Translations - EN
+            formData.append(`ProductVariantDTOs[${index}].ProductVariantTranslationDTOs[1].LanguageCode`, 'en-US');
+            formData.append(`ProductVariantDTOs[${index}].ProductVariantTranslationDTOs[1].Description`, variant.descEn);
+            formData.append(`ProductVariantDTOs[${index}].ProductVariantTranslationDTOs[1].WeightDisplay`, `${variant.weight} ${unitEn}`);
         });
 
         // Log FormData entries for debugging
