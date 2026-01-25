@@ -72,9 +72,9 @@ export default async function RootLayout({ children }) {
 
   return (
     // hardcode arabic for layout direction, can be dynamic based on user preference lang={lang}
-    <html lang={'ar'} dir={dir} key={lang} suppressHydrationWarning>
-      <body  className={` ${lang == 'ar' ? 'font-honor' : 'font-figtree'} ${figtreeRegular.variable} ${lemands.variable} ${hacen.variable} ${honor.variable} ${bavistage.variable} ${ibm.variable} ${roboto.variable} antialiased`}>
-        <LanguageProvider defaultLang={'ar'}>
+    <html lang="ar" dir="rtl" key="ar" suppressHydrationWarning>
+      <body  className={`font-honor ${figtreeRegular.variable} ${lemands.variable} ${hacen.variable} ${honor.variable} ${bavistage.variable} ${ibm.variable} ${roboto.variable} antialiased`}>
+        <LanguageProvider defaultLang="ar">
           <Providers>
             {children}
             </Providers>
