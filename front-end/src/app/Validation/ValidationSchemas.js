@@ -97,6 +97,12 @@ export const resetPasswordSchema = Yup.object({
     NewPassword: passwordRule,
     confirmPassword: confirmPasswordRule("NewPassword"),
 });
+// change Password
+export const changePasswordSchema = Yup.object({
+    OldPassword: passwordRule,
+    NewPassword: passwordRule,
+    confirmPassword: confirmPasswordRule("NewPassword"),
+});
 
 
 // Forgot Password
@@ -140,6 +146,44 @@ export const supplierInfoSchema = Yup.object({
     city: cityRule,
     addressDetails: addressDetailsRule,
     postalCode: postalCodeRule,
+});
+
+export const categorySchema = Yup.object({
+    nameAr: Yup.string().required("Arabic name is required"),
+    nameEn: Yup.string().required("English name is required"),
+    image: Yup.mixed().required("Image is required"),
+});
+
+export const subCategorySchema = Yup.object({
+    nameAr: Yup.string().required("Arabic name is required"),
+    nameEn: Yup.string().required("English name is required"),
+    image: Yup.mixed().required("Image is required"),
+    parentCategoryId: Yup.string().required("Parent category is required"),
+});
+
+export const brandSchema = Yup.object({
+    nameAr: Yup.string().required("Arabic name is required"),
+    nameEn: Yup.string().required("English name is required"),
+    image: Yup.mixed().required("Image is required"),
+    categoryId: Yup.string().required("Category is required"),
+    subCategoryId: Yup.string().required("Sub category is required"),
+});
+
+export const productSchema = Yup.object({
+    category: Yup.string().required("Category is required"),
+    subCategory: Yup.string().required("Sub category is required"),
+    brand: Yup.string().required("Brand is required"),
+    nameAr: Yup.string().required("Arabic name is required"),
+    nameEn: Yup.string().required("English name is required"),
+    variants: Yup.array().of(
+        Yup.object({
+            weight: Yup.string().required("Weight is required"),
+            unit: Yup.string().required("Unit is required"),
+            descAr: Yup.string().required("Arabic description is required"),
+            descEn: Yup.string().required("English description is required"),
+            image: Yup.mixed().required("Image is required")
+        })
+    ).min(1, "At least one variant is required")
 });
 
 // Export rules separately if needed

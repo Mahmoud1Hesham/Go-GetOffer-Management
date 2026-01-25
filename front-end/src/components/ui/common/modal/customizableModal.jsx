@@ -97,11 +97,12 @@ export default function GlobalModal() {
             <DialogContent
                 className={`
                         fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2
-                        bg-white rounded-2xl shadow-lg w-full sm:max-w-sm md:max-w-md
+                        bg-white rounded-2xl shadow-lg w-full 
+                        ${type === 'image-preview' ? 'sm:max-w-4xl p-0 overflow-hidden' : 'sm:max-w-sm md:max-w-md'}
                         animate-in fade-in-0 zoom-in-95
                         data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95
                         ${type ? typeStyles[type]?.border : ""}`}>
-                <DialogHeader className={`flex flex-col ${lang === 'en' ? "sm:text-left text-left" : "sm:text-right text-right"}`}>
+                <DialogHeader className={`flex flex-col ${lang === 'en' ? "sm:text-left text-left" : "sm:text-right text-right"} ${type === 'image-preview' ? 'p-4' : ''}`}>
                     {title && (
                         <DialogTitle
                             className={`text-2xl font-bold ${typeStyles[type]?.text || "text-black"
@@ -119,11 +120,13 @@ export default function GlobalModal() {
 
                 {/* image if exists */}
                 {image && (
-                    <img
-                        src={image}
-                        alt={type || "modal-image"}
-                        className="w-16 h-16 object-contain"
-                    />
+                    <div className={type === 'image-preview' ? "flex justify-center items-center bg-black/5 p-4" : ""}>
+                        <img
+                            src={image}
+                            alt={type || "modal-image"}
+                            className={type === 'image-preview' ? "w-auto h-auto max-h-[80vh] object-contain rounded-md shadow-sm" : "w-16 h-16 object-contain"}
+                        />
+                    </div>
                 )}
 
                 {/* illustration if exists */}
@@ -133,20 +136,22 @@ export default function GlobalModal() {
                     </div>
                 )}
 
-                <DialogFooter className="flex justify-center gap-2">
-                    {cancelTitle && (
-                        <Button variant="outline" onClick={handleCancel} className={``}>
-                            {cancelTitle}
-                        </Button>
-                    )}
-                    {/* Optional logout button: shown when actionName matches 'logout' or Arabic 'تسجيل الخروج' */}
-                    {out && (
-                        <Button variant="outline" onClick={()=> { logout(); try { closeModal(pathname); } catch (e) { closeModal(); } }} className={`w-full bg-white hover:text-white ${typeStyles[type]?.text}  ${typeStyles[type]?.border} ${typeStyles[type]?.hoverBackGround}`}>
-                            {lang === 'en' ? 'Logout' : 'تسجيل الخروج'}
-                        </Button>
-                    )}
-                    <Button variant={'outline'} className={`w-full bg-white hover:text-white ${typeStyles[type]?.text}  ${typeStyles[type]?.border} ${typeStyles[type]?.hoverBackGround}`} onClick={handleConfirm}>{actionName}</Button>
-                </DialogFooter>
+                {(cancelTitle || out || actionName) && (
+                    <DialogFooter className="flex justify-center gap-2 px-5 pb-1 pt-0">
+                        {cancelTitle && (
+                            <Button variant="outline" onClick={handleCancel} className={`ring-0`}>
+                                {cancelTitle}
+                            </Button>
+                        )}
+                        {/* Optional logout button: shown when actionName matches 'logout' or Arabic 'تسجيل الخروج' */}
+                        {out && (
+                            <Button variant="outline" onClick={() => { logout(); try { closeModal(pathname); } catch (e) { closeModal(); } }} className={`w-full bg-white hover:text-white ${typeStyles[type]?.text}  ${typeStyles[type]?.border} ${typeStyles[type]?.hoverBackGround}`}>
+                                {lang === 'en' ? 'Logout' : 'تسجيل الخروج'}
+                            </Button>
+                        )}
+                        {actionName && <Button variant={'outline'} className={`w-full bg-white hover:text-white ${typeStyles[type]?.text}  ${typeStyles[type]?.border} ${typeStyles[type]?.hoverBackGround}`} onClick={handleConfirm}>{actionName}</Button>}
+                    </DialogFooter>
+                )}
             </DialogContent>
         </Dialog>
     );

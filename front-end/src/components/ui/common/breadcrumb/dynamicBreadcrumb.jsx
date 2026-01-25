@@ -11,14 +11,14 @@ import {
     BreadcrumbPage,
     BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
-import Spinner from '../spinner/spinner.jsx'
+import Spinner from '../../../../../public/assets/illustrations/Spinner.json'
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 
 export default function DynamicBreadcrumb({
     enLabelsMap = {},
     arLabelsMap = {},
     dynamicLabels = {},
-    SpinnerComponent = null,
+    SpinnerComponent = Spinner,
     lang = "en",        // << اللغة الافتراضية
     homeLabelEn = "Home",
     homeLabelAr = "الرئيسية",

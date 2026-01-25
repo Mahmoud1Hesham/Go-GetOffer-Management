@@ -1,4 +1,4 @@
-import { activities } from '@/components/ui/common/multi-select-input/multiSelectInput'
+import { activities } from "@/utils/interfaces/activities"
 
 function buildMaps() {
   const enList = (activities.find(a => a.en) || {}).en || []

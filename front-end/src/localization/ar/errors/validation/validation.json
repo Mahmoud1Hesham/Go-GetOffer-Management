@@ -15,6 +15,10 @@
         "required": "تأكيد كلمة المرور مطلوب",
         "mismatch": "كلمتا المرور غير متطابقتين"
     },
+    "changePassword":{
+        "required": "كلمة المرور مطلوبة",
+        "mismatch": "كلمتا المرور غير متطابقتين"
+    },
     "companyName": {
         "required": "اسم الشركة مطلوب",
         "min": "يجب ألا يقل اسم الشركة عن 2 حرف",
@@ -61,5 +65,36 @@
     "phonesArray": {
         "min": "مطلوب رقم هاتف واحد على الأقل",
         "max": "يمكن إضافة 3 أرقام هاتف كحد أقصى فقط"
+    },
+    "category": {
+        "nameArRequired": "الاسم بالعربية مطلوب",
+        "nameEnRequired": "الاسم بالإنجليزية مطلوب",
+        "keyRequired": "كود التصنيف مطلوب",
+        "imageRequired": "الصورة مطلوبة"
+    },
+    "subCategory": {
+        "nameArRequired": "الاسم بالعربية مطلوب",
+        "nameEnRequired": "الاسم بالإنجليزية مطلوب",
+        "parentCategoryRequired": "التصنيف الرئيسي مطلوب"
+    },
+    "brand": {
+        "nameArRequired": "الاسم بالعربية مطلوب",
+        "nameEnRequired": "الاسم بالإنجليزية مطلوب",
+        "categoryRequired": "التصنيف مطلوب",
+        "subCategoryRequired": "التصنيف الفرعي مطلوب",
+        "imageRequired": "الصورة مطلوبة"
+    },
+    "product": {
+        "categoryRequired": "التصنيف مطلوب",
+        "subCategoryRequired": "التصنيف الفرعي مطلوب",
+        "brandRequired": "العلامة التجارية مطلوبة",
+        "nameArRequired": "اسم المنتج بالعربية مطلوب",
+        "nameEnRequired": "اسم المنتج بالإنجليزية مطلوب",
+        "weightRequired": "الوزن مطلوب",
+        "unitRequired": "الوحدة مطلوبة",
+        "descArRequired": "الوصف بالعربية مطلوب",
+        "descEnRequired": "الوصف بالإنجليزية مطلوب",
+        "imageRequired": "صورة المنتج مطلوبة",
+        "minOneVariant": "يجب إضافة وزن واحد على الأقل"
     }
 }

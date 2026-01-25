@@ -1,5 +1,5 @@
 import React from 'react'
-import spinner from '@/assets/illustrations/spinner.json'
+import spinner from '../../../../../public/assets/illustrations/Spinner.json'
 import { useLottieAnimation } from '@/hooks/useLottieAnimation'
 const Spinner = () => {
     return (

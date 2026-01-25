@@ -15,6 +15,10 @@
         "required": "Confirm Password is required",
         "mismatch": "Passwords must match"
     },
+    "changePassword": {
+        "required": "Password is required",
+        "mismatch": "Passwords must match"
+    },
     "companyName": {
         "required": "Company name is required",
         "min": "Company name must be at least 2 characters",
@@ -61,5 +65,36 @@
     "phonesArray": {
         "min": "At least one phone number is required",
         "max": "You can add up to 3 phone numbers only"
+    },
+    "category": {
+        "nameArRequired": "Arabic name is required",
+        "nameEnRequired": "English name is required",
+        "keyRequired": "Category key is required",
+        "imageRequired": "Image is required"
+    },
+    "subCategory": {
+        "nameArRequired": "Arabic name is required",
+        "nameEnRequired": "English name is required",
+        "parentCategoryRequired": "Parent category is required"
+    },
+    "brand": {
+        "nameArRequired": "Arabic name is required",
+        "nameEnRequired": "English name is required",
+        "categoryRequired": "Category is required",
+        "subCategoryRequired": "Sub category is required",
+        "imageRequired": "Image is required"
+    },
+    "product": {
+        "categoryRequired": "Category is required",
+        "subCategoryRequired": "Sub category is required",
+        "brandRequired": "Brand is required",
+        "nameArRequired": "Arabic name is required",
+        "nameEnRequired": "English name is required",
+        "weightRequired": "Weight is required",
+        "unitRequired": "Unit is required",
+        "descArRequired": "Arabic description is required",
+        "descEnRequired": "English description is required",
+        "imageRequired": "Image is required",
+        "minOneVariant": "At least one variant is required"
     }
 }

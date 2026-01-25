@@ -121,6 +121,21 @@ const supplierManagementSlice = createSlice({
 	name: 'supplierManagement',
 	initialState,
 	reducers: {
+		syncSuppliers(state, action) {
+			state.loading = false
+			state.error = null
+			state.status = action.payload?.status ?? true
+			state.message = action.payload?.message ?? ''
+
+			const data = action.payload?.data ?? {}
+			state.statusBar = Array.isArray(data.statusBar)
+				? data.statusBar.map(mapStatusBarItem)
+				: []
+
+			state.suppliers = Array.isArray(data.items)
+				? data.items.map(mapSupplierItem)
+				: []
+		},
 		clearSupplierError(state) {
 			state.error = null
 		},
@@ -196,7 +211,7 @@ const supplierManagementSlice = createSlice({
 	},
 })
 
-export const { clearSupplierError, clearSuppliers } = supplierManagementSlice.actions
+export const { clearSupplierError, clearSuppliers, syncSuppliers } = supplierManagementSlice.actions
 
 export const selectStatusBar = (state) => state.supplierManagement.statusBar
 export const selectSuppliers = (state) => state.supplierManagement.suppliers

@@ -11,9 +11,11 @@ import React, { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { mapActivityValues } from '@/lib/activitiesMapper'
 import { useDispatch, useSelector } from 'react-redux'
-import { fetchSupplierJoinRequests, selectStatusBar, selectItems } from '@/redux/slices/supplierJoinRequestsSlice'
+import { fetchSupplierJoinRequests, selectStatusBar, selectItems, syncSupplierJoinRequests } from '@/redux/slices/supplierJoinRequestsSlice'
 import { FaPeopleGroup } from 'react-icons/fa6';
 import { PiClockUser, PiUserMinusLight, PiUserPlus } from 'react-icons/pi';
+import { useQueryFetch } from '@/hooks/useQueryFetch';
+import Spinner from '@/components/ui/common/spinner/spinner';
 
 const SuppliersContentNoConditions = (props) => <SuppliersContent {...props} showConditions={false} />;
 
@@ -232,9 +234,13 @@ const page = () => {
   const searchParams = useSearchParams()
   const lang = searchParams.get('lang') || 'en'
 
+  const { data: fetchedData, isLoading: isFetchLoading } = useQueryFetch('supplierJoinRequests', '/api/SupplierJoinRequest');
+
   useEffect(() => {
-    dispatch(fetchSupplierJoinRequests())
-  }, [dispatch])
+    if (fetchedData) {
+      dispatch(syncSupplierJoinRequests(fetchedData));
+    }
+  }, [fetchedData, dispatch])
 
   const mappedRows = (items || []).map((s) => {
     const docs = [];
@@ -356,6 +362,8 @@ const page = () => {
 
   const selectedStatsIds = combinedStats.map(c => c.id);
 
+  const isLoading = isFetchLoading || loading;
+
   return <>
     {/* <ContentSkeleton /> */}
     <div className="flex gap-4 items-center flex-col">
@@ -363,7 +371,12 @@ const page = () => {
         <DashCardGroup statsConfig={combinedStats} selected={selectedStatsIds} />
       </div>
       <DashboardContentHeader
-        title="قائمة طلبات الموردين"
+        title={
+          <div className="flex items-center gap-2">
+            <span>قائمة طلبات الموردين</span>
+            {isLoading && <Spinner />}
+          </div>
+        }
         // createButtonTitle="إضافة مورد"
         columns={columns}
         visibleColumns={visibleColumns}
@@ -371,6 +384,7 @@ const page = () => {
         tabs={tabs}
         activeTab={activeTab}
         onTabChange={setActiveTab}
+        isLoading={isLoading}
         onVisibleColumnsChange={setVisibleColumns}
         apiFilter1={{ title: "تخصيص الأعمدة", onClick: () => console.log("filter 1") }}
         apiFilter2={{ title: "تصفية الأعمدة", onClick: () => setFilterSheetOpen(true) }}
@@ -381,6 +395,8 @@ const page = () => {
         columns={columns}
         visibleColumns={visibleColumns}
         data={filteredData}
+        isLoading={isLoading}
+
         rowDialog={typeof SupplierDialog !== 'undefined' ? <SupplierDialog /> : null}
         detailsComponentMap={{ supplier: SuppliersContentNoConditions }}
         pageSizeOptions={[5, 10, 25]}

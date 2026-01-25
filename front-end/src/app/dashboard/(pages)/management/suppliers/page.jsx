@@ -7,22 +7,24 @@ import { PiUserMinusLight } from "react-icons/pi";
 import DashCardGroup from '@/components/ui/common/dashCard/dashCardGroup';
 import DashboardContentHeader from '@/components/ui/common/dashboard-content-header/dashboard-content-header';
 import SupplierDialog from '@/components/ui/common/dialogs/supplierDialog'
+import Spinner from '@/components/ui/common/spinner/spinner';
 
 import { Avatar } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import DataTable from '@/components/ui/common/dataTable/dataTable';
 import SuppliersContent from '@/components/ui/common/dataTable/contents/suppliers-content';
 import { useDispatch, useSelector } from 'react-redux'
-import { fetchSuppliers, deleteSupplier } from '@/redux/slices/supplierManagementSlice'
+import { fetchSuppliers, deleteSupplier, syncSuppliers } from '@/redux/slices/supplierManagementSlice'
 import UnifiedFilterSheet from '@/components/ui/filters/UnifiedFilterSheet'
 import { applyFilters } from '@/components/ui/filters/filter.service'
 import useSearchPagination from '@/hooks/useSearchPagination'
+import { useQueryFetch } from '@/hooks/useQueryFetch'
 
 const columns = [
     { key: 'checkbox', title: '', width: 40 },
     { key: 'code', title: 'كود المورد', width: 120 },
     {
-        key: 'avatar', title: 'اسم الكيان', width: 150, render: (r) => (
+        key: 'avatar', title: 'اسم الكيان', width: 200, render: (r) => (
             <div className="flex items-center gap-2">
                 <Avatar><img src={r.avatar} alt={r.name} className="w-8 h-8 rounded-full object-cover" /></Avatar>
                 <div className="text-sm truncate">{r.name}</div>
@@ -43,7 +45,7 @@ const columns = [
             );
         }
     },
-    { key: 'branch', title: 'الفرع الرئيسى', width: 90, render: (r) => <div>{r.branch}</div> },
+    { key: 'branch', title: 'الفرع الرئيسى', width: 120, render: (r) => <div>{r.branch}</div> },
     // { key: 'assigned-to', title: 'مكلٌف إلى', width: 90, render: (r) => <div>{r.assignedTo}</div> },
     // { key: 'accessed-from', title: 'وسيلة الوصول', width: 120, render: (r) => <div>{r.accessedFrom}</div> },
     { key: 'date', title: 'تاريخ الإنضمام', width: 140 },
@@ -220,6 +222,7 @@ const statsConfig = [
     },
 ];
 
+
 const page = () => {
     const [visibleColumns, setVisibleColumns] = useState(columns.map(c => c.key));
     const [filterSheetOpen, setFilterSheetOpen] = useState(false);
@@ -229,14 +232,13 @@ const page = () => {
     const searchParams = useSearchParams()
     const lang = searchParams.get('lang') || 'en'
 
+    const { data: fetchedData, isLoading: isFetchLoading } = useQueryFetch('suppliers', '/api/SupplierProfile', { params: { pageSize: 10000 } });
 
     useEffect(() => {
-        // fetch suppliers on mount so you can inspect the report below
-        // debug log to confirm useEffect ran and dispatch is called
-        // eslint-disable-next-line no-console
-        console.log('Suppliers page mounted — dispatching fetchSuppliers')
-        dispatch(fetchSuppliers())
-    }, [dispatch])
+        if (fetchedData) {
+            dispatch(syncSuppliers(fetchedData));
+        }
+    }, [fetchedData, dispatch])
 
     const mappedRows = (supplierState.suppliers || []).map((s) => {
         // build docs from commercial registration and tax card URLs + publicIds
@@ -322,7 +324,7 @@ const page = () => {
         setSearch,
         setPage,
         setLimit,
-        isLoading,
+        isLoading: isSearchLoading,
         isOnline
     } = useSearchPagination({
         queryKey: 'suppliers',
@@ -332,6 +334,7 @@ const page = () => {
         fuseOptions
     })
 
+    const isLoading = isFetchLoading || isSearchLoading;
     const combinedStats = React.useMemo(() => {
         const sb = Array.isArray(supplierState.statusBar) ? supplierState.statusBar : [];
         const baseMap = new Map(statsConfig.map(item => [item.id, { ...item }]));
@@ -376,7 +379,13 @@ const page = () => {
         {/* <ContentSkeleton /> */}
         <DashCardGroup statsConfig={combinedStats} selected={selectedStatsIds} />
         <DashboardContentHeader
-            title="إدارة الموردين"
+            title={
+                <div className="flex items-center gap-2">
+                    <span>إدارة الموردين</span>
+                    {isLoading && <Spinner />}
+                </div>
+            }
+
             createButtonTitle="إضافة مورد"
             createComponent={<SupplierDialog />}
             columns={columns}
@@ -390,6 +399,8 @@ const page = () => {
         <DataTable
             columns={columns}
             visibleColumns={visibleColumns}
+            isLoading={isLoading}
+
             data={searchedData}
             detailsComponentMap={{ supplier: SuppliersContent }}
             rowDialog={<SupplierDialog />}
@@ -398,8 +409,11 @@ const page = () => {
                     console.log('Deleting supplier with id:', id);
                     dispatch(deleteSupplier(id));
                     dispatch(fetchSuppliers());
+                    toast.success("تم حذف المنتج بنجاح");
+
                 } catch (error) {
                     console.error('Error logging supplier id for deletion:', error);
+                    toast.error(error || "حدث خطأ أثناء حذف المنتج");
                 }
             }}
 
@@ -409,6 +423,7 @@ const page = () => {
             onPageChange={(page, size) => { setPage(page); setLimit(size); }}
             onSelectionChange={(sel) => console.log('selected', sel)}
             onOrderChange={(newRows) => console.log('new order', newRows.map(r => r.id))}
+            orderPlacing={true}
         />
         <UnifiedFilterSheet
             open={filterSheetOpen}

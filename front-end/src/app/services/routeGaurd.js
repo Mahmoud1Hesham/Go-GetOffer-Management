@@ -17,7 +17,18 @@ export default function RouteGuard({ children }) {
     // DEBUG: log auth state and requested pathname
     try { console.log('[RouteGuard] isAuthenticated=', isAuthenticated, 'pathname=', pathname); } catch(e){}
 
-    if (!isAuthenticated) return <LoginDialog />;
+    if (!isAuthenticated) {
+        // allow unauthenticated users to access password-reset related pages
+        const publicAuthPaths = new Set([
+            '/dashboard/auth/forgot-password',
+            '/dashboard/auth/check-otp',
+            '/dashboard/auth/reset-password'
+        ]);
+        if (publicAuthPaths.has(pathname)) {
+            return <>{children}</>;
+        }
+        return <LoginDialog />;
+    }
 
     // log evaluated values (call functions) instead of printing function objects
     try {
@@ -27,6 +38,11 @@ export default function RouteGuard({ children }) {
     } catch (e) {
         console.log('[RouteGuard] debug log error', e);
     }
+    // allow authenticated users to access any /dashboard/auth/* pages as public
+    if (typeof pathname === 'string' && pathname.startsWith('/dashboard/auth')) {
+        return <>{children}</>;
+    }
+
     // if user is authenticated but not allowed to view this route
     if (!canView(pathname)) {
         try { console.log('[RouteGuard] canView=false for', pathname); } catch(e){}

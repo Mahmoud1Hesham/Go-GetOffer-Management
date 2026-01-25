@@ -4,11 +4,20 @@ import { useSearchParams } from 'next/navigation'
 import { Sheet, SheetContent, SheetHeader, SheetFooter, SheetTitle, SheetDescription } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
-import { activities as activitiesExport } from '@/components/ui/common/multi-select-input/multiSelectInput'
+import { activities as activitiesExport } from '@/utils/interfaces/activities'
 import Calendar04 from '@/components/calendar-04'
 import { parseDate, formatDate } from '@/components/ui/filters/filter.service'
 
-export default function UnifiedFilterSheet({ open, onOpenChange, categories = [], initial = {}, onApply }) {
+export default function UnifiedFilterSheet({
+    open,
+    onOpenChange,
+    categories = [],
+    initial = {},
+    onApply,
+    showCategories = true,
+    showDate = true,
+    showStatus = true
+}) {
     // use shared parse/format helpers to avoid UTC shift bugs
     const parseLocalDate = (s) => parseDate(s)
     const formatLocalDate = (d) => formatDate(d)
@@ -83,30 +92,31 @@ export default function UnifiedFilterSheet({ open, onOpenChange, categories = []
 
                 <div className="mt-4 space-y-6 overflow-auto">
                     {/* Category section */}
-                    <section>
-                        <h3 className="font-medium mb-2">الفئة</h3>
-                        <div className="flex flex-col gap-2 max-h-48 overflow-auto pr-2">
-                            {categoriesList && categoriesList.length > 0 ? (
-                                categoriesList.map((c) => {
-                                    const Icon = c.icon || null
-                                    return (
-                                        <label key={c.value} className="flex items-center gap-2">
-                                            <Checkbox checked={local.categories.has(c.value)} onCheckedChange={() => toggleCategory(c.value)} />
-                                            {Icon ? <Icon className="w-4 h-4 text-muted-foreground" /> : null}
-                                            <span className="text-sm">{c.label}</span>
-                                        </label>
-                                    )
-                                })
-                            ) : (
-                                <div className="text-sm text-muted-foreground">لا توجد فئات</div>
-                            )}
-                        </div>
-                    </section>
-
-                    {/* Date section */}
-                    <section>
-                        <h3 className="font-medium mb-2">التاريخ</h3>
-                        <div className="flex gap-2">
+                    {showCategories && (
+                        <section>
+                            <h3 className="font-medium mb-2">الفئة</h3>
+                            <div className="flex flex-col gap-2 max-h-48 overflow-auto pr-2">
+                                {categoriesList && categoriesList.length > 0 ? (
+                                    categoriesList.map((c) => {
+                                        const Icon = c.icon || null
+                                        return (
+                                            <label key={c.value} className="flex items-center gap-2">
+                                                <Checkbox checked={local.categories.has(c.value)} onCheckedChange={() => toggleCategory(c.value)} />
+                                                {Icon ? <Icon className="w-4 h-4 text-muted-foreground" /> : null}
+                                                <span className="text-sm">{c.label}</span>
+                                            </label>
+                                        )
+                                    })
+                                ) : (
+                                    <div className="text-sm text-muted-foreground">لا توجد فئات</div>
+                                )}
+                            </div>
+                        </section>
+                    )}
+{showDate && (
+                        <section>
+                            <h3 className="font-medium mb-2">التاريخ</h3>
+                            <div className="flex gap-2">
                                 <Calendar04
                                     mode="range"
                                     selected={local.range}
@@ -115,31 +125,33 @@ export default function UnifiedFilterSheet({ open, onOpenChange, categories = []
                                     }}
                                     className="rounded-lg border shadow-sm"
                                 />
-                        </div>
-                    </section>
+                            </div>
+                        </section>
+                    )}
 
-                    {/* Status section */}
-                    <section>
-                        <div className="flex items-center justify-between">
-                            <h3 className="font-medium mb-2">الحالة</h3>
-                            <button type="button" className="text-sm text-slate-500" onClick={() => setLocal({ ...local, status: null })}>مسح</button>
-                        </div>
+                    {showStatus && (
+                        <section>
+                            <div className="flex items-center justify-between">
+                                <h3 className="font-medium mb-2">الحالة</h3>
+                                <button type="button" className="text-sm text-slate-500" onClick={() => setLocal({ ...local, status: null })}>مسح</button>
+                            </div>
 
-                        <div className="flex flex-col gap-2">
-                            {['قيد الإنتظار', 'مقبول', 'مرفوض'].map((s) => (
-                                <label key={s} className="flex items-center gap-2">
-                                    <input
-                                        type="radio"
-                                        name="ufs-status"
-                                        checked={local.status === s}
-                                        onChange={() => setLocal({ ...local, status: s })}
-                                        className="h-4 w-4"
-                                    />
-                                    <span className="text-sm">{s}</span>
-                                </label>
-                            ))}
-                        </div>
-                    </section>
+                            <div className="flex flex-col gap-2">
+                                {['قيد الإنتظار', 'مقبول', 'مرفوض'].map((s) => (
+                                    <label key={s} className="flex items-center gap-2">
+                                        <input
+                                            type="radio"
+                                            name="ufs-status"
+                                            checked={local.status === s}
+                                            onChange={() => setLocal({ ...local, status: s })}
+                                            className="h-4 w-4"
+                                        />
+                                        <span className="text-sm">{s}</span>
+                                    </label>
+                                ))}
+                            </div>
+                        </section>
+                    )}
                 </div>
 
                 <SheetFooter className="mt-6">

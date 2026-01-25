@@ -21,6 +21,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@
 import { ChevronDown } from 'lucide-react';
 import { useModal } from '@/hooks/useModal';
 import { registerCallback } from '@/lib/modalCallbacks';
+import { useRouter } from 'next/navigation';
 
 
 
@@ -35,18 +36,18 @@ function SortableRow({ id, children }) {
         isDragging
     } = useSortable({ id });
     const style = {
-        transform: CSS.Transform.toString(transform),
+        transform: CSS.Translate.toString(transform),
         transition,
         zIndex: isDragging ? 50 : 'auto'
     };
     return (
-        <div ref={setNodeRef} style={style} className={`${isDragging ? 'bg-gray-100 animate-pulse duration-400' : ''}`}>
+        <div ref={setNodeRef} style={style} className={`${isDragging ? 'bg-gray-100 animate-pulse shadow-lg duration-400 opacity-80 z-50' : ''}`}>
             <div className="flex items-stretch">
                 <div className="px-2 flex items-center">
                     <button
                         {...attributes}
                         {...listeners}
-                        className="p-2 rounded hover:bg-gray-100"
+                        className="p-2 rounded hover:bg-gray-100 touch-none cursor-grab active:cursor-grabbing"
                         aria-label="drag-handle"
                     >
                         <MdDragIndicator size={18} />
@@ -79,6 +80,7 @@ export default function DataTable({
     onSelectionChange,
     onOrderChange,
     onDelete = null,
+    onEdit = null,
     // Optional: a dialog React element (e.g. <SupplierDialog />) that will be
     // cloned and opened in `update` mode when the row 'تعديل' action is clicked.
     rowDialog = null,
@@ -94,14 +96,17 @@ export default function DataTable({
     showPagination = true,
     // when false, hide row checkboxes and header select-all
     showCheckbox = true,
-    visibleColumns = null
+    visibleColumns = null,
+    isLoading = false,
+    orderPlacing = false
 }) {
     const { openModal, closeModal } = useModal();
     const [rows, setRows] = useState(() => data);
     const [selected, setSelected] = useState(new Set());
     const [pageIndex, setPageIndex] = useState(0);
     const [pageSize, setPageSize] = useState(initialPageSize);
-
+    const router = useRouter();
+    // Sync rows when `data` prop changes
     useEffect(() => setRows(data), [data]);
     useEffect(() => { onSelectionChange && onSelectionChange(Array.from(selected)); }, [selected]);
     useEffect(() => { onOrderChange && onOrderChange(rows); }, [rows]);
@@ -112,8 +117,13 @@ export default function DataTable({
     useEffect(() => { if (pageIndex >= pageCount) setPageIndex(pageCount - 1); }, [pageCount]);
 
     // Dnd sensors
-    const sensors = useSensors(useSensor(PointerSensor));
-
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 8,
+            },
+        })
+    );
     // derived: rows to display on this page (client-side)
     const start = pageIndex * pageSize;
     const end = start + pageSize;
@@ -218,11 +228,77 @@ export default function DataTable({
         const base = `relative text-sm text-center ${fixed ? 'flex-none' : 'flex'} items-center justify-center ${widthCls ?? ''}`;
         if (key === 'code') return `${base} px-2 py-1 text-sm font-figtree`; // compact
         if (key === 'category') return `${base} px-2 py-2 text-xs font-figtree`; // compact badge/category/status
-        if ( key === 'status') return `${base} px-2 py-2 text-xs`; 
+        if (key === 'status') return `${base} px-2 py-2 text-xs`;
         if (key === 'date') return `${base} px-2 py-1 text-sm font-figtree`; // compact
         if (key === 'avatar') return `${base} px-2 py-1 gap-3 justify-center font-figtree`; // center avatar
         if (key === 'actions') return `${base} px-2 py-1 justify-center`; // center actions
         return `${base} px-3 py-2`;
+    }
+
+    function renderColumnContent(row, col, idx) {
+        if (col.key === 'checkbox') return null;
+        const key = col.key;
+        const content = col.render ? col.render(row) : (row[key] ?? '');
+        const widthCls = getColClass(col);
+        const style = getColStyle(col);
+        const cls = cellClass(key, widthCls);
+
+        if (key === 'actions') {
+            return (
+                <div key={key} className={cls} style={style}>
+                    {content || (
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button asChild size="sm" className='rounded-2xl' variant="outline">
+                                    <div className="inline-flex items-center justify-center gap-2 whitespace-nowrap">
+                                        إجراءات
+                                        <ChevronDown className="h-4 w-4" />
+                                    </div>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className='text-right' align="end">
+                                <DropdownMenuItem className="w-full justify-end text-right" onClick={() => {
+                                    if (onEdit) onEdit(row);
+                                    else { setEditRow(row); setEditOpen(true); }
+                                }}>تعديل</DropdownMenuItem>
+                                <DropdownMenuItem className="w-full justify-end text-right" onClick={() => {
+                                    const key = registerCallback(() => {
+                                        if (onDelete && typeof onDelete === 'function') {
+                                            onDelete(row.id);
+                                        } else {
+                                            console.log('delete confirmed', row.id);
+                                        }
+                                    });
+                                    openModal({
+                                        isOpen: true,
+                                        type: 'failure',
+                                        title: 'تأكيد الحذف',
+                                        message: 'هل أنت متأكد أنك تريد حذف هذا العنصر؟ لا يمكن التراجع عن هذا الإجراء.',
+                                        actionName: 'حذف',
+                                        cancelTitle: 'إلغاء',
+                                        customActionKey: key,
+                                    });
+                                }}>حذف</DropdownMenuItem>
+                                {orderPlacing && <DropdownMenuItem className="w-full justify-end text-right" onClick={() => {
+
+                                    console.log('place order confirmed', row.id);
+                                    router.push(`/dashboard/management/suppliers/order-placing?supplierId=${row.id}`);
+
+                                }}>وضع طلب</DropdownMenuItem>}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    )}
+                    {idx < renderedColumns.length - 1 && <div className="absolute end-0 top-1/2 transform -translate-y-1/2 h-6 w-px bg-gray-200" />}
+                </div>
+            );
+        }
+
+        return (
+            <div key={key} className={cls} style={style}>
+                {content}
+                {idx < renderedColumns.length - 1 && <div className="absolute end-0 top-1/2 transform -translate-y-1/2 h-6 w-px bg-gray-200" />}
+            </div>
+        );
     }
 
     // pagination controls
@@ -286,163 +362,100 @@ export default function DataTable({
                 </div>
 
                 {/* Rows list */}
-                {showDragHandle ? (
+                {isLoading ? (
+                    <div className="space-y-0">
+                        {Array.from({ length: pageSize }).map((_, idx) => (
+                            <div key={idx} className="flex items-center gap-0 px-2 py-3 border-b last:border-0 animate-pulse bg-white">
+                                {showDragHandle && (
+                                    <div className="px-0 flex items-center">
+                                        <div className="px-2 flex items-center">
+                                            <div className="w-8 h-8" />
+                                        </div>
+                                    </div>
+                                )}
+                                {showCheckbox && (
+                                    <div className={cellClass('checkbox')}>
+                                        <div className="w-4 h-4 bg-gray-200 rounded" />
+                                    </div>
+                                )}
+                                <div className="flex items-center w-full">
+                                    {renderedColumns.map((col) => {
+                                        if (col.key === 'checkbox') return null;
+                                        const widthCls = getColClass(col);
+                                        const style = getColStyle(col);
+                                        const cls = cellClass(col.key, widthCls);
+                                        return (
+                                            <div key={col.key} className={cls} style={style}>
+                                                <div className="h-4 bg-gray-200 rounded w-3/4 mx-auto" />
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ) : showDragHandle ? (
                     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                         <SortableContext items={pageRows.map(r => String(r.id))} strategy={verticalListSortingStrategy}>
                             <div className="space-y-0">
                                 {pageRows.map((row) => {
+                                    const isExpanded = String(expandedId) === String(row.id);
                                     return (
                                         <SortableRow key={row.id} id={String(row.id)}>
                                             {disableAccordion ? (
-                                                <div className={`flex items-center gap-0 px-2 py-1`}> 
+                                                <div className={`flex items-center gap-0 px-2 py-1`}>
                                                     {showCheckbox && (
                                                         <div className={cellClass('checkbox')}>
                                                             <Checkbox checked={selected.has(row.id)} onCheckedChange={() => toggleRow(row.id)} />
                                                         </div>
                                                     )}
                                                     <div className="flex items-center w-full">
-                                                        {renderedColumns.map((col, idx) => {
-                                                            if (col.key === 'checkbox') return null;
-                                                            const key = col.key;
-                                                            const content = col.render ? col.render(row) : (row[key] ?? '');
-                                                            const widthCls = getColClass(col);
-                                                            const style = getColStyle(col);
-                                                            const cls = cellClass(key, widthCls);
-                                                            return (
-                                                                <div key={key} className={cls} style={style}>
-                                                                    {content}
-                                                                    {idx < renderedColumns.length && <div className="absolute right-0 top-1/2 transform -translate-y-1/2 h-6 w-px bg-gray-200" />}
-                                                                </div>
-                                                            );
-                                                        })}
+                                                        {renderedColumns.map((col, idx) => renderColumnContent(row, col, idx))}
                                                     </div>
                                                 </div>
                                             ) : (
-                                                (() => {
-                                                    const isExpanded = String(expandedId) === String(row.id);
-                                                    return (
-                                                        <Accordion type="single" collapsible value={isExpanded ? String(row.id) : null} onValueChange={(val) => setExpandedId(val ? String(val) : null)}>
-                                                            <AccordionItem className={`${isExpanded ? 'bg-go-bg-l-e  transition-all duration-300' : 'bg-white'}`} value={String(row.id)}>
-                                                                <div className={`flex items-center gap-0 px-2 py-1 ${isExpanded ? 'animate-pulse duration-1100' : ''}`}>
-                                                                    {showCheckbox && (
-                                                                        <div className={cellClass('checkbox')}>
-                                                                            <Checkbox checked={selected.has(row.id)} onCheckedChange={() => toggleRow(row.id)} />
-                                                                        </div>
-                                                                    )}
-                                                                    <div className="flex items-center w-full">
-                                                                        {renderedColumns.map((col, idx) => {
-                                                                            if (col.key === 'checkbox') return null;
-                                                                            const key = col.key;
-                                                                            const content = col.render ? col.render(row) : (row[key] ?? '');
-                                                                            const widthCls = getColClass(col);
-                                                                            const style = getColStyle(col);
-                                                                            const cls = cellClass(key, widthCls);
-                                                                            if (key === 'checkbox') return null;
-                                                                            if (key === 'code') {
-                                                                                return (
-                                                                                    <div key={key} className={cls} style={style}>
-                                                                                        {content}
-                                                                                    </div>
-                                                                                );
-                                                                            }
-                                                                            if (key === 'avatar') {
-                                                                                return (
-                                                                                    <div key={key} className={cls} style={style}>
-                                                                                        {content}
-                                                                                        {idx < renderedColumns.length && <div className="absolute right-0 top-1/2 transform -translate-y-1/2 h-6 w-px bg-gray-200" />}
-                                                                                    </div>
-                                                                                );
-                                                                            }
-                                                                            if (key === 'actions') {
-                                                                                return (
-                                                                                    <div key={key} className={cls} style={style}>
-                                                                                        {content || (
-                                                                                            <DropdownMenu>
-                                                                                                <DropdownMenuTrigger asChild>
-                                                                                                    <Button asChild size="sm" className='rounded-2xl' variant="outline">
-                                                                                                        <div className="inline-flex items-center justify-center gap-2 whitespace-nowrap">
-                                                                                                            إجراءات
-                                                                                                            <ChevronDown className="h-4 w-4" />
-                                                                                                        </div>
-                                                                                                    </Button>
-                                                                                                </DropdownMenuTrigger>
-                                                                                                <DropdownMenuContent className='text-right' align="end">
-                                                                                                    <DropdownMenuItem className="w-full justify-end text-right" onClick={() => { setEditRow(row); setEditOpen(true); }}>تعديل</DropdownMenuItem>
-                                                                                                    <DropdownMenuItem className="w-full justify-end text-right" onClick={() => {
-                                                                                                        const key = registerCallback(() => {
-                                                                                                            if (onDelete && typeof onDelete === 'function') {
-                                                                                                                onDelete(row.id);
-                                                                                                            } else {
-                                                                                                                console.log('delete confirmed', row.id);
-                                                                                                            }
-                                                                                                        });
-                                                                                                        openModal({
-                                                                                                            isOpen: true,
-                                                                                                            type: 'failure',
-                                                                                                            title: 'تأكيد الحذف',
-                                                                                                            message: 'هل أنت متأكد أنك تريد حذف هذا العنصر؟ لا يمكن التراجع عن هذا الإجراء.',
-                                                                                                            actionName: 'حذف',
-                                                                                                            cancelTitle: 'إلغاء',
-                                                                                                            customActionKey: key,
-                                                                                                        });
-                                                                                                    }}>حذف</DropdownMenuItem>
-                                                                                                </DropdownMenuContent>
-                                                                                            </DropdownMenu>
-                                                                                        )}
-                                                                                        {idx < renderedColumns.length && <div className="absolute right-0 top-1/2 transform -translate-y-1/2 h-6 w-px bg-gray-200" />}
-                                                                                    </div>
-                                                                                );
-                                                                            }
-                                                                            if (key === 'badge' || key === 'coloredBadge') {
-                                                                                return (
-                                                                                    <div key={key} className={cls} style={style}>
-                                                                                        <div className="truncate w-full text-center">{content}</div>
-                                                                                        {idx < renderedColumns.length && <div className="absolute right-0 top-1/2 transform -translate-y-1/2 h-6 w-px bg-gray-200" />}
-                                                                                    </div>
-                                                                                );
-                                                                            }
-
-                                                                            return (
-                                                                                <div key={key} className={cls} style={style}>
-                                                                                    {content}
-                                                                                    {idx < renderedColumns.length && <div className="absolute right-0 top-1/2 transform -translate-y-1/2 h-6 w-px bg-gray-200" />}
-                                                                                </div>
-                                                                            );
-                                                                        })}
-                                                                    </div>
-
-                                                                    <div className="px-2 flex items-center">
-                                                                        <button
-                                                                            aria-label={isExpanded ? 'Collapse details' : 'Expand details'}
-                                                                            onClick={(e) => { e.stopPropagation(); setExpandedId(isExpanded ? null : String(row.id)); }}
-                                                                            className="p-2 rounded hover:bg-gray-100"
-                                                                        >
-                                                                            <ChevronDown className={`h-4 w-4 transform transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
-                                                                        </button>
-                                                                    </div>
+                                                <Accordion type="single" collapsible value={isExpanded ? String(row.id) : null} onValueChange={(val) => setExpandedId(val ? String(val) : null)}>
+                                                    <AccordionItem className={`${isExpanded ? 'bg-go-bg-l-e  transition-all duration-300' : 'bg-white'}`} value={String(row.id)}>
+                                                        <div className={`flex items-center gap-0 px-2 py-1 ${isExpanded ? 'animate-pulse duration-1100' : ''}`}>
+                                                            {showCheckbox && (
+                                                                <div className={cellClass('checkbox')}>
+                                                                    <Checkbox checked={selected.has(row.id)} onCheckedChange={() => toggleRow(row.id)} />
                                                                 </div>
-                                                                <AccordionContent className="px-6 pb-4 pt-0 border-t bg-white">
-                                                                    {(() => {
-                                                                        const type = row[rowTypeKey];
-                                                                        const Comp = type && detailsComponentMap[type];
-                                                                        if (Comp) return <Comp row={row} />;
+                                                            )}
+                                                            <div className="flex items-center w-full">
+                                                                {renderedColumns.map((col, idx) => renderColumnContent(row, col, idx))}
+                                                            </div>
 
-                                                                        const detailsCol = columns.find(c => c.key === 'details');
-                                                                        if (detailsCol && typeof detailsCol.render === 'function') {
-                                                                            return detailsCol.render(row);
-                                                                        }
+                                                            <div className="px-2 flex items-center">
+                                                                <button
+                                                                    aria-label={isExpanded ? 'Collapse details' : 'Expand details'}
+                                                                    onClick={(e) => { e.stopPropagation(); setExpandedId(isExpanded ? null : String(row.id)); }}
+                                                                    className="p-2 rounded hover:bg-gray-100"
+                                                                >
+                                                                    <ChevronDown className={`h-4 w-4 transform transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                        <AccordionContent className="px-6 pb-4 pt-0 border-t bg-white">
+                                                            {(() => {
+                                                                const type = row[rowTypeKey];
+                                                                const Comp = type && detailsComponentMap[type];
+                                                                if (Comp) return <Comp row={row} />;
 
-                                                                        return (
-                                                                            <div className="text-sm text-muted-foreground">
-                                                                                <div className="mt-1"><strong>Notes:</strong> {row.notes ?? '-'}</div>
-                                                                            </div>
-                                                                        );
-                                                                    })()}
-                                                                </AccordionContent>
-                                                            </AccordionItem>
-                                                        </Accordion>
-                                                    );
-                                                })()
+                                                                const detailsCol = columns.find(c => c.key === 'details');
+                                                                if (detailsCol && typeof detailsCol.render === 'function') {
+                                                                    return detailsCol.render(row);
+                                                                }
+
+                                                                return (
+                                                                    <div className="text-sm text-muted-foreground">
+                                                                        <div className="mt-1"><strong>Notes:</strong> {row.notes ?? '-'}</div>
+                                                                    </div>
+                                                                );
+                                                            })()}
+                                                        </AccordionContent>
+                                                    </AccordionItem>
+                                                </Accordion>
                                             )}
                                         </SortableRow>
                                     )
@@ -462,20 +475,7 @@ export default function DataTable({
                                             </div>
                                         )}
                                         <div className="flex items-center w-full">
-                                            {renderedColumns.map((col, idx) => {
-                                                if (col.key === 'checkbox') return null;
-                                                const key = col.key;
-                                                const content = col.render ? col.render(row) : (row[key] ?? '');
-                                                const widthCls = getColClass(col);
-                                                const style = getColStyle(col);
-                                                const cls = cellClass(key, widthCls);
-                                                return (
-                                                    <div key={key} className={cls} style={style}>
-                                                        {content}
-                                                        {idx < renderedColumns.length && <div className="absolute right-0 top-1/2 transform -translate-y-1/2 h-6 w-px bg-gray-200" />}
-                                                    </div>
-                                                );
-                                            })}
+                                            {renderedColumns.map((col, idx) => renderColumnContent(row, col, idx))}
                                         </div>
                                     </div>
                                 );
@@ -490,85 +490,7 @@ export default function DataTable({
                                                 <Checkbox checked={selected.has(row.id)} onCheckedChange={() => toggleRow(row.id)} />
                                             </div>
                                             <div className="flex items-center w-full">
-                                                {renderedColumns.map((col, idx) => {
-                                                    if (col.key === 'checkbox') return null;
-                                                    const key = col.key;
-                                                    const content = col.render ? col.render(row) : (row[key] ?? '');
-                                                    const widthCls = getColClass(col);
-                                                    const style = getColStyle(col);
-                                                    const cls = cellClass(key, widthCls);
-                                                    if (key === 'checkbox') return null;
-                                                    if (key === 'code') {
-                                                        return (
-                                                            <div key={key} className={cls} style={style}>
-                                                                {content}
-                                                            </div>
-                                                        );
-                                                    }
-                                                    if (key === 'avatar') {
-                                                        return (
-                                                            <div key={key} className={cls} style={style}>
-                                                                {content}
-                                                                {idx < renderedColumns.length && <div className="absolute right-0 top-1/2 transform -translate-y-1/2 h-6 w-px bg-gray-200" />}
-                                                            </div>
-                                                        );
-                                                    }
-                                                    if (key === 'actions') {
-                                                        return (
-                                                            <div key={key} className={cls} style={style}>
-                                                                {content || (
-                                                                    <DropdownMenu>
-                                                                        <DropdownMenuTrigger asChild>
-                                                                            <Button asChild size="sm" className='rounded-2xl' variant="outline">
-                                                                                <div className="inline-flex items-center justify-center gap-2 whitespace-nowrap">
-                                                                                    إجراءات
-                                                                                    <ChevronDown className="h-4 w-4" />
-                                                                                </div>
-                                                                            </Button>
-                                                                        </DropdownMenuTrigger>
-                                                                        <DropdownMenuContent className='text-right' align="end">
-                                                                            <DropdownMenuItem className="w-full justify-end text-right" onClick={() => { setEditRow(row); setEditOpen(true); }}>تعديل</DropdownMenuItem>
-                                                                            <DropdownMenuItem className="w-full justify-end text-right" onClick={() => {
-                                                                                const key = registerCallback(() => {
-                                                                                    if (onDelete && typeof onDelete === 'function') {
-                                                                                        onDelete(row.id);
-                                                                                    } else {
-                                                                                        console.log('delete confirmed', row.id);
-                                                                                    }
-                                                                                });
-                                                                                openModal({
-                                                                                    isOpen: true,
-                                                                                    type: 'failure',
-                                                                                    title: 'تأكيد الحذف',
-                                                                                    message: 'هل أنت متأكد أنك تريد حذف هذا العنصر؟ لا يمكن التراجع عن هذا الإجراء.',
-                                                                                    actionName: 'حذف',
-                                                                                    cancelTitle: 'إلغاء',
-                                                                                    customActionKey: key,
-                                                                                });
-                                                                            }}>حذف</DropdownMenuItem>
-                                                                        </DropdownMenuContent>
-                                                                    </DropdownMenu>
-                                                                )}
-                                                                {idx < renderedColumns.length && <div className="absolute right-0 top-1/2 transform -translate-y-1/2 h-6 w-px bg-gray-200" />}
-                                                            </div>
-                                                        );
-                                                    }
-                                                    if (key === 'badge' || key === 'coloredBadge') {
-                                                        return (
-                                                            <div key={key} className={cls} style={style}>
-                                                                <div className="truncate w-full text-center">{content}</div>
-                                                                {idx < renderedColumns.length && <div className="absolute right-0 top-1/2 transform -translate-y-1/2 h-6 w-px bg-gray-200" />}
-                                                            </div>
-                                                        );
-                                                    }
-
-                                                    return (
-                                                        <div key={key} className={cls} style={style}>
-                                                            {content}
-                                                            {idx < renderedColumns.length && <div className="absolute right-0 top-1/2 transform -translate-y-1/2 h-6 w-px bg-gray-200" />}
-                                                        </div>
-                                                    );
-                                                })}
+                                                {renderedColumns.map((col, idx) => renderColumnContent(row, col, idx))}
                                             </div>
 
                                             <div className="px-2 flex items-center">
@@ -627,30 +549,30 @@ export default function DataTable({
             {/* Pagination footer */}
             {showPagination && (
                 <div className="flex items-center justify-between mt-4">
-                <div className="flex items-center gap-3">
-                    <div className="text-sm">صفوف لكل صفحة</div>
-                    <Select value={String(pageSize)} onValueChange={(v) => { setPageSize(Number(v)); setPageIndex(0); }}>
-                        <SelectTrigger className="w-20">
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {pageSizeOptions.map(opt => <SelectItem key={opt} value={String(opt)}>{opt}</SelectItem>)}
-                        </SelectContent>
-                    </Select>
-                </div>
-
-                <div className="flex items-center gap-2">
-                    <div className="text-sm">
-                        {Math.min(start + 1, total)} - {Math.min(end, total)} من {total}
+                    <div className="flex items-center gap-3">
+                        <div className="text-sm">صفوف لكل صفحة</div>
+                        <Select value={String(pageSize)} onValueChange={(v) => { setPageSize(Number(v)); setPageIndex(0); }}>
+                            <SelectTrigger className="w-20">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {pageSizeOptions.map(opt => <SelectItem key={opt} value={String(opt)}>{opt}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
                     </div>
 
                     <div className="flex items-center gap-2">
-                        <Button size="sm" variant="ghost" onClick={gotoLast} disabled={pageIndex >= pageCount - 1}>|&lt;</Button>
-                        <Button size="sm" variant="ghost" onClick={gotoNext} disabled={pageIndex >= pageCount - 1}><HiChevronRight /></Button>
-                        <Button size="sm" variant="ghost" onClick={gotoPrev} disabled={pageIndex === 0}><HiChevronLeft /></Button>
-                        <Button size="sm" variant="ghost" onClick={gotoFirst} disabled={pageIndex === 0}>&gt;|</Button>
+                        <div className="text-sm">
+                            {Math.min(start + 1, total)} - {Math.min(end, total)} من {total}
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <Button size="sm" variant="ghost" onClick={gotoLast} disabled={pageIndex >= pageCount - 1}>|&lt;</Button>
+                            <Button size="sm" variant="ghost" onClick={gotoNext} disabled={pageIndex >= pageCount - 1}><HiChevronRight /></Button>
+                            <Button size="sm" variant="ghost" onClick={gotoPrev} disabled={pageIndex === 0}><HiChevronLeft /></Button>
+                            <Button size="sm" variant="ghost" onClick={gotoFirst} disabled={pageIndex === 0}>&gt;|</Button>
+                        </div>
                     </div>
-                </div>
                 </div>
             )}
         </div>

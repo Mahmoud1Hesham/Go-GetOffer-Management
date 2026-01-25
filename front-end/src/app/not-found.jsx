@@ -12,20 +12,20 @@ const NotFound = () => {
 
     return <>
         <div className="">
-            <div className="container">
-                <div className="content flex flex-col items-center text-center gap-6">
-                    <h1>{t('header.title')}</h1>
-                    <h2>{t('header.subtitle')}</h2>
+            <div className="flex flex-col justify-center">
+                <div className="content flex flex-col items-center justify-center text-center gap-6 pt-12">
+                    <h1 className='text-go-primary-g text-6xl text-bold font-hacen'>{t('header.title')}</h1>
+                    <h2 className='text-go-primary-g text-xl text-bold font-hacen'>{t('header.subtitle')}</h2>
                 </div>
-                <div className="flex flex-col gap-6 relative">
+                <div className="flex flex-col items-center gap-1">
 
-                <div className="h-64 absolute">
+                <div className="w-1/3">
                     {useLottieAnimation({ animationData: notFound, autoplay: true, loop: true })}
                 </div>
                 <Button
-                    className='w-auto text-white bg-go-primary-e hover:bg-go-primary-o rounded-md absolute z-50 bottom-5'
+                    className='w-1/4 text-white bg-go-primary-e hover:bg-go-primary-o rounded-md'
                     variant="primary"
-                    onClick={() => router.push('/')}
+                    onClick={() => router.back()}
                 >
                     {t('button')}
                 </Button>

@@ -7,11 +7,16 @@ import {
     signupSchema as baseSignupSchema,
     forgetPasswordOtpVerification as baseOtpVerify,
     resetPasswordSchema as baseResetPassword,
+    changePasswordSchema as baseChangePassword,
     forgetPasswordSchema as baseForgetPassword,
     otpVerificationSchema as baseOtpSchema,
     supplierStepOneSchema as baseStepOne,
     supplierStepThreeSchema as baseStepThree,
     supplierInfoSchema as baseReviewPage,
+    categorySchema as baseCategorySchema,
+    subCategorySchema as baseSubCategorySchema,
+    brandSchema as baseBrandSchema,
+    productSchema as baseProductSchema,
 } from "@/app/Validation/ValidationSchemas";
 
 function translateSchema(schema, t) {
@@ -67,6 +72,20 @@ function translateSchema(schema, t) {
 
         "At least one phone number is required": t("phonesArray.min"),
         "You can add up to 3 phone numbers only": t("phonesArray.max"),
+
+        "Arabic name is required": t("category.nameArRequired"),
+        "English name is required": t("category.nameEnRequired"),
+        "Image is required": t("category.imageRequired"),
+        "Parent category is required": t("subCategory.parentCategoryRequired"),
+        "Category is required": t("brand.categoryRequired"),
+        "Sub category is required": t("brand.subCategoryRequired"),
+
+        "Brand is required": t("product.brandRequired"),
+        "Weight is required": t("product.weightRequired"),
+        "Unit is required": t("product.unitRequired"),
+        "Arabic description is required": t("product.descArRequired"),
+        "English description is required": t("product.descEnRequired"),
+        "At least one variant is required": t("product.minOneVariant"),
     };
 
     const translateErr = (err) => {
@@ -115,11 +134,16 @@ export function useValidationI18nSchemas() {
             signupSchema: translateSchema(baseSignupSchema, t),
             forgetPasswordOtpVerification: translateSchema(baseOtpVerify, t),
             resetPasswordSchema: translateSchema(baseResetPassword, t),
+            changePasswordSchema: translateSchema(baseChangePassword, t),
             forgetPasswordSchema: translateSchema(baseForgetPassword, t),
             otpVerificationSchema: translateSchema(baseOtpSchema, t),
             supplierStepOneSchema: translateSchema(baseStepOne, t),
             supplierStepThreeSchema: translateSchema(baseStepThree, t),
             supplierInfoSchema :translateSchema(baseReviewPage,t),
+            categorySchema: translateSchema(baseCategorySchema, t),
+            subCategorySchema: translateSchema(baseSubCategorySchema, t),
+            brandSchema: translateSchema(baseBrandSchema, t),
+            productSchema: translateSchema(baseProductSchema, t),
         };
     }, [t, i18n.language]);
 

@@ -78,6 +78,16 @@ const supplierJoinRequestsSlice = createSlice({
     name: 'supplierJoinRequests',
     initialState,
     reducers: {
+        syncSupplierJoinRequests(state, action) {
+            state.loading = false
+            state.error = null
+            state.status = action.payload?.status ?? true
+            state.message = action.payload?.message ?? ''
+
+            const data = action.payload?.data ?? {}
+            state.statusBar = Array.isArray(data.statusBar) ? data.statusBar.map(mapStatusBarItem) : []
+            state.items = Array.isArray(data.items) ? data.items.map(mapJoinRequestItem) : []
+        },
         clearSupplierJoinRequestsError(state) {
             state.error = null
         },
@@ -111,7 +121,7 @@ const supplierJoinRequestsSlice = createSlice({
     },
 })
 
-export const { clearSupplierJoinRequestsError, clearSupplierJoinRequests } = supplierJoinRequestsSlice.actions
+export const { clearSupplierJoinRequestsError, clearSupplierJoinRequests, syncSupplierJoinRequests } = supplierJoinRequestsSlice.actions
 
 export const selectStatusBar = (state) => state.supplierJoinRequests.statusBar
 export const selectItems = (state) => state.supplierJoinRequests.items

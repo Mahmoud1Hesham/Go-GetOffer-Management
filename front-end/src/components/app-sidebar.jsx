@@ -274,12 +274,24 @@ export function AppSidebar({
             url:"/dashboard/management/clients"
           },
           {
+            title:t("platform.Management.tabs.branches"),
+            url:"/dashboard/management/branches"
+          },
+          {
             title:t("platform.Management.tabs.products"),
             url:"/dashboard/management/products"
           },
           {
-            title:t("platform.Management.tabs.branches"),
-            url:"/dashboard/management/branches"
+            title:t("platform.Management.tabs.categories"),
+            url:"/dashboard/management/categories"
+          },
+          {
+            title:t("platform.Management.tabs.subCategories"),
+            url:"/dashboard/management/sub-categories"
+          },
+          {
+            title:t("platform.Management.tabs.brands"),
+            url:"/dashboard/management/brands"
           },
         ]
       },

@@ -118,7 +118,7 @@ export function Combobox({ options = [], value, onChange, placeholder = "Select.
                                 return (
                                     <CommandItem
                                         key={opt.value ?? `${String(opt.label ?? '')}-${idx}`}
-                                        value={opt.value}
+                                        value={opt.label}
                                         onSelect={() => handleSelect(opt.value)}
                                     >
                                         <span className={isFixed ? 'font-semibold' : ''}>{opt.label}</span>

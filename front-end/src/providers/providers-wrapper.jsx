@@ -21,7 +21,7 @@ export default function Providers({ children }) {
                 <ErrorBoundary>
                     <AppInitializer>
                         <GlobalModal />
-                        <Toaster />
+                            <Toaster />
                         <RouteGuard>
                             {children}
                         </RouteGuard>

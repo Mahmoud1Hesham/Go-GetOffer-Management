@@ -129,3 +129,45 @@
   --font-roboto : var(--font-roboto)
   
 }
+
+/* Slide animations */
+@keyframes counter-slide-up {
+  from {
+    transform: translateY(15px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes counter-slide-down {
+  from {
+    transform: translateY(-15px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Shake animation for errors */
+@keyframes counter-shake {
+  0%,100% { transform: translateX(0); }
+  25% { transform: translateX(-3px); }
+  75% { transform: translateX(3px); }
+}
+
+.animate-counter-up {
+  animation: counter-slide-up 200ms ease-out;
+}
+
+.animate-counter-down {
+  animation: counter-slide-down 200ms ease-out;
+}
+
+.animate-counter-shake {
+  animation: counter-shake 300ms ease-in-out;
+}

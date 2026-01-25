@@ -259,6 +259,107 @@ export function useAuth() {
         return canActHelper(user, path);
     }, [user]);
 
+    // -------------------------
+    // CHANGE PASSWORD
+    // -------------------------
+    const changePasswordMutation = useMutation({
+        mutationFn: async (payload) => {
+            try {
+                const res = await axiosRequester.put('/api/staff/password/change', payload);
+                return res.data;
+            } catch (err) {
+                throw err?.response?.data || err;
+            }
+        },
+        onSuccess: (body) => {
+            // Password changed successfully
+            return { ok: true, message: body?.message || 'Password changed successfully' };
+        },
+    });
+
+    const changePassword = useCallback(async (oldPassword, newPassword, /* confirmPassword */) => {
+        try {
+            const result = await changePasswordMutation.mutateAsync({
+                OldPassword: oldPassword,
+                NewPassword: newPassword,
+            });
+            return { ok: true, data: result };
+        } catch (error) {
+            return { ok: false, error };
+        }
+    }, [changePasswordMutation]);
+
+    // -------------------------
+    // FORGOT PASSWORD (send reset email / OTP)
+    // -------------------------
+    const forgotPasswordMutation = useMutation({
+        mutationFn: async (payload) => {
+            try {
+                const res = await axiosRequester.post('/api/staff/password/forget', payload);
+                return res.data;
+            } catch (err) {
+                throw err?.response?.data || err;
+            }
+        },
+    });
+
+    const forgotPassword = useCallback(async (email) => {
+        try {
+            const result = await forgotPasswordMutation.mutateAsync({ email });
+            return { ok: true, data: result };
+        } catch (error) {
+            return { ok: false, error };
+        }
+    }, [forgotPasswordMutation]);
+
+    // -------------------------
+    // VERIFY OTP for password reset
+    // -------------------------
+    const verifyPasswordOtpMutation = useMutation({
+        mutationFn: async (payload) => {
+            try {
+                const res = await axiosRequester.post('/api/staff/password/otp', payload);
+                return res.data;
+            } catch (err) {
+                throw err?.response?.data || err;
+            }
+        },
+    });
+
+    const verifyPasswordOtp = useCallback(async (email, resetCode) => {
+        try {
+            const result = await verifyPasswordOtpMutation.mutateAsync({ email, resetCode });
+            return { ok: true, data: result };
+        } catch (error) {
+            return { ok: false, error };
+        }
+    }, [verifyPasswordOtpMutation]);
+
+    // -------------------------
+    // RESET PASSWORD (final step)
+    // -------------------------
+    const resetPasswordMutation = useMutation({
+        mutationFn: async (payload) => {
+            try {
+                const res = await axiosRequester.post('/api/staff/password/reset', payload);
+                return res.data;
+            } catch (err) {
+                throw err?.response?.data || err;
+            }
+        },
+    });
+
+    const resetPassword = useCallback(async (email, newPassword, resetCode) => {
+        try {
+            const payload = { email, NewPassword: newPassword };
+            if (resetCode) payload.resetCode = resetCode;
+            const result = await resetPasswordMutation.mutateAsync(payload);
+            return { ok: true, data: result };
+        } catch (error) {
+            return { ok: false, error };
+        }
+    }, [resetPasswordMutation]);
+
     const firstAllowedPath = useCallback(() => {
         if (!user) return '/';
         try {
@@ -306,6 +407,19 @@ export function useAuth() {
 
         refresh,
         refreshStatus: { isLoading: refreshMutation.isLoading, error: refreshMutation.error },
+
+        changePassword,
+        changePasswordStatus: { isLoading: changePasswordMutation.isPending, error: changePasswordMutation.error },
+
+        // forgot/reset flow
+        forgotPassword,
+        forgotPasswordStatus: { isLoading: forgotPasswordMutation.isLoading, error: forgotPasswordMutation.error },
+
+        verifyPasswordOtp,
+        verifyPasswordOtpStatus: { isLoading: verifyPasswordOtpMutation.isLoading, error: verifyPasswordOtpMutation.error },
+
+        resetPassword,
+        resetPasswordStatus: { isLoading: resetPasswordMutation.isLoading, error: resetPasswordMutation.error },
 
         setUser: setUserManual,
 

@@ -13,13 +13,14 @@ import { fetchSupplierJoinRequests } from '@/redux/slices/supplierJoinRequestsSl
 import { useMutationFetch } from '@/hooks/useQueryFetch';
 
 export const reasons = [
-        { id: 'missing_docs', label: 'المستندات المطلوبة غير صالحة' },
-        { id: 'expired_docs', label: 'انتهاء صلاحية المستندات' },
-        { id: 'mismatch', label: 'عدم تطابق المعلومات المدخلة' },
-        { id: 'incomplete', label: 'البيانات غير مكتملة' },
-        { id: 'does_not_match_the_requirements', label: 'لا يستوفي الشروط المطلوبة' },
-        { id: 'repeated_request', label: 'طلب مكرر' },
-    ];
+    { id: 'invalid_docs', label: 'المستندات المطلوبة غير صالحة' },
+    // { id: 'expired_docs', label: 'انتهاء صلاحية المستندات' },
+    { id: 'mismatch', label: 'عدم تطابق المعلومات المدخلة' },
+    // { id: 'incomplete', label: 'البيانات غير مكتملة' },
+    { id: 'does_not_match_the_requirements', label: 'عدم إستيفاء الشروط المطلوبة' },
+    { id: 'repeated_request', label: 'طلب مكرر' },
+    { id: 'unable_to_process', label: 'غير قادر على معالجة الطلب' },
+];
 
 export default function SuppliersContent({ row, showConditions = true }) {
     const dispatch = useDispatch();
@@ -83,7 +84,7 @@ export default function SuppliersContent({ row, showConditions = true }) {
     // Normalize branches into a display string so arrays render with commas
     const branchesDisplay = Array.isArray(row.branches) ? row.branches.join(', ') : (row.branches ?? '—');
 
-    
+
 
     function toggleReason(id) {
         setSelected(prev => {
@@ -166,6 +167,7 @@ export default function SuppliersContent({ row, showConditions = true }) {
                 <div>
                     <h4 className="font-semibold mb-3 border-b pb-1">المعلومات الأساسية</h4>
                     <div className="space-y-2 pr-4 flex items-center gap-4 justify-between">
+                        <div className='border-r pr-3 flex flex-col gap-2 w-1/4'><span>اسم الكيان</span> <span>{row.name}</span></div>
                         <div className='border-r pr-3 flex flex-col gap-2 w-1/4'><span>اسم المستخدم</span> <span>{row.fullName}</span></div>
                         <div className='border-r pr-3 flex flex-col gap-2 w-1/4'><span>البريد الإلكتروني</span> <span>{row.email}</span></div>
                         <div className='border-r pr-3 flex flex-col gap-2 w-1/4'><span>رقم الهاتف</span> <span>{row.phone ?? '+201298754321'}</span></div>

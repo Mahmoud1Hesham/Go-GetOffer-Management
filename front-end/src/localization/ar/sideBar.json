@@ -78,7 +78,10 @@
                 "suppliers": "الموردين",
                 "clients": "العملاء",
                 "products": "المنتجات",
-                "branches": "الفروع"
+                "branches": "الفروع",
+                "categories": "التصنيفات",
+                "subCategories": "التصنيفات الفرعية",
+                "brands": "العلامات التجارية"
             }
         }
     },

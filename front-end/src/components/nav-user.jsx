@@ -1,5 +1,6 @@
 "use client"
 
+import React, { useState } from 'react'
 import {
   ChevronsUpDown,
   LogOut,
@@ -27,19 +28,22 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { useTranslation } from "react-i18next"
-import { useSearchParams } from "next/navigation.js"
+import { useSearchParams, useRouter } from "next/navigation.js"
 import { GoPasskeyFill } from "react-icons/go";
 import useAuth from "@/hooks/useAuth"
+import LoginDialog from "./ui/common/dialogs/loginDialog"
 export function NavUser({
   user
 }) {
   const { isMobile } = useSidebar()
+  const router = useRouter();
   // Use explicit namespace string to avoid ambiguity
   const { t, i18n } = useTranslation('sideBar');
   const searchParams = useSearchParams();
   const lang = searchParams.get("lang") || i18n.language || "ar";
   const isRtl = lang !== "en";
-  const { logout } = useAuth();
+  const { login,logout,isAuthenticated } = useAuth();
+  const [showLogin, setShowLogin] = useState(false);
 
 
   return (
@@ -82,7 +86,7 @@ export function NavUser({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem className={`${isRtl ? "flex-row-reverse" : "flex-row"} flex items-center gap-2`}>
+              <DropdownMenuItem onClick={() => router.push('/dashboard/auth/change-password')} className={`${isRtl ? "flex-row-reverse" : "flex-row"} flex items-center gap-2 cursor-pointer`}>
                 <GoPasskeyFill />
                 <span className={`${isRtl ? "text-right" : "text-left"}`}>{t("user-menu.change-password")}</span>
               </DropdownMenuItem>
@@ -116,12 +120,19 @@ export function NavUser({
             <DropdownMenuSeparator /> */}
             <DropdownMenuSeparator />
 
-            <DropdownMenuItem onClick={() => logout()} className={`${isRtl ? "flex-row-reverse" : "flex-row"} flex items-center gap-2`}>
+            <DropdownMenuItem onClick={() => {
+              if (!isAuthenticated) {
+                setShowLogin(true);
+              } else {
+                logout();
+              }
+            }} className={`${isRtl ? "flex-row-reverse" : "flex-row"} flex items-center gap-2`}>
               <LogOut />
-              <span className={`${isRtl ? "text-right" : "text-left"}`}>{t("user-menu.logout")}</span>
+              <span className={`${isRtl ? "text-right" : "text-left"}`}>{!isAuthenticated ? "تسجيل الدخول" : t("user-menu.logout")}</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        {showLogin && <LoginDialog />}
       </SidebarMenuItem>
     </SidebarMenu>
   );

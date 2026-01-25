@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useSelector } from 'react-redux'
 import useForm from '@/hooks/useForm'
 import { loginSchema } from '@/app/Validation/ValidationSchemas.js'
@@ -127,11 +127,12 @@ export default function LoginDialog() {
         setErrors,
     } = useForm(initialValues, schemas.loginSchema, onSubmit)
 
-    // Dialog open controlled by auth state:
-    const open = !isAuthenticated
+    // Dialog open controlled by a local state ( synced to auth ) so we can close it programmatically
+    const [dialogOpen, setDialogOpen] = useState(!isAuthenticated);
+    useEffect(() => { setDialogOpen(!isAuthenticated); }, [isAuthenticated]);
 
     return (
-        <Dialog open={open} onOpenChange={() => { /* منع الإغلاق اليدوي */ }}>
+        <Dialog open={dialogOpen} onOpenChange={() => { /* منع الإغلاق اليدوي */ }}>
             <DialogContent className="max-w-md">
                 <DialogHeader className={'text-center'}>
                     <DialogTitle>{lang === 'en' ? 'Sign In' : 'تسجيل الدخول'}</DialogTitle>
@@ -140,7 +141,7 @@ export default function LoginDialog() {
                     </DialogDescription>
                 </DialogHeader>
 
-                <form onSubmit={handleSubmit} className="space-y-4 mt-4" noValidate>
+                <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-4" noValidate>
                     <div>
                         <Label htmlFor="email">{lang === 'en' ? 'Email' : 'الإيميل'}</Label>
                         <Input
@@ -155,7 +156,20 @@ export default function LoginDialog() {
                             aria-invalid={errors.email && touched.email ? 'true' : 'false'}
                             aria-describedby={errors.email && touched.email ? 'email-error' : undefined}
                         />
-                        {errors.email && touched.email && <p id="email-error" className="text-sm text-red-500">{errors.email}</p>}
+
+                        <span
+                            className='text-go-primary-g mt-2 hover:text-go-primary-o transition-all duration-300 cursor-pointer'
+                            onClick={() => {
+                                try { closeModal(); } catch (e) { }
+                                try { setDialogOpen(false); } catch (e) { }
+                                try {
+                                    setTimeout(() => { router.push('/dashboard/auth/forgot-password'); }, 40);
+                                } catch (e) {
+                                    router.push('/dashboard/auth/forgot-password');
+                                }
+                            }}
+                        >هل نسيت كلمة المرور؟</span>
+                        {errors.email && touched.email && <p id="email-error" className="text-sm mt-1 text-red-500">{errors.email}</p>}
                     </div>
 
                     <div>

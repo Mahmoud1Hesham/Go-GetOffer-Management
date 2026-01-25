@@ -27,7 +27,7 @@ export default function DashboardContentHeader({
     onVisibleColumnsChange,
 }) {
     return (
-        <div className="w-full px-5 mt-3">
+        <div className="w-full bg-white border-b border-go-border-l-e flex flex-col py-4">
             {/* title */}
             <div className="flex justify-between items-center mb-4">
                 <h1 className="text-xl font-semibold">{title}</h1>

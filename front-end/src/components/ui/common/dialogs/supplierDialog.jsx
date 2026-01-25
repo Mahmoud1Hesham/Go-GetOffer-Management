@@ -11,7 +11,7 @@ import {
     DialogClose,
 } from "@/components/ui/dialog"
 import Input from "@/components/ui/common/reusable-input/reusableInput"
-import MultiSelectInput, { activities } from "@/components/ui/common/multi-select-input/multiSelectInput"
+import MultiSelectInput from "@/components/ui/common/multi-select-input/multiSelectInput"
 import { useSearchParams } from "next/navigation"
 import axios from '@/lib/axios/axios'
 import { Combobox } from "@/components/ui/common/combo-box/comboBox"
@@ -25,6 +25,7 @@ import { fetchSuppliers, selectSupplierById } from '@/redux/slices/supplierManag
 import { toast } from "sonner"
 import { normalizeErrors } from "@/app/services/errorNormalizer"
 import { getErrorMessage } from "@/app/services/errorHandler"
+import { activities } from "@/utils/interfaces/activities"
 export default function SupplierDialog({ triggerNode = null, mode = 'create', initialData = null, onCreate = null, onUpdate = null, open: openProp = undefined, onOpenChange: onOpenChangeProp = null }) {
     const [open, setOpen] = useState(false)
     const [isEditing, setIsEditing] = useState(mode === 'create');

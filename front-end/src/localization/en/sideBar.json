@@ -78,7 +78,10 @@
                 "suppliers": "Suppliers",
                 "clients": "Clients",
                 "products": "Products",
-                "branches": "Branches"
+                "branches": "Branches",
+                "categories": "Categories",
+                "subCategories": "Sub-Categories",
+                "brands": "Brands"
             }
         }
     },

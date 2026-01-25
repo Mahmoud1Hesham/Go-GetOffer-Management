@@ -11,12 +11,17 @@ const FileUploader = ({
     subtitle ,
     footer ,
     maxFiles = 8,
+    // `accept` is the prop used by react-dropzone. Some callers pass
+    // `acceptedFileTypes` (older name) — support both for compatibility.
     accept = {
         "image/jpeg": [],
         "image/png": [],
-        "application/pdf": [],
         "image/jpg": [],
+        "image/svg+xml": ['.svg'],
+        "application/pdf": [],
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [],
     },
+    acceptedFileTypes = null,
     apiUrl = "",
     autoUpload = true,
     onFilesChange,
@@ -129,7 +134,10 @@ const FileUploader = ({
         if (autoUpload) uploadFiles(mappedFiles.map((m) => m.file));
     };
 
-    const { getRootProps, getInputProps } = useDropzone({ onDrop, accept });
+    // Prefer `acceptedFileTypes` when provided for backward compatibility.
+    const effectiveAccept = acceptedFileTypes || accept;
+
+    const { getRootProps, getInputProps } = useDropzone({ onDrop, accept: effectiveAccept });
 
     const removeFile = (file) => {
         const updated = files.filter((f) => f.file !== file);
