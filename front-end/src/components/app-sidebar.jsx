@@ -326,7 +326,7 @@ export function AppSidebar({
           <TeamSwitcher teams={data.teams} />
         </SidebarHeader>
         <SidebarContent>
-          <LanguageToggler />
+          {/* <LanguageToggler /> */}
           <NavMain title={t('divisions.sec-name')} items={enhancedNavMain} />
           <NavMain title={t('platform.sec-name')} items={enhancedPlatformItems} />
           {/* <NavProjects projects={data.projects} /> */}
