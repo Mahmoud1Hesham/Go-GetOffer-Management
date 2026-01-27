@@ -122,7 +122,7 @@ function translateSchema(schema, t) {
 export function useValidationI18nSchemas() {
     const { t, i18n } = useTranslation(["validation"]);
     const params = useSearchParams();
-    const lang = params.get("lang") || i18n.language || "en";
+    const lang = params.get("lang") || i18n.language || "ar";
 
     useEffect(() => {
         if (i18n.language !== lang) i18n.changeLanguage(lang);

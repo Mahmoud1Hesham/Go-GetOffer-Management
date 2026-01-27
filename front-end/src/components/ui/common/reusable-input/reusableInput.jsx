@@ -19,7 +19,7 @@ export default function Input({
     ...props
 }) {
     const searchParams = useSearchParams();
-    const lang = searchParams.get("lang") || i18n.language || "en";
+    const lang = searchParams.get("lang") || i18n.language || "ar";
 
     const labelRef = useRef(null);
     const [showPassword, setShowPassword] = useState(false);

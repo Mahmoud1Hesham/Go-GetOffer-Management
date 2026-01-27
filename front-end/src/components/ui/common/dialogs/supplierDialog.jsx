@@ -257,7 +257,7 @@ export default function SupplierDialog({ triggerNode = null, mode = 'create', in
                 }
 
                 const searchParams = useSearchParams()
-                const lang = searchParams.get("lang") || (typeof i18n !== "undefined" ? i18n.language : "en") || "en"
+                const lang = searchParams.get("lang") || (typeof i18n !== "undefined" ? i18n.language : "ar") || "ar"
                 const activityOptions = lang === "en" ? activities[0].en : activities[1].ar
 
                 // governorates and city options are loaded from server

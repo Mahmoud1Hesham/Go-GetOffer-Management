@@ -230,7 +230,7 @@ const page = () => {
     const dispatch = useDispatch()
     const supplierState = useSelector((s) => s.supplierManagement || {})
     const searchParams = useSearchParams()
-    const lang = searchParams.get('lang') || 'en'
+    const lang = searchParams.get('lang') || 'ar'
 
     const { data: fetchedData, isLoading: isFetchLoading } = useQueryFetch('suppliers', '/api/SupplierProfile', { params: { pageSize: 10000 } });
 

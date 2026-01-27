@@ -15,7 +15,7 @@ export function i18nMiddleware(req) {
     const lang = url.searchParams.get("lang");
 
     if (!lang) {
-        const cookieLang = req.cookies.get("Next-i18next")?.value || "en";
+        const cookieLang = req.cookies.get("Next-i18next")?.value || "ar";
 
         const newUrl = url.clone();
         newUrl.searchParams.set("lang", cookieLang);

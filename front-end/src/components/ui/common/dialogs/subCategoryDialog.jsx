@@ -39,6 +39,8 @@ export default function SubCategoryDialog({
     const lang = searchParams.get("lang") || "en"
     const { schemas } = useValidationI18nSchemas()
     const queryClient = useQueryClient()
+    const [bulkResponse, setBulkResponse] = useState(null)
+    const [fileUploaderKey, setFileUploaderKey] = useState(0)
 
     // Fetch Categories for Combobox
     const { data: categoriesData } = useQueryFetch(['allCategories'], '/api/category/withallname');
@@ -95,6 +97,7 @@ export default function SubCategoryDialog({
 
     useEffect(() => {
         if (isOpen) {
+            setBulkResponse(null);
             if (mode === 'update' && initialData) {
                 const translations = initialData.subCategoryTranslations || initialData.SubCategoryTranslations || initialData._raw?.subCategoryTranslations || initialData._raw?.SubCategoryTranslations || [];
 
@@ -178,11 +181,12 @@ export default function SubCategoryDialog({
         url: '/api/subcategory/bulk',
         options: { method: 'POST', headers: { 'Content-Type': 'multipart/form-data' } },
         mutationOptions: {
-            onSuccess: () => {
+            onSuccess: (data) => {
                 queryClient.invalidateQueries({ queryKey: ['allSubCategories'] });
                 queryClient.invalidateQueries({ queryKey: ['subCategories'] });
                 toast.success(lang === 'en' ? "Bulk upload successful" : "تم رفع الملف بنجاح");
-                handleOpenChange(false);
+                setBulkResponse(data);
+                setFileUploaderKey(prev => prev + 1);
             },
             onError: (err) => {
                 const message = getErrorMessage(err);
@@ -210,8 +214,8 @@ export default function SubCategoryDialog({
         if (!isControlled) setOpen(val)
         onOpenChangeProp?.(val)
     }
-
-    const isLoading = createMutation.isLoading || updateMutation.isLoading;
+    
+    const isPending = createMutation.isPending || updateMutation.isPending;
 
     return (
         <Dialog open={isOpen} onOpenChange={handleOpenChange}>
@@ -293,8 +297,8 @@ export default function SubCategoryDialog({
                             )}
                         </div>
                         <div className="flex justify-end">
-                            <Button onClick={handleSubmit} disabled={isLoading} className="bg-teal-500 hover:bg-teal-600 text-white w-28 text-center">
-                                {isLoading ? (lang === 'ar' ? "جاري الحفظ..." : "Saving...") : (isCreate ? (lang === 'ar' ? "إضافة البيانات" : "Add Data") : (lang === 'ar' ? "تحديث البيانات" : "Update Data"))}
+                            <Button onClick={handleSubmit} disabled={isPending} className="bg-teal-500 hover:bg-teal-600 text-white w-28 text-center">
+                                {isPending ? (lang === 'ar' ? "جاري الحفظ..." : "Saving...") : (isCreate ? (lang === 'ar' ? "إضافة البيانات" : "Add Data") : (lang === 'ar' ? "تحديث البيانات" : "Update Data"))}
                             </Button>
                         </div>
                     </div>
@@ -329,6 +333,7 @@ export default function SubCategoryDialog({
                                 <div className="space-y-2">
                                     <label className="text-xs font-semibold">{lang === 'ar' ? "بيانات ملف التصنيف الفرعي" : "Sub Category File Data"}</label>
                                     <FileUploader
+                                        key={fileUploaderKey}
                                         onFilesChange={(files) => setValues(prev => ({ ...prev, bulkFile: files[0]?.file }))}
                                         maxFiles={1}
                                         autoUpload={false}
@@ -338,11 +343,53 @@ export default function SubCategoryDialog({
                                     />
                                     <Button
                                         onClick={handleBulkUpload}
-                                        disabled={bulkUploadMutation.isLoading}
+                                        disabled={bulkUploadMutation.isPending}
                                         className="w-full mt-2 bg-teal-500 hover:bg-teal-600 text-white"
                                     >
-                                        {bulkUploadMutation.isLoading ? (lang === 'ar' ? "جاري الرفع..." : "Uploading...") : (lang === 'ar' ? "رفع الملف" : "Upload File")}
+                                        {bulkUploadMutation.isPending ? (lang === 'ar' ? "جاري الرفع..." : "Uploading...") : (lang === 'ar' ? "رفع الملف" : "Upload File")}
                                     </Button>
+                                </div>
+                                <div className="">
+                                    {bulkResponse && bulkResponse.data && (
+                                        <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200 text-sm">
+                                            <h3 className="font-bold text-gray-800 mb-3 border-b pb-2">{lang === 'ar' ? "تفاصيل العملية" : "Operation Details"}</h3>
+
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                                <div className="bg-white p-3 rounded border shadow-sm">
+                                                    <span className="block text-gray-500 text-xs mb-1">{lang === 'ar' ? "إجمالي الصفوف" : "Total Rows"}</span>
+                                                    <span className="font-bold text-lg">{bulkResponse.data.totalRows}</span>
+                                                </div>
+                                                <div className="bg-white p-3 rounded border border-green-100 shadow-sm">
+                                                    <span className="block text-green-600 text-xs mb-1">{lang === 'ar' ? "تمت الإضافة بنجاح" : "Success"}</span>
+                                                    <span className="font-bold text-green-700 text-lg">{bulkResponse.data.successCount}</span>
+                                                </div>
+                                                <div className="bg-white p-3 rounded border border-red-100 shadow-sm">
+                                                    <span className="block text-red-600 text-xs mb-1">{lang === 'ar' ? "فشل في الإضافة" : "Failed"}</span>
+                                                    <span className="font-bold text-red-700 text-lg">{bulkResponse.data.failedCount}</span>
+                                                </div>
+                                            </div>
+
+                                            <div className="mt-4">
+                                                <h4 className="font-semibold text-gray-700 mb-2">{lang === 'ar' ? "تقرير الأخطاء:" : "Errors Report:"}</h4>
+                                                {bulkResponse.data.errors && bulkResponse.data.errors.length > 0 ? (
+                                                    <div className="bg-red-50 border border-red-200 rounded p-3 max-h-60 overflow-y-auto">
+                                                        <ul className="list-disc list-inside space-y-1">
+                                                            {bulkResponse.data.errors.map((error, idx) => (
+                                                                <li key={idx} className="text-red-600 text-xs md:text-sm font-medium">
+                                                                    {error}
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex items-center gap-2 text-green-600 bg-green-50 p-3 rounded border border-green-200">
+                                                        <span>✓</span>
+                                                        <span className="font-medium">{lang === 'ar' ? "لا توجد أخطاء في الملف" : "No errors found"}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </>
@@ -350,7 +397,7 @@ export default function SubCategoryDialog({
                 </div>
 
                 <DialogFooter className="gap-2 sm:gap-0">
-                    <Button variant="outline" onClick={() => handleOpenChange(false)} disabled={isLoading}>
+                    <Button variant="outline" onClick={() => handleOpenChange(false)} disabled={isPending || bulkUploadMutation.isPending}>
                         {lang === 'ar' ? "إلغاء" : "Cancel"}
                     </Button>
 

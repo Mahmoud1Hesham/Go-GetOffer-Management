@@ -28,7 +28,7 @@ function InputOTPGroup({
   ...props
 }) {
       const searchParams = useSearchParams();
-  const lang = searchParams.get("lang") || i18n.language || "en";
+  const lang = searchParams.get("lang") || i18n.language || "ar";
 
   return (
     <div

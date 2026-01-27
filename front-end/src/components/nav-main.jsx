@@ -26,8 +26,8 @@ export function NavMain({
   title
 }) {
   const searchParams = useSearchParams()
-  const lang = searchParams.get("lang") || "en"
-  const isRtl = lang !== "en"
+  const lang = searchParams.get("lang") || "ar"
+  const isRtl = lang === "ar"
   const pathname = usePathname() || '/'
 
   return (

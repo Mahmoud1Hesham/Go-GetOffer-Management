@@ -24,7 +24,7 @@ function Calendar({
 }) {
   const defaultClassNames = getDefaultClassNames()
   const searchParams = typeof window !== 'undefined' ? useSearchParams() : null
-  const lang = (searchParams && searchParams.get && searchParams.get('lang')) || (typeof navigator !== 'undefined' ? navigator.language : 'en') || 'en'
+  const lang = (searchParams && searchParams.get && searchParams.get('lang')) || (typeof navigator !== 'undefined' ? navigator.language : 'ar') || 'ar'
   const isRtl = String(lang).startsWith('ar')
 
   return (

@@ -42,6 +42,8 @@ const AddProductPage = () => {
         file: null
     });
     const [bulkErrors, setBulkErrors] = useState({});
+    const [bulkResponse, setBulkResponse] = useState(null);
+    const [fileUploaderKey, setFileUploaderKey] = useState(0);
 
 
     const arActivities = activities.find(a => a.ar)?.ar || [];
@@ -72,7 +74,7 @@ const AddProductPage = () => {
         }));
     }, [processedCategories]);
 
-    const { mutate: createProduct, isLoading: isCreating } = useMutationFetch({
+    const { mutate: createProduct, isPending: isCreating } = useMutationFetch({
         url: '/api/product/create',
         options: { method: 'POST', headers: { 'Content-Type': 'multipart/form-data' } },
         mutationOptions: {
@@ -221,12 +223,14 @@ const AddProductPage = () => {
         }));
     }, [bulkBrands]);
 
-    const { mutate: bulkUpload, isLoading: isBulkUploading, } = useMutationFetch({
+    const { mutate: bulkUpload, isPending: isBulkUploading, } = useMutationFetch({
         url: '/api/Product/bulk',
         options: { method: 'POST', headers: { 'Content-Type': 'multipart/form-data' } },
         mutationOptions: {
-            onSuccess: () => {
+            onSuccess: (data) => {
                 toast.success("تم رفع المنتجات بنجاح");
+                setBulkResponse(data);
+                setFileUploaderKey(prev => prev + 1); 
                 // router.push('/dashboard/management/products');
             },
             onError: (error) => {
@@ -644,6 +648,7 @@ const AddProductPage = () => {
 
                                 <div className="mb-6">
                                     <FileUploader
+                                        key={fileUploaderKey}
                                         title="رفع ملف إكسيل"
                                         subtitle="قم برفع ملف المنتجات بصيغة . xlsx أو .xls"
                                         maxFiles={1}
@@ -660,8 +665,50 @@ const AddProductPage = () => {
                                     />
                                     {bulkErrors.file && <p className="text-red-500 text-xs mt-2">{bulkErrors.file}</p>}
                                 </div>
+                                <div>
+                                    {bulkResponse && bulkResponse.data && (
+                                        <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200 text-sm">
+                                            <h3 className="font-bold text-gray-800 mb-3 border-b pb-2">تفاصيل العملية</h3>
 
-                                <div className="flex justify-end">
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                                <div className="bg-white p-3 rounded border shadow-sm">
+                                                    <span className="block text-gray-500 text-xs mb-1">إجمالي الصفوف</span>
+                                                    <span className="font-bold text-lg">{bulkResponse.data.totalRows}</span>
+                                                </div>
+                                                <div className="bg-white p-3 rounded border border-green-100 shadow-sm">
+                                                    <span className="block text-green-600 text-xs mb-1">تمت الإضافة بنجاح</span>
+                                                    <span className="font-bold text-green-700 text-lg">{bulkResponse.data.successCount}</span>
+                                                </div>
+                                                <div className="bg-white p-3 rounded border border-red-100 shadow-sm">
+                                                    <span className="block text-red-600 text-xs mb-1">فشل في الإضافة</span>
+                                                    <span className="font-bold text-red-700 text-lg">{bulkResponse.data.failedCount}</span>
+                                                </div>
+                                            </div>
+
+                                            <div className="mt-4">
+                                                <h4 className="font-semibold text-gray-700 mb-2">تقرير الأخطاء:</h4>
+                                                {bulkResponse.data.errors && bulkResponse.data.errors.length > 0 ? (
+                                                    <div className="bg-red-50 border border-red-200 rounded p-3 max-h-60 overflow-y-auto">
+                                                        <ul className="list-disc list-inside space-y-1">
+                                                            {bulkResponse.data.errors.map((error, idx) => (
+                                                                <li key={idx} className="text-red-600 text-xs md:text-sm font-medium">
+                                                                    {error}
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex items-center gap-2 text-green-600 bg-green-50 p-3 rounded border border-green-200">
+                                                        <span>✓</span>
+                                                        <span className="font-medium">لا توجد أخطاء في الملف</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="flex justify-end mt-5">
                                     <Button
                                         className="bg-teal-500 hover:bg-teal-600 text-white min-w-[140px] gap-2"
                                         onClick={onBulkSubmit}

@@ -31,7 +31,7 @@ export default function UnifiedFilterSheet({
     })
 
     const searchParams = useSearchParams()
-    const lang = searchParams?.get?.('lang') || 'en'
+    const lang = searchParams?.get?.('lang') || 'ar'
 
     // derive categories from the shared activities export; prefer the requested language
     const categoriesList = React.useMemo(() => {

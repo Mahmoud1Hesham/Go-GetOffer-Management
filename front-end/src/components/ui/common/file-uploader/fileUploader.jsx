@@ -37,7 +37,7 @@ const FileUploader = ({
     const [files, setFiles] = useState([]);
     const { t, i18n } = useTranslation(["fileUploader"]);
     const searchParams = useSearchParams();
-    const lang = searchParams.get("lang") || i18n.language || "en";
+    const lang = searchParams.get("lang") || i18n.language || "ar";
 
 
     const notifyParent = (updatedFiles) => {

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import acceptLanguage from 'accept-language'
 
 const languages = ['en', 'ar']
-const defaultLanguage = 'en'
+const defaultLanguage = 'ar'
 
 acceptLanguage.languages(languages)
 
