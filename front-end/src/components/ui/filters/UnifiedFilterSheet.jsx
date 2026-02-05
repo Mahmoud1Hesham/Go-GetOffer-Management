@@ -16,7 +16,8 @@ export default function UnifiedFilterSheet({
     onApply,
     showCategories = true,
     showDate = true,
-    showStatus = true
+    showStatus = true,
+    statusOptions = ['قيد الإنتظار', 'مقبول', 'مرفوض']
 }) {
     // use shared parse/format helpers to avoid UTC shift bugs
     const parseLocalDate = (s) => parseDate(s)
@@ -137,7 +138,7 @@ export default function UnifiedFilterSheet({
                             </div>
 
                             <div className="flex flex-col gap-2">
-                                {['قيد الإنتظار', 'مقبول', 'مرفوض'].map((s) => (
+                                {statusOptions.map((s) => (
                                     <label key={s} className="flex items-center gap-2">
                                         <input
                                             type="radio"

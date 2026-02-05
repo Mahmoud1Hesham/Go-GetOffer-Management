@@ -98,23 +98,33 @@ export default function DataTable({
     showCheckbox = true,
     visibleColumns = null,
     isLoading = false,
-    orderPlacing = false
+    orderPlacing = false,
+    manualPagination = false,
+    page = 0
 }) {
     const { openModal, closeModal } = useModal();
     const [rows, setRows] = useState(() => data);
     const [selected, setSelected] = useState(new Set());
-    const [pageIndex, setPageIndex] = useState(0);
+    const [pageIndex, setPageIndex] = useState(page);
     const [pageSize, setPageSize] = useState(initialPageSize);
     const router = useRouter();
     // Sync rows when `data` prop changes
     useEffect(() => setRows(data), [data]);
     useEffect(() => { onSelectionChange && onSelectionChange(Array.from(selected)); }, [selected]);
     useEffect(() => { onOrderChange && onOrderChange(rows); }, [rows]);
+    useEffect(() => {
+        setPageSize(initialPageSize);
+    }, [initialPageSize]);
+    useEffect(() => {
+        if (manualPagination) {
+            setPageIndex(page);
+        }
+    }, [page, manualPagination]);
 
     // Pagination values
     const total = totalRows ?? rows.length;
     const pageCount = Math.max(1, Math.ceil(total / pageSize));
-    useEffect(() => { if (pageIndex >= pageCount) setPageIndex(pageCount - 1); }, [pageCount]);
+    useEffect(() => { if (!manualPagination && pageIndex >= pageCount) setPageIndex(pageCount - 1); }, [pageCount, manualPagination]);
 
     // Dnd sensors
     const sensors = useSensors(
@@ -127,7 +137,7 @@ export default function DataTable({
     // derived: rows to display on this page (client-side)
     const start = pageIndex * pageSize;
     const end = start + pageSize;
-    const pageRows = showPagination ? rows.slice(start, end) : rows;
+    const pageRows = (showPagination && !manualPagination) ? rows.slice(start, end) : rows;
 
     const allSelected = pageRows.length > 0 && pageRows.every(r => selected.has(r.id));
 

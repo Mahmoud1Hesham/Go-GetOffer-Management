@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import Fuse from "fuse.js";
 import { useQueryFetch } from "@/hooks/useQueryFetch";
 
@@ -32,6 +32,7 @@ export function useSearchPagination({
 } = {}) {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const pathname = usePathname();
 
   const urlSearch = searchParams?.get("search") ?? "";
   const urlPage = parseInt(searchParams?.get("page") ?? "1", 10) || 1;
@@ -71,12 +72,13 @@ export function useSearchPagination({
       }
 
       const qs = params.toString();
-      const path = window.location.pathname + (qs ? `?${qs}` : "");
+      const path = pathname + (qs ? `?${qs}` : "");
       router.replace(path);
     } catch (e) {
       // fallback: do nothing
+      console.error("Failed to update URL", e);
     }
-  }, [router, searchParams]);
+  }, [router, searchParams, pathname]);
 
   const setSearch = useCallback((value) => {
     setLocalSearch(value ?? "");
@@ -90,6 +92,10 @@ export function useSearchPagination({
 
   const setLimit = useCallback((l) => {
     updateUrl({ limit: l });
+  }, [updateUrl]);
+
+  const setPagination = useCallback((changes) => {
+    updateUrl(changes);
   }, [updateUrl]);
 
   // Online mode: query the server with debounced search, page and limit
@@ -170,6 +176,8 @@ export function useSearchPagination({
     setSearch,
     setPage,
     setLimit,
+    setPagination,
+    searchQuery: debouncedSearch,
     isLoading,
     isOnline,
   };

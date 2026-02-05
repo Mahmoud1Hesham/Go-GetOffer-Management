@@ -1,19 +1,16 @@
 "use client";
 
 import React, { useRef, useState, useEffect } from 'react';
-import { Avatar } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-// Checkbox not used in this file
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
-import { MdDelete } from 'react-icons/md';
 import { ChevronDown } from 'lucide-react';
-import DocsGallery from '@/components/ui/common/docsGallery/docs-gallery';
 import DataTable from '@/components/ui/common/dataTable/dataTable';
 import { useModal } from '@/hooks/useModal';
 import { useQueryFetch, useMutationFetch } from '@/hooks/useQueryFetch';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { registerCallback } from '@/lib/modalCallbacks';
 
 // Product details accordion content
 // Sections:
@@ -112,6 +109,18 @@ export default function ProductsContent({ row }) {
         }
     }
 
+    function confirmStatusChange(id, isActive) {
+        const key = registerCallback(() => setVariantActive({ Id: id, IsActive: isActive }));
+        openModal({
+            type: isActive ? 'success' : 'failure',
+            title: isActive ? 'تفعيل الصنف' : 'تعطيل الصنف',
+            message: `هل أنت متأكد من ${isActive ? 'تفعيل' : 'تعطيل'} هذا الصنف؟`,
+            actionName: 'تأكيد',
+            cancelTitle: 'إلغاء',
+            customActionKey: key
+        });
+    }
+
     // Define table columns here so they can use local `weights`, `toggleActive`, and `doAction`.
     const tableColumns = [
         {
@@ -157,9 +166,9 @@ export default function ProductsContent({ row }) {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
                             {!isActive ? (
-                                <DropdownMenuItem onSelect={() => setVariantActive({ Id: p.id, IsActive: true })}>تفعيل</DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => confirmStatusChange(p.id, true)}>تفعيل</DropdownMenuItem>
                             ) : (
-                                <DropdownMenuItem onSelect={() => setVariantActive({ Id: p.id, IsActive: false })}>تعطيل</DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => confirmStatusChange(p.id, false)}>تعطيل</DropdownMenuItem>
                             )}
                         </DropdownMenuContent>
                     </DropdownMenu>

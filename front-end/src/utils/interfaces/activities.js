@@ -6,22 +6,22 @@ import { PiBuildingOfficeBold } from "react-icons/pi";
 export const activities = [
     {
         en: [
-            { label: "Cleaning Supplies", value: "cleaning supplies", icon: MdOutlineCleanHands },
-            { label: "Medical Supplies", value: "medical supplies", icon: MdOutlineMedicalServices },
+            { label: "Cleaning Supplies", value: "cleaning_supplies", icon: MdOutlineCleanHands },
+            { label: "Medical Supplies", value: "medical_supplies", icon: MdOutlineMedicalServices },
             { label: "Buffet", value: "buffet", icon: TbMug },
-            { label: "Office Supplies", value: "office supplies", icon: PiBuildingOfficeBold },
-            { label: "Food Products", value: "food products", icon: MdOutlineFastfood },
-            { label: "Packaging Materials", value: "packaging materials", icon: LuBoxes },
+            { label: "Office Supplies", value: "office_supplies", icon: PiBuildingOfficeBold },
+            { label: "Food Products", value: "food_products", icon: MdOutlineFastfood },
+            { label: "Packaging Materials", value: "packaging_materials", icon: LuBoxes },
         ]
     },
     {
         ar: [
-            { label: "أدوات نضافه", value: "cleaning supplies", icon: MdOutlineCleanHands },
-            { label: "أدوات طبية", value: "medical supplies", icon: MdOutlineMedicalServices },
+            { label: "أدوات نضافه", value: "cleaning_supplies", icon: MdOutlineCleanHands },
+            { label: "أدوات طبية", value: "medical_supplies", icon: MdOutlineMedicalServices },
             { label: "بوفيه", value: "buffet", icon: TbMug },
-            { label: "أدوات مكتبية", value: "office supplies", icon: PiBuildingOfficeBold },
-            { label: "منتجات غذائيه", value: "food products", icon: MdOutlineFastfood },
-            { label: "مواد تعبئة وتغليف", value: "packaging materials", icon: LuBoxes },
+            { label: "أدوات مكتبية", value: "office_supplies", icon: PiBuildingOfficeBold },
+            { label: "منتجات غذائيه", value: "food_products", icon: MdOutlineFastfood },
+            { label: "مواد تعبئة وتغليف", value: "packaging_materials", icon: LuBoxes },
 
         ]
     }

@@ -189,10 +189,87 @@ const ProductsManagementPage = () => {
     const dispatch = useDispatch();
     const queryClient = useQueryClient();
     const { openModal } = useModal();
-    const { data, isLoading, isError } = useQueryFetch('products', '/api/catalog/search', { params: { pageSize: 10000 } });
+    
+    // Pagination state moved up to control fetch
+    const {
+        page: currentPage,
+        limit,
+        setSearch,
+        setPage,
+        setLimit,
+        setPagination,
+        searchQuery,
+    } = useSearchPagination({
+        queryKey: 'products-search',
+        isOnline: true,
+        initialLimit: 5,
+        data: [], // Not used for online state
+        fuseOptions: { keys: ["code", "productName", "name"], threshold: 0.35 }
+    });
+
+    const [visibleColumns, setVisibleColumns] = useState(columns.map(c => c.key));
+    const [isFilterOpen, setIsFilterOpen] = useState(false);
+    const [filters, setFilters] = useState({});
+
+    // Prepare API params from filters
+    const apiFilterParams = {};
+    if (filters.status) {
+        // Map UI status 'مفعل'/'غير مفعل' to API expected boolean or string
+        if (filters.status === 'مفعل') apiFilterParams.isActive = true;
+        else if (filters.status === 'غير مفعل') apiFilterParams.isActive = false;
+        else apiFilterParams.status = filters.status;
+    }
+    if (filters.categories && filters.categories.length > 0) {
+        apiFilterParams.categories = filters.categories;
+    }
+
+    const { data, isLoading, isError } = useQueryFetch(
+        ['products', currentPage, limit, apiFilterParams, searchQuery], 
+        '/api/catalog/search', 
+        { 
+            params: { 
+                pageSize: limit,
+                page: currentPage,
+                search: searchQuery,
+                ...apiFilterParams
+            } 
+        }
+    );
     const router = useRouter();
     const products = data?.data?.items || [];
     const statusBar = data?.data?.statusBar || [];
+    const rawData = data?.data || {};
+
+    const statusBarSummary = statusBar.reduce((acc, it) => {
+        acc[it.id] = { value: it.value, note: it.note };
+        return acc;
+    }, {});
+
+    // Resolve total count: 
+    // 1. Explicit API total field
+    // 2. Fallback to total_products from status bar (usually total DB count, but better than 0)
+    // 3. Fallback to current items length (prevents 0 if we have items)
+    let totalCount = rawData.totalCount ?? rawData.total ?? rawData.count ?? rawData.totalItems;
+    
+    if (totalCount === undefined || totalCount === null) {
+        // If we have items but no total, default to total in status bar or at least the current page count
+        // Note: Using 'total_products' might be inaccurate for filtered results but ensures buttons utilize available counts
+        totalCount = statusBarSummary['total_products']?.value ?? products.length;
+    }
+    
+    // Safety check: if we have items, total cannot be 0
+    if (products.length > 0 && totalCount === 0) {
+        totalCount = products.length;
+    }
+
+    // Dynamic total Calculation: 
+    // If the retrieved products is less than the limit, we've reached the end
+    if (products.length < limit) {
+        // We can precisely calculate the total now
+        const calculatedTotal = (currentPage - 1) * limit + products.length;
+        // logic: if API total claims 100 but we only got 5 items on page 2 (limit 10) -> total is actually 15
+        totalCount = calculatedTotal;
+    }
 
     // Sync with Redux (using centralized logic)
     useEffect(() => {
@@ -200,16 +277,6 @@ const ProductsManagementPage = () => {
             dispatch(syncProductData(products));
         }
     }, [products, dispatch]);
-
-    const statusBarSummary = statusBar.reduce((acc, it) => {
-        acc[it.id] = { value: it.value, note: it.note };
-        return acc;
-    }, {});
-    console.log("Status bar data :", statusBarSummary)
-
-    const [visibleColumns, setVisibleColumns] = useState(columns.map(c => c.key));
-    const [isFilterOpen, setIsFilterOpen] = useState(false);
-    const [filters, setFilters] = useState({});
 
     // Map products to table rows
     const allRows = products.map(p => {
@@ -235,38 +302,7 @@ const ProductsManagementPage = () => {
         };
     });
 
-    const rows = allRows.filter(r => {
-        if (filters.status && r.status !== filters.status) return false;
-        if (filters.categories && filters.categories.length > 0) {
-            // Check if any of the product categories match the selected filters
-            const productCategories = r._raw.categories || [];
-            const hasCat = productCategories.some(c => {
-                const key = c.categoryKey || c.categorykey;
-                return filters.categories.includes(key);
-            });
-            return hasCat;
-        }
-        return true;
-    });
-
-    const fuseOptions = { keys: ["code", "productName", "name"], threshold: 0.35 };
-
-    const {
-        data: pagedData,
-        searchedData,
-        total,
-        page: currentPage,
-        limit,
-        setSearch,
-        setPage,
-        setLimit,
-    } = useSearchPagination({
-        queryKey: 'products-search',
-        isOnline: false,
-        initialLimit: 5,
-        data: rows,
-        fuseOptions
-    });
+    const rows = allRows; // Client-side filtering removed: Server handles filtering now.
 
     const statsConfig = [
         {
@@ -331,7 +367,7 @@ const ProductsManagementPage = () => {
                 visibleColumns={visibleColumns}
                 onVisibleColumnsChange={setVisibleColumns}
                 apiFilter1={{ title: "تخصيص الأعمدة", onClick: () => console.log("filter 1") }}
-                apiFilter2={{ title: "تصفية", onClick: () => setIsFilterOpen(true) }}
+                // apiFilter2={{ title: "تصفية", onClick: () => setIsFilterOpen(true) }}
                 searchPlaceholder="ابحث في المنتجات..."
                 onSearch={setSearch}
             />
@@ -345,7 +381,7 @@ const ProductsManagementPage = () => {
                 isLoading={isLoading}
                 columns={columns}
                 visibleColumns={visibleColumns}
-                data={searchedData}
+                data={rows}
                 onDelete={async (id) => {
                     try {
                         await dispatch(deleteProduct(id)).unwrap();
@@ -359,9 +395,23 @@ const ProductsManagementPage = () => {
                 detailsComponentMap={{ product: ProductsContent }}
 
                 pageSizeOptions={[5, 10, 25]}
+                manualPagination={true}
+                page={currentPage - 1} 
                 initialPageSize={limit}
-                totalRows={searchedData?.length || 0}
-                onPageChange={(p, s) => { setPage(p); setLimit(s); }}
+                totalRows={totalCount}
+                onPageChange={(p, s) => { 
+                    // p is 0-based index from DataTable
+                    // setPage expects 1-based page number
+                    const newPage = p + 1;
+                    
+                    if (s !== limit) {
+                        // Page size changed, DataTable resets to page 0 (newPage=1).
+                        // Use setPagination to update both atomically to avoid race conditions.
+                        setPagination({ page: newPage, limit: s });
+                    } else if (newPage !== currentPage) {
+                        setPage(newPage);
+                    }
+                }}
                 onSelectionChange={(sel) => console.log('selected', sel)}
                 onOrderChange={(newRows) => console.log('new order', newRows.map(r => r.id))}
             />
@@ -370,10 +420,14 @@ const ProductsManagementPage = () => {
                 open={isFilterOpen}
                 onOpenChange={setIsFilterOpen}
                 initial={filters}
-                onApply={setFilters}
+                onApply={(val) => {
+                    setFilters(val);
+                    setPage(1); // Reset to first page when filtering
+                }}
                 showCategories={true}
                 showDate={false}
                 showStatus={true}
+                statusOptions={['مفعل', 'غير مفعل']}
             />
         </div>
     </>
