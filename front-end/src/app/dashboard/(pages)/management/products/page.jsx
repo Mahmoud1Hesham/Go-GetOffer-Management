@@ -277,18 +277,33 @@ const ProductsManagementContent = () => {
             dispatch(syncProductData(products));
         }
     }, [products, dispatch]);
+    
+    // Debug: Check if pagination updates
+    useEffect(() => {
+        console.log('Products Page Debug:', { currentPage, limit, searchQuery, totalCount, productsLength: products.length });
+    }, [currentPage, limit, searchQuery, totalCount, products.length]);
 
     // Map products to table rows
     const allRows = products.map(p => {
         const mainVariant = p.productVariants?.find(v => v.isMainImg) || p.productVariants?.[0] || {};
         const brand = p.brands?.[0] || {};
+        
+        // Helper to validate/clean image URLs to prevent 404s on product names
+        const getValidUrl = (url) => {
+            if (!url || typeof url !== 'string') return null;
+            if (url.startsWith('http') || url.startsWith('/')) return url;
+            // Discard values that look like product names or garbage
+            return null;
+        };
+
+        const avatarUrl = getValidUrl(brand.imgUrl) || getValidUrl(p.imageUrl);
 
         return {
             id: p.id,
             type: 'product',
             productName: p.name,
             description: mainVariant.description || p.name,
-            avatar: brand.imgUrl || p.imageUrl, // Fallback to product image if brand image missing
+            avatar: brand.imgUrl || p.imageUrl || avatarUrl, // Fallback to product image if brand image missing
             name: brand.name || 'Unknown Brand',
             code: p.id, // Full ID
             category: p.categories?.map(c => c.name) || [],
