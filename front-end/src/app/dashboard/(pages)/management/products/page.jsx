@@ -269,14 +269,10 @@ const ProductsManagementContent = () => {
     // Safety fallback
     if (totalCount === null) totalCount = 0;
 
-    // Dynamic total Calculation: 
-    // If the retrieved products is less than the limit, we've reached the end
-    if (products.length < limit) {
-        // We can precisely calculate the total now
-        const calculatedTotal = (currentPage - 1) * limit + products.length;
-        // logic: if API total claims 100 but we only got 5 items on page 2 (limit 10) -> total is actually 15
-        totalCount = calculatedTotal;
-    }
+    // Use a stable, forced totalCount for DataTable. 
+    // If the server says "Total: 100", but we are on Page 1 with Limit 10, DataTable needs "Total: 100".
+    // If we are relying on partial data, we might need to "fake" it to allow the next button.
+    const effectiveTotalCount = (products.length === limit) ? (totalCount > (currentPage * limit) ? totalCount : ((currentPage + 1) * limit)) : totalCount;
 
     // Sync with Redux (using centralized logic)
     useEffect(() => {
@@ -287,8 +283,8 @@ const ProductsManagementContent = () => {
     
     // Debug: Check if pagination updates
     useEffect(() => {
-        console.log('Products Page Debug:', { currentPage, limit, searchQuery, totalCount, productsLength: products.length });
-    }, [currentPage, limit, searchQuery, totalCount, products.length]);
+        console.log('Products Page Debug:', { currentPage, limit, searchQuery, effectiveTotalCount, totalCountRaw: totalCount, productsLength: products.length });
+    }, [currentPage, limit, searchQuery, effectiveTotalCount, totalCount, products.length]);
 
     // Map products to table rows
     const allRows = products.map(p => {
@@ -416,9 +412,9 @@ const ProductsManagementContent = () => {
                 manualPagination={true}
                 page={currentPage - 1} 
                 initialPageSize={limit}
-                totalRows={totalCount}
+                totalRows={effectiveTotalCount}
                 onPageChange={(p, s) => { 
-                    console.log('UI: onPageChange triggered', { newPageIndex: p, pageSize: s, currentPage });
+                    console.log('UI: onPageChange triggered', { newPageIndex: p, pageSize: s, currentPage, effectiveTotalCount });
                     // p is 0-based index from DataTable
                     // setPage expects 1-based page number
                     const newPage = p + 1;

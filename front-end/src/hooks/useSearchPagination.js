@@ -82,7 +82,7 @@ export function useSearchPagination({
       // Robust navigation update: push to history + router.replace just to be safe
       // Note: removing { scroll: false } as it can cause issues in some production builds
       startTransition(() => {
-        router.push(path);
+        router.push(path, { scroll: false });
       });
     } catch (e) {
       console.error("Failed to update URL", e);
