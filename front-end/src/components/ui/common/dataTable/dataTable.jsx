@@ -577,10 +577,10 @@ export default function DataTable({
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <Button size="sm" variant="ghost" onClick={gotoLast} disabled={pageIndex >= pageCount - 1}>|&lt;</Button>
-                            <Button size="sm" variant="ghost" onClick={gotoNext} disabled={pageIndex >= pageCount - 1}><HiChevronRight /></Button>
-                            <Button size="sm" variant="ghost" onClick={gotoPrev} disabled={pageIndex === 0}><HiChevronLeft /></Button>
-                            <Button size="sm" variant="ghost" onClick={gotoFirst} disabled={pageIndex === 0}>&gt;|</Button>
+                            <Button type="button" size="sm" variant="ghost" onClick={gotoLast} disabled={pageIndex >= pageCount - 1}>|&lt;</Button>
+                            <Button type="button" size="sm" variant="ghost" onClick={gotoNext} disabled={pageIndex >= pageCount - 1}><HiChevronRight /></Button>
+                            <Button type="button" size="sm" variant="ghost" onClick={gotoPrev} disabled={pageIndex === 0}><HiChevronLeft /></Button>
+                            <Button type="button" size="sm" variant="ghost" onClick={gotoFirst} disabled={pageIndex === 0}>&gt;|</Button>
                         </div>
                     </div>
                 </div>

@@ -57,7 +57,9 @@ export function useSearchPagination({
   // helpers to update URL (single source of truth)
   const updateUrl = useCallback((patch = {}) => {
     try {
-      const params = new URLSearchParams(Array.from(searchParams || []));
+      // Use searchParams.toString() which is safer in production than Array.from(searchParams)
+      const params = new URLSearchParams(searchParams.toString());
+      
       if (patch.search !== undefined) {
         if (patch.search) params.set("search", patch.search);
         else params.delete("search");
@@ -76,10 +78,10 @@ export function useSearchPagination({
       
       console.log('useSearchPagination: updateUrl called', { patch, pathCandidate: path });
 
-      // Use push instead of replace to be safer with history
-      router.push(path, { scroll: false }); 
+      // Robust navigation update: push to history + router.replace just to be safe
+      // Note: removing { scroll: false } as it can cause issues in some production builds
+      router.push(path); 
     } catch (e) {
-      // fallback: do nothing
       console.error("Failed to update URL", e);
     }
   }, [router, searchParams, pathname]);
