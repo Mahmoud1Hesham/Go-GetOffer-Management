@@ -245,22 +245,29 @@ const ProductsManagementContent = () => {
         return acc;
     }, {});
 
+    // Helper to robustly integer-ize values
+    const toInt = (v) => {
+        const parsed = parseInt(v, 10);
+        return isNaN(parsed) ? null : parsed;
+    };
+
     // Resolve total count: 
     // 1. Explicit API total field
     // 2. Fallback to total_products from status bar (usually total DB count, but better than 0)
     // 3. Fallback to current items length (prevents 0 if we have items)
-    let totalCount = rawData.totalCount ?? rawData.total ?? rawData.count ?? rawData.totalItems;
-
-    if (totalCount === undefined || totalCount === null) {
-        // If we have items but no total, default to total in status bar or at least the current page count
-        // Note: Using 'total_products' might be inaccurate for filtered results but ensures buttons utilize available counts
-        totalCount = statusBarSummary['total_products']?.value ?? products.length;
-    }
-
-    // Safety check: if we have items, total cannot be 0
-    if (products.length > 0 && totalCount === 0) {
+    let totalCount = toInt(rawData.totalCount) ?? 
+                     toInt(rawData.total) ?? 
+                     toInt(rawData.count) ?? 
+                     toInt(rawData.totalItems) ??
+                     toInt(statusBarSummary['total_products']?.value);
+                     
+    // If we have items but no total, at least use the current length to show something
+    if (totalCount === null || (products.length > 0 && totalCount === 0)) {
         totalCount = products.length;
     }
+    
+    // Safety fallback
+    if (totalCount === null) totalCount = 0;
 
     // Dynamic total Calculation: 
     // If the retrieved products is less than the limit, we've reached the end
@@ -407,10 +414,11 @@ const ProductsManagementContent = () => {
 
                 pageSizeOptions={[5, 10, 25]}
                 manualPagination={true}
-                page={currentPage - 1}
+                page={currentPage - 1} 
                 initialPageSize={limit}
                 totalRows={totalCount}
-                onPageChange={(p, s) => {
+                onPageChange={(p, s) => { 
+                    console.log('UI: onPageChange triggered', { newPageIndex: p, pageSize: s, currentPage });
                     // p is 0-based index from DataTable
                     // setPage expects 1-based page number
                     const newPage = p + 1;
