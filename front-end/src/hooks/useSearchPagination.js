@@ -77,23 +77,16 @@ export function useSearchPagination({
       const qs = params.toString();
       const path = pathname + (qs ? `?${qs}` : "");
       
-      console.log('useSearchPagination: updateUrl called', { patch, pathCandidate: path });
-
-      // FORCE native browser navigation if Router doesn't work after 100ms
-      // This is a "nuclear option" for production issues where router context is detached
       if (typeof window !== 'undefined') {
-        const targetUrl = path;
-        // 1. Try Next.js Router first (wrapped in transition)
         startTransition(() => {
-           router.push(targetUrl,{ scroll: false })
+          router.push(path);
         });
 
-        // 2. Set param directly in history to ensure URL bar changes VISUALLY
-        // This doesn't trigger a render by itself, but proves if the browser is locked
+        // Force browser URL update if router is slow/detached
         try {
-           window.history.pushState(null, '', targetUrl);
-        } catch (hErr) {
-           console.error('History push failed', hErr);
+           window.history.pushState(null, '', path);
+        } catch (e) {
+           // ignore history errors
         }
       }
     } catch (e) {

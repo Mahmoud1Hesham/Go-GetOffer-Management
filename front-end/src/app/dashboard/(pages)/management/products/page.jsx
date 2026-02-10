@@ -235,18 +235,17 @@ const ProductsManagementContent = () => {
             }
         }
     );
-    // Watch for URL changes manually
+
+    // Watch for URL changes manually to force re-render if router context is detached
     const globalParams = useSearchParams();
-    const [forceVal, setForceVal] = useState(0);
+    const [_, setForceVal] = useState(0);
     
     useEffect(() => {
-        // If the URL parameters change, force a re-render to ensure useQueryFetch picks it up
-        // This acts as a backup if the router context isn't automatically prompting a re-render
         if (globalParams.get('page')) {
-            console.log('Page param detected change:', globalParams.get('page'));
             setForceVal(v => v + 1);
         }
     }, [globalParams]);
+
     const router = useRouter();
     const products = data?.data?.items || [];
     const statusBar = data?.data?.statusBar || [];
@@ -293,11 +292,6 @@ const ProductsManagementContent = () => {
         }
     }, [products, dispatch]);
     
-    // Debug: Check if pagination updates
-    useEffect(() => {
-        console.log('Products Page Debug:', { currentPage, limit, searchQuery, effectiveTotalCount, totalCountRaw: totalCount, productsLength: products.length });
-    }, [currentPage, limit, searchQuery, effectiveTotalCount, totalCount, products.length]);
-
     // Map products to table rows
     const allRows = products.map(p => {
         const mainVariant = p.productVariants?.find(v => v.isMainImg) || p.productVariants?.[0] || {};
@@ -426,7 +420,6 @@ const ProductsManagementContent = () => {
                 initialPageSize={limit}
                 totalRows={effectiveTotalCount}
                 onPageChange={(p, s) => { 
-                    console.log('UI: onPageChange triggered', { newPageIndex: p, pageSize: s, currentPage, effectiveTotalCount });
                     // p is 0-based index from DataTable
                     // setPage expects 1-based page number
                     const newPage = p + 1;
