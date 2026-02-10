@@ -236,15 +236,11 @@ const ProductsManagementContent = () => {
         }
     );
 
-    // Watch for URL changes manually to force re-render if router context is detached
+    // URL Params are the single source of truth
     const globalParams = useSearchParams();
-    const [_, setForceVal] = useState(0);
     
-    useEffect(() => {
-        if (globalParams.get('page')) {
-            setForceVal(v => v + 1);
-        }
-    }, [globalParams]);
+    // We use this key to force React to acknowledge URL changes if router is shallow-routing aggressively
+    const routerKey = globalParams.toString();
 
     const router = useRouter();
     const products = data?.data?.items || [];
@@ -266,17 +262,17 @@ const ProductsManagementContent = () => {
     // 1. Explicit API total field
     // 2. Fallback to total_products from status bar (usually total DB count, but better than 0)
     // 3. Fallback to current items length (prevents 0 if we have items)
-    let totalCount = toInt(rawData.totalCount) ?? 
-                     toInt(rawData.total) ?? 
-                     toInt(rawData.count) ?? 
-                     toInt(rawData.totalItems) ??
-                     toInt(statusBarSummary['total_products']?.value);
-                     
+    let totalCount = toInt(rawData.totalCount) ??
+        toInt(rawData.total) ??
+        toInt(rawData.count) ??
+        toInt(rawData.totalItems) ??
+        toInt(statusBarSummary['total_products']?.value);
+
     // If we have items but no total, at least use the current length to show something
     if (totalCount === null || (products.length > 0 && totalCount === 0)) {
         totalCount = products.length;
     }
-    
+
     // Safety fallback
     if (totalCount === null) totalCount = 0;
 
@@ -291,12 +287,12 @@ const ProductsManagementContent = () => {
             dispatch(syncProductData(products));
         }
     }, [products, dispatch]);
-    
+
     // Map products to table rows
     const allRows = products.map(p => {
         const mainVariant = p.productVariants?.find(v => v.isMainImg) || p.productVariants?.[0] || {};
         const brand = p.brands?.[0] || {};
-        
+
         // Helper to validate/clean image URLs to prevent 404s on product names
         const getValidUrl = (url) => {
             if (!url || typeof url !== 'string') return null;
@@ -374,7 +370,7 @@ const ProductsManagementContent = () => {
     return <>
 
         {/* <ContentSkeleton /> */}
-        <div className="flex gap-4 items-center flex-col">
+        <div className="flex gap-4 items-center flex-col" key={routerKey}>
             <div className="w-full">
                 <DashCardGroup statsConfig={statsConfig} />
             </div>
@@ -416,10 +412,10 @@ const ProductsManagementContent = () => {
 
                 pageSizeOptions={[5, 10, 25]}
                 manualPagination={true}
-                page={currentPage - 1} 
+                page={currentPage - 1}
                 initialPageSize={limit}
                 totalRows={effectiveTotalCount}
-                onPageChange={(p, s) => { 
+                onPageChange={(p, s) => {
                     // p is 0-based index from DataTable
                     // setPage expects 1-based page number
                     const newPage = p + 1;
