@@ -17,7 +17,7 @@ import UnifiedFilterSheet from '@/components/ui/filters/UnifiedFilterSheet';
 import Spinner from '@/components/ui/common/spinner/spinner';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 const columns = [
     { key: 'checkbox', title: '', width: 40 },
@@ -235,6 +235,18 @@ const ProductsManagementContent = () => {
             }
         }
     );
+    // Watch for URL changes manually
+    const globalParams = useSearchParams();
+    const [forceVal, setForceVal] = useState(0);
+    
+    useEffect(() => {
+        // If the URL parameters change, force a re-render to ensure useQueryFetch picks it up
+        // This acts as a backup if the router context isn't automatically prompting a re-render
+        if (globalParams.get('page')) {
+            console.log('Page param detected change:', globalParams.get('page'));
+            setForceVal(v => v + 1);
+        }
+    }, [globalParams]);
     const router = useRouter();
     const products = data?.data?.items || [];
     const statusBar = data?.data?.statusBar || [];

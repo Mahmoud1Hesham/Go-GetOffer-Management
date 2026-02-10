@@ -79,11 +79,23 @@ export function useSearchPagination({
       
       console.log('useSearchPagination: updateUrl called', { patch, pathCandidate: path });
 
-      // Robust navigation update: push to history + router.replace just to be safe
-      // Note: removing { scroll: false } as it can cause issues in some production builds
-      startTransition(() => {
-        router.push(path, { scroll: false });
-      });
+      // FORCE native browser navigation if Router doesn't work after 100ms
+      // This is a "nuclear option" for production issues where router context is detached
+      if (typeof window !== 'undefined') {
+        const targetUrl = path;
+        // 1. Try Next.js Router first (wrapped in transition)
+        startTransition(() => {
+           router.push(targetUrl,{ scroll: false })
+        });
+
+        // 2. Set param directly in history to ensure URL bar changes VISUALLY
+        // This doesn't trigger a render by itself, but proves if the browser is locked
+        try {
+           window.history.pushState(null, '', targetUrl);
+        } catch (hErr) {
+           console.error('History push failed', hErr);
+        }
+      }
     } catch (e) {
       console.error("Failed to update URL", e);
     }
