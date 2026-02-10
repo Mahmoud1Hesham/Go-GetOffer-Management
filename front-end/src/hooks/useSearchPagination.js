@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useTransition } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import Fuse from "fuse.js";
 import { useQueryFetch } from "@/hooks/useQueryFetch";
@@ -33,6 +33,7 @@ export function useSearchPagination({
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
+  const [isPending, startTransition] = useTransition();
 
   const urlSearch = searchParams?.get("search") ?? "";
   const urlPage = parseInt(searchParams?.get("page") ?? "1", 10) || 1;
@@ -80,7 +81,9 @@ export function useSearchPagination({
 
       // Robust navigation update: push to history + router.replace just to be safe
       // Note: removing { scroll: false } as it can cause issues in some production builds
-      router.push(path); 
+      startTransition(() => {
+        router.push(path);
+      });
     } catch (e) {
       console.error("Failed to update URL", e);
     }
