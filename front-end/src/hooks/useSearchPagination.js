@@ -73,7 +73,11 @@ export function useSearchPagination({
 
       const qs = params.toString();
       const path = pathname + (qs ? `?${qs}` : "");
-      router.replace(path);
+      
+      console.log('useSearchPagination: updateUrl called', { patch, pathCandidate: path });
+
+      // Use push instead of replace to be safer with history
+      router.push(path, { scroll: false }); 
     } catch (e) {
       // fallback: do nothing
       console.error("Failed to update URL", e);
