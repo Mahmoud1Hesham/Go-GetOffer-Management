@@ -1,4 +1,5 @@
 "use client";
+import React, { useState, useEffect, Suspense } from 'react'
 import { Avatar } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { useModal } from '@/hooks/useModal';
@@ -6,7 +7,6 @@ import DashboardContentHeader from '@/components/ui/common/dashboard-content-hea
 import DashCardGroup from '@/components/ui/common/dashCard/dashCardGroup';
 import ProductsContent from '@/components/ui/common/dataTable/contents/products-content';
 import DataTable from '@/components/ui/common/dataTable/dataTable';
-import React, { useState, useEffect} from 'react'
 import { LuAward, LuPackageCheck, LuPackageX } from 'react-icons/lu';
 import { TbPackages } from 'react-icons/tb';
 import { useQueryFetch } from '@/hooks/useQueryFetch';
@@ -185,11 +185,11 @@ const columns = [
 // ];
 
 
-const ProductsManagementPage = () => {
+const ProductsManagementContent = () => {
     const dispatch = useDispatch();
     const queryClient = useQueryClient();
     const { openModal } = useModal();
-    
+
     // Pagination state moved up to control fetch
     const {
         page: currentPage,
@@ -224,15 +224,15 @@ const ProductsManagementPage = () => {
     }
 
     const { data, isLoading, isError } = useQueryFetch(
-        ['products', currentPage, limit, apiFilterParams, searchQuery], 
-        '/api/catalog/search', 
-        { 
-            params: { 
+        ['products', currentPage, limit, apiFilterParams, searchQuery],
+        '/api/catalog/search',
+        {
+            params: {
                 pageSize: limit,
                 page: currentPage,
                 search: searchQuery,
                 ...apiFilterParams
-            } 
+            }
         }
     );
     const router = useRouter();
@@ -250,13 +250,13 @@ const ProductsManagementPage = () => {
     // 2. Fallback to total_products from status bar (usually total DB count, but better than 0)
     // 3. Fallback to current items length (prevents 0 if we have items)
     let totalCount = rawData.totalCount ?? rawData.total ?? rawData.count ?? rawData.totalItems;
-    
+
     if (totalCount === undefined || totalCount === null) {
         // If we have items but no total, default to total in status bar or at least the current page count
         // Note: Using 'total_products' might be inaccurate for filtered results but ensures buttons utilize available counts
         totalCount = statusBarSummary['total_products']?.value ?? products.length;
     }
-    
+
     // Safety check: if we have items, total cannot be 0
     if (products.length > 0 && totalCount === 0) {
         totalCount = products.length;
@@ -372,10 +372,6 @@ const ProductsManagementPage = () => {
                 onSearch={setSearch}
             />
 
-            {/* Debug Data */}
-            <div className="w-full p-4 bg-gray-100 rounded overflow-auto max-h-60 text-xs" dir="ltr">
-                <pre>{JSON.stringify(products, null, 2)}</pre>
-            </div>
 
             <DataTable
                 isLoading={isLoading}
@@ -396,14 +392,14 @@ const ProductsManagementPage = () => {
 
                 pageSizeOptions={[5, 10, 25]}
                 manualPagination={true}
-                page={currentPage - 1} 
+                page={currentPage - 1}
                 initialPageSize={limit}
                 totalRows={totalCount}
-                onPageChange={(p, s) => { 
+                onPageChange={(p, s) => {
                     // p is 0-based index from DataTable
                     // setPage expects 1-based page number
                     const newPage = p + 1;
-                    
+
                     if (s !== limit) {
                         // Page size changed, DataTable resets to page 0 (newPage=1).
                         // Use setPagination to update both atomically to avoid race conditions.
@@ -430,9 +426,22 @@ const ProductsManagementPage = () => {
                 statusOptions={['مفعل', 'غير مفعل']}
             />
         </div>
+        {/* Debug Data */}
+        <div className="w-full p-4 bg-gray-100 rounded overflow-auto max-h-60 text-xs" dir="ltr">
+            <pre>{JSON.stringify(products, null, 2)}</pre>
+        </div>
+
     </>
 
 }
+
+const ProductsManagementPage = () => {
+    return (
+        <Suspense fallback={<div className="w-full h-full flex items-center justify-center p-10"><Spinner /></div>}>
+            <ProductsManagementContent />
+        </Suspense>
+    );
+};
 
 export default ProductsManagementPage
 
