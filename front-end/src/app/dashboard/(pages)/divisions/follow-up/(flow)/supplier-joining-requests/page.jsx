@@ -232,7 +232,7 @@ const page = () => {
   const loading = useSelector((s) => s.supplierJoinRequests?.loading)
   const error = useSelector((s) => s.supplierJoinRequests?.error)
   const searchParams = useSearchParams()
-  const lang = searchParams.get('lang') || 'en'
+  const lang = searchParams.get('lang') || 'ar';
 
   const { data: fetchedData, isLoading: isFetchLoading } = useQueryFetch('supplierJoinRequests', '/api/SupplierJoinRequest');
 
@@ -242,47 +242,51 @@ const page = () => {
     }
   }, [fetchedData, dispatch])
 
-  const mappedRows = (items || []).map((s) => {
+  const rawItems = items ? (Array.isArray(items) ? items : (items.items || [])) : [];
+
+  const mappedRows = rawItems.map((s) => {
+    const profile = s.supplierProfile || {};
+    const branch = s.mainBranch || {};
     const docs = [];
-    const crUrls = Array.isArray(s.commercialRegistrationDocumentUrl) ? s.commercialRegistrationDocumentUrl : [];
-    const crIds = Array.isArray(s.commercialRegistrationDocumentPublicId) ? s.commercialRegistrationDocumentPublicId : [];
+    const crUrls = Array.isArray(profile.commercialRegistrationDocumentUrl) ? profile.commercialRegistrationDocumentUrl : [];
+    const crIds = Array.isArray(profile.commercialRegistrationDocumentPublicId) ? profile.commercialRegistrationDocumentPublicId : [];
     crUrls.forEach((u, i) => { if (u) docs.push({ id: `cr${i}`, type: 'image', src: u, title: crIds[i] || `commercial_${i}` }); });
-    const taxUrls = Array.isArray(s.taxCardDocumentUrl) ? s.taxCardDocumentUrl : [];
-    const taxIds = Array.isArray(s.taxCardDocumentPublicId) ? s.taxCardDocumentPublicId : [];
+    const taxUrls = Array.isArray(profile.taxCardDocumentUrl) ? profile.taxCardDocumentUrl : [];
+    const taxIds = Array.isArray(profile.taxCardDocumentPublicId) ? profile.taxCardDocumentPublicId : [];
     taxUrls.forEach((u, i) => { if (u) docs.push({ id: `tax${i}`, type: 'image', src: u, title: taxIds[i] || `tax_${i}` }); });
 
     return {
-      id: s.id,
-      type: s.type || 'supplier',
+      id: s.requestId,
+      type: s.userType ? s.userType.toLowerCase() : 'supplier',
       name: s.name || s.email || '—',
-      fullName: s.fullName || '',
-      avatar: s.logoUrl || s.avatar || 'https://avatars.githubusercontent.com/u/124599?v=4',
-      code: s.code || '',
-      date: s.createdAt ? new Date(s.createdAt).toLocaleDateString('ar-EG') : '',
-      dateRaw: s.createdAt || null,
+      fullName: profile.fullName || '',
+      avatar: profile.logoUrl || s.avatar || 'https://avatars.githubusercontent.com/u/124599?v=4',
+      code: profile.code || '',
+      date: s.requestedAt ? new Date(s.requestedAt).toLocaleDateString('en-EG') : '',
+      dateRaw: s.requestedAt || null,
       // keep raw keys for filtering and provide localized labels for display
-      category: s.activityType || [],
-      categoryLabel: mapActivityValues(s.activityType || [], lang),
+      category: (profile.activityType || []).map(t => String(t).toLowerCase().trim().replace(/\s+/g, '_')),
+      categoryLabel: mapActivityValues(profile.activityType || [], lang),
       status: (() => {
-        const raw = String(s.requestStatus ?? s.profileJoinRequestStatus ?? '').trim().toLowerCase();
+        const raw = String(s.requestStatus || '').trim().toLowerCase();
         if (/قيد|pending/.test(raw)) return 'قيد الإنتظار'
         if (/مقبول|approved|accepted|active|موافق/.test(raw)) return 'مقبول'
         if (/مرفوض|rejected|رفض/.test(raw)) return 'مرفوض'
         return s.requestStatus || ''
       })(),
-      branch: s.branchName || '',
+      branch: branch.branchName || '',
       accessedFrom: '',
-      address: s.addressDetails || '',
-      governorate: s.governorate || '',
-      city: s.city || '',
+      address: branch.addressDetails || '',
+      governorate: branch.governorate || '',
+      city: branch.city || '',
       phone: s.number || '',
       email: s.email || '',
-      activities: s.activityType || [],
-      branches: s.branches || [],
-      postalCode: s.postalCode || '',
+      activities: profile.activityType || [],
+      branches: [],
+      postalCode: branch.postalCode || '',
       docs,
-      rejectionReasons: s.profileJoinRequestAdminComment ? (Array.isArray(s.profileJoinRequestAdminComment) ? s.profileJoinRequestAdminComment : [s.profileJoinRequestAdminComment]) : undefined,
-      supplierJoinRequestId: s.profileJoinRequestId,
+      rejectionReasons: s.rejectionReasons || undefined,
+      supplierJoinRequestId: s.requestId,
       _raw: s._raw || null,
     }
   })

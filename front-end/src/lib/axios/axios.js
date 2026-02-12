@@ -1,7 +1,13 @@
 import axios from "axios";
-import { store } from "@/redux/store.js";
+// import { store } from "@/redux/store.js"; // removed to fix circular dependency
 import { logout, setCredentials } from "@/redux/slices/authSlice.js";
 import { mapUserRole } from "@/app/services/workers/userRoleMapper.js";
+
+let store; // Will be injected
+
+export const injectStore = (_store) => {
+    store = _store;
+};
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL?.trim() || "";
 

@@ -10,6 +10,7 @@ import brandsReducer from "./slices/brandsSlice.js";
 import categoriesReducer from "./slices/categoriesSlice.js";
 import subCategoriesReducer from "./slices/subCategoriesSlice.js";
 import productVariantsReducer from "./slices/productVariantsSlice.js";
+import { injectStore } from "../lib/axios/axios.js";
 
 
 export const store = configureStore({
@@ -27,3 +28,5 @@ export const store = configureStore({
     productVariants: productVariantsReducer || ((state = null) => state),
   },
 });
+
+injectStore(store);

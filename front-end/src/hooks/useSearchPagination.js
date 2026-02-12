@@ -60,7 +60,7 @@ export function useSearchPagination({
     try {
       // Use searchParams.toString() which is safer in production than Array.from(searchParams)
       const params = new URLSearchParams(searchParams.toString());
-      
+
       if (patch.search !== undefined) {
         if (patch.search) params.set("search", patch.search);
         else params.delete("search");
@@ -76,7 +76,7 @@ export function useSearchPagination({
 
       const qs = params.toString();
       const path = pathname + (qs ? `?${qs}` : "");
-      
+
       if (typeof window !== 'undefined') {
         startTransition(() => {
           router.push(path);
@@ -84,9 +84,9 @@ export function useSearchPagination({
 
         // Force browser URL update if router is slow/detached
         try {
-           window.history.pushState(null, '', path);
+          window.history.pushState(null, '', path);
         } catch (e) {
-           // ignore history errors
+          // ignore history errors
         }
       }
     } catch (e) {

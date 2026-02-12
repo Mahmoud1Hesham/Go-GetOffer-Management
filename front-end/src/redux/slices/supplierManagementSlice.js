@@ -42,7 +42,7 @@ export const deleteSupplier = createAsyncThunk(
 	'supplierManagement/deleteSupplier',
 	async (id, { rejectWithValue }) => {
 		try {
-			const res = await axios.delete('/api/SupplierProfile', { data: { Id: id } ,method: 'DELETE' });
+			const res = await axios.delete('/api/SupplierProfile', { data: { supplierId: id } ,method: 'DELETE' });
 			return res.data;
 		} catch (err) {
 			const message = err?.response?.data?.message || err.message || 'Delete failed';
@@ -69,9 +69,14 @@ function mapStatusBarItem(item = {}) {
 }
 
 function mapSupplierItem(item = {}) {
-	const profile = Array.isArray(item.supplierProfile) && item.supplierProfile[0] ? item.supplierProfile[0] : {}
-	const branch = Array.isArray(profile.supplierBranches) && profile.supplierBranches[0] ? profile.supplierBranches[0] : {}
-	const joinRequest = Array.isArray(profile.profileJoinRequests) && profile.profileJoinRequests[0] ? profile.profileJoinRequests[0] : {}
+	const profile = item.supplierProfile || {}
+	
+	const branches = Array.isArray(profile.supplierBranches) ? profile.supplierBranches : []
+	const branch = branches.find(b => b.main_Branch) || branches[0] || {}
+	
+	const joinRequests = Array.isArray(profile.supplierJoinRequests) ? profile.supplierJoinRequests : []
+	// Assuming the list is chronological, the last one is the latest
+	const joinRequest = joinRequests.length > 0 ? joinRequests[joinRequests.length - 1] : {}
 
 	return {
 		supplierId: item.id ?? null,
@@ -88,7 +93,7 @@ function mapSupplierItem(item = {}) {
 		commercialRegistrationDocumentPublicId: profile.commercialRegistrationDocumentPublicId ?? [],
 		taxCardDocumentUrl: profile.taxCardDocumentUrl ?? [],
 		taxCardDocumentPublicId: profile.taxCardDocumentPublicId ?? [],
-		categories: profile.activityType ?? [],
+		activityType: profile.activityType ?? [],
 		minimumItemInInvoice: profile.minimumItemInInvoice ?? null,
 		minimumInvoiceAmount: profile.minimumInvoiceAmount ?? null,
 		maximumInvoiceAmount: profile.maximumInvoiceAmount ?? null,
@@ -98,7 +103,7 @@ function mapSupplierItem(item = {}) {
 		status: profile.status ?? null,
 		code: profile.code ?? null,
 
-		branches: profile.supplierBranches ?? [],
+		branches: branches,
 		branchId: branch.id ?? null,
 		branchName: branch.branchName ?? null,
 		governorateId: branch.governorateId ?? null,

@@ -19,6 +19,7 @@ import UnifiedFilterSheet from '@/components/ui/filters/UnifiedFilterSheet'
 import { applyFilters } from '@/components/ui/filters/filter.service'
 import useSearchPagination from '@/hooks/useSearchPagination'
 import { useQueryFetch } from '@/hooks/useQueryFetch'
+import { toast } from 'sonner';
 
 const columns = [
     { key: 'checkbox', title: '', width: 40 },
@@ -258,18 +259,18 @@ const page = () => {
             // prefer explicit logo/profile image fields; avoid using commercial registration docs as avatar
             avatar:
                 s.logoUrl || s.avatar || s.profileImage || s.profileImageUrl ||
-                (s._raw && s._raw.supplierProfile && s._raw.supplierProfile[0] && (
-                    s._raw.supplierProfile[0].logoUrl || s._raw.supplierProfile[0].profileImageUrl
+                (s._raw && s._raw.supplierProfile && (
+                    s._raw.supplierProfile.logoUrl || s._raw.supplierProfile.profileImageUrl
                 )) ||
                 'https://avatars.githubusercontent.com/u/124599?v=4',
             code: s.code || s.companyNumber || '',
             // human-friendly display date and a raw ISO date for filtering
-            date: s.joinDate ? new Date(s.joinDate).toLocaleDateString('ar-EG') : '',
+            date: s.joinDate ? new Date(s.joinDate).toLocaleDateString('en-EG') : '',
             dateRaw: s.joinDate || null,
             // category should display activities
             // keep raw keys for filtering, provide `categoryLabel` for display/localized labels
-            category: s.activities || s.categories || [],
-            categoryLabel: mapActivityValues(s.activities || s.categories || [], lang),
+            category: (s.activityType || []).map(t => String(t).toLowerCase().trim().replace(/\s+/g, '_')),
+            categoryLabel: mapActivityValues(s.activityType || [], lang),
             status: (() => {
                 const raw = String(s.status ?? '').trim().toLowerCase();
                 if (/قيد|pending/.test(raw)) return 'قيد الإنتظار'
@@ -287,7 +288,7 @@ const page = () => {
             phone: s.companyNumber || '',
 
             email: s.email || '',
-            activities: s.categories || s.activities || [],
+            activityType: s.activityType || [],
             branches: s.branches || [],
             postalCode: s.postalCode || '',
             docs: docs,

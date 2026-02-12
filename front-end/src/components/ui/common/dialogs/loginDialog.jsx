@@ -29,7 +29,7 @@ export default function LoginDialog() {
     const { closeModal } = useModal();
     const isAuthenticated = useSelector((s) => s.auth.isAuthenticated)
     const searchParams = useSearchParams()
-    const lang = searchParams?.get('lang') || 'en'
+    const lang = searchParams?.get('lang') || 'ar';
     const { schemas } = useValidationI18nSchemas();
 
     // server / generic error
@@ -168,7 +168,7 @@ export default function LoginDialog() {
                                     router.push('/dashboard/auth/forgot-password');
                                 }
                             }}
-                        >هل نسيت كلمة المرور؟</span>
+                        >{lang === 'en' ? 'Forgot password?' : 'هل نسيت كلمة المرور؟'}</span>
                         {errors.email && touched.email && <p id="email-error" className="text-sm mt-1 text-red-500">{errors.email}</p>}
                     </div>
 

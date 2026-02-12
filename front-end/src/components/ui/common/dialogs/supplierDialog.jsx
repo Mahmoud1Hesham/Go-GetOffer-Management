@@ -135,7 +135,7 @@ export default function SupplierDialog({ triggerNode = null, mode = 'create', in
 
         if (mode === 'update') {
             const id = values.id || (initialData && (initialData.id || initialData.supplierId));
-            if (id) formData.append('Id', id);
+            if (id) formData.append('supplierId', id);
 
             updateMutation.mutate({ data: formData, config: { headers: { 'Content-Type': 'multipart/form-data' } } }, {
                 onSuccess: (data) => {

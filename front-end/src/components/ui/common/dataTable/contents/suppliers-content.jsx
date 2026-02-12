@@ -11,6 +11,7 @@ import { useDispatch } from 'react-redux';
 import { fetchSuppliers } from '@/redux/slices/supplierManagementSlice';
 import { fetchSupplierJoinRequests } from '@/redux/slices/supplierJoinRequestsSlice';
 import { useMutationFetch } from '@/hooks/useQueryFetch';
+import { toast } from 'sonner';
 
 export const reasons = [
     { id: 'invalid_docs', label: 'المستندات المطلوبة غير صالحة' },
@@ -44,15 +45,17 @@ export default function SuppliersContent({ row, showConditions = true }) {
         url: (id) => ({
             url: `/api/SupplierJoinRequest/Approve`,
             method: 'POST',
-            data: { id }
+            data: { JoinRequestId:id }
         }),
         mutationOptions: {
             onSuccess: () => {
                 dispatch(fetchSuppliers());
                 dispatch(fetchSupplierJoinRequests());
+                toast.success("تم الموافقة على طلب الانضمام بنجاح");
             },
             onError: (error) => {
                 console.error("Approval failed", error);
+                toast.error("فشل في الموافقة على طلب الانضمام");
             }
         }
     });
@@ -69,9 +72,11 @@ export default function SuppliersContent({ row, showConditions = true }) {
                 dispatch(fetchSupplierJoinRequests());
                 setShowReject(false);
                 setSelected(new Set());
+                toast.success("تم رفض طلب الانضمام بنجاح");
             },
             onError: (error) => {
                 console.error("Rejection failed", error);
+                toast.error("فشل في رفض طلب الانضمام");
             }
         }
     });
@@ -97,7 +102,7 @@ export default function SuppliersContent({ row, showConditions = true }) {
     function sendRejection() {
         if (row.supplierJoinRequestId) {
             rejectMutation.mutate({
-                Id: row.supplierJoinRequestId,
+                JoinRequestId: row.supplierJoinRequestId,
                 rejectionReasons: Array.from(selected)
             });
         } else {

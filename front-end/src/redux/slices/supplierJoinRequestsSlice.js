@@ -33,45 +33,11 @@ function mapStatusBarItem(item = {}) {
 }
 
 function mapJoinRequestItem(item = {}) {
-    const profile = Array.isArray(item.supplierProfile) && item.supplierProfile[0] ? item.supplierProfile[0] : {}
-    const branch = Array.isArray(profile.supplierBranches) && profile.supplierBranches[0] ? profile.supplierBranches[0] : {}
-    const joinRequest = Array.isArray(profile.profileJoinRequests) && profile.profileJoinRequests[0] ? profile.profileJoinRequests[0] : {}
-
+    // Pass through the item directly so consumers can map it as needed based on the new structure
     return {
-        id: item.id ?? null,
-        email: item.email ?? null,
-        name: item.name ?? null,
-        number: item.number ?? null,
-        userType: item.userType ?? null,
-        type: item.type ?? null,
-        requestStatus: item.requestStatus ?? null,
-        createdAt: item.createdAt ?? null,
-
-        fullName: profile.fullName ?? null,
-        commercialRegistrationDocumentUrl: profile.commercialRegistrationDocumentUrl ?? [],
-        commercialRegistrationDocumentPublicId: profile.commercialRegistrationDocumentPublicId ?? [],
-        taxCardDocumentUrl: profile.taxCardDocumentUrl ?? [],
-        taxCardDocumentPublicId: profile.taxCardDocumentPublicId ?? [],
-        activityType: profile.activityType ?? [],
-        code: profile.code ?? null,
-
-        branches: profile.supplierBranches ?? [],
-        branchId: branch.id ?? null,
-        branchName: branch.branchName ?? null,
-        governorateId: branch.governorateId ?? null,
-        governorate: branch.governorate ?? null,
-        cityId: branch.cityId ?? null,
-        city: branch.city ?? null,
-        addressDetails: branch.addressDetails ?? null,
-        postalCode: branch.postalCode ?? null,
-        phoneNumbers: branch.phoneNumbers ?? [],
-
-        profileJoinRequestId: joinRequest.id ?? null,
-        profileJoinRequestStatus: joinRequest.status ?? null,
-        profileJoinRequestAdminComment: joinRequest.rejectionReasons ?? joinRequest.adminComment ?? null,
-
-        _raw: item,
-    }
+        ...item,
+        _raw: item
+    };
 }
 
 const supplierJoinRequestsSlice = createSlice({
@@ -81,12 +47,19 @@ const supplierJoinRequestsSlice = createSlice({
         syncSupplierJoinRequests(state, action) {
             state.loading = false
             state.error = null
-            state.status = action.payload?.status ?? true
-            state.message = action.payload?.message ?? ''
+            
+            const payload = action.payload || {};
+            // Handle both structure with .data wrapper and direct structure
+            const data = payload.data || payload; 
+            
+            state.status = payload.status ?? true
+            state.message = payload.message ?? ''
 
-            const data = action.payload?.data ?? {}
-            state.statusBar = Array.isArray(data.statusBar) ? data.statusBar.map(mapStatusBarItem) : []
-            state.items = Array.isArray(data.items) ? data.items.map(mapJoinRequestItem) : []
+            const statusBarList = Array.isArray(payload.statusBar) ? payload.statusBar : (Array.isArray(data.statusBar) ? data.statusBar : []);
+            state.statusBar = statusBarList.map(mapStatusBarItem);
+
+            const itemsList = Array.isArray(payload.items) ? payload.items : (Array.isArray(data.items) ? data.items : []);
+            state.items = itemsList.map(mapJoinRequestItem);
         },
         clearSupplierJoinRequestsError(state) {
             state.error = null
@@ -107,12 +80,18 @@ const supplierJoinRequestsSlice = createSlice({
             .addCase(fetchSupplierJoinRequests.fulfilled, (state, action) => {
                 state.loading = false
                 state.error = null
-                state.status = action.payload?.status ?? true
-                state.message = action.payload?.message ?? ''
+                
+                const payload = action.payload || {};
+                const data = payload.data || payload; 
 
-                const data = action.payload?.data ?? {}
-                state.statusBar = Array.isArray(data.statusBar) ? data.statusBar.map(mapStatusBarItem) : []
-                state.items = Array.isArray(data.items) ? data.items.map(mapJoinRequestItem) : []
+                state.status = payload.status ?? true
+                state.message = payload.message ?? ''
+
+                const statusBarList = Array.isArray(payload.statusBar) ? payload.statusBar : (Array.isArray(data.statusBar) ? data.statusBar : []);
+                state.statusBar = statusBarList.map(mapStatusBarItem);
+
+                const itemsList = Array.isArray(payload.items) ? payload.items : (Array.isArray(data.items) ? data.items : []);
+                state.items = itemsList.map(mapJoinRequestItem);
             })
             .addCase(fetchSupplierJoinRequests.rejected, (state, action) => {
                 state.loading = false
@@ -126,7 +105,7 @@ export const { clearSupplierJoinRequestsError, clearSupplierJoinRequests, syncSu
 export const selectStatusBar = (state) => state.supplierJoinRequests.statusBar
 export const selectItems = (state) => state.supplierJoinRequests.items
 export const selectItemById = (id) => (state) =>
-    (state.supplierJoinRequests.items || []).find((it) => it.id === id) || null
+    (state.supplierJoinRequests.items || []).find((it) => it.requestId === id || it.id === id) || null
 
 export const selectStatusBarByKey = (key) => (state) =>
     (state.supplierJoinRequests.statusBar || []).find((s) => s.statusKey === key) || null

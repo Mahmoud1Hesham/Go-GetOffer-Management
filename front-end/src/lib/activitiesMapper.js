@@ -28,7 +28,16 @@ export function mapActivityValues(values, lang = 'en') {
     const key = String(v)
     // If value already looks like an Arabic label (contains Arabic letters), return as-is
     if (/[\u0600-\u06FF]/.test(key)) return key
-    return map.get(key) || key
+
+    // Direct match
+    if (map.has(key)) return map.get(key)
+
+    // Normalize: lowercase with underscores (e.g. "Cleaning Supplies" -> "cleaning_supplies")
+    // This handles cases where API returns spaces instead of underscores or mixed case
+    const normalized = key.toLowerCase().trim().replace(/\s+/g, '_')
+    if (map.has(normalized)) return map.get(normalized)
+
+    return key
   }).filter(Boolean)
 }
 
