@@ -163,8 +163,8 @@ export default function SuppliersContent({ row, showConditions = true }) {
     }
 
     const allBranches = row.branches || [];
-    const mainBranch = allBranches.find(b => b.main_Branch) || allBranches[0] || {};
-    const otherBranches = allBranches.filter(b => b !== mainBranch);
+    const mainBranch = row.mainBranch || row._raw?.mainBranch || allBranches.find(b => b.main_Branch) || allBranches[0] || {};
+    const otherBranches = allBranches.filter(b => b?.id !== mainBranch?.id);
 
     return (
         <div className="w-full text-sm py-5">
