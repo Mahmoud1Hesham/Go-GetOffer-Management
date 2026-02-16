@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Search, Plus } from "lucide-react";
+import { Search, Plus, RotateCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Combobox } from "../combo-box/comboBox";
@@ -17,6 +17,7 @@ export default function DashboardContentHeader({
     tabs,
     activeTab = 'all',
     onTabChange,
+    apiRefresh, // { title, onClick, isLoading } — presentation-only
     apiFilter1,
     apiFilter2,
     apiCreate,
@@ -63,6 +64,19 @@ export default function DashboardContentHeader({
                 )}
                 {/* buttons group */}
                 <div className="flex items-center gap-2">
+
+                    {/* Optional refresh button (presentation-only; handler supplied by page) */}
+                    {apiRefresh && (
+                        <Button
+                            variant="outline"
+                            className="rounded-lg flex items-center gap-2"
+                            onClick={() => apiRefresh.onClick && apiRefresh.onClick()}
+                            disabled={apiRefresh.isLoading || apiRefresh.disabled}
+                        >
+                            <RotateCw className={apiRefresh.isLoading ? 'animate-spin' : ''} />
+                            <span className="text-sm">{apiRefresh.title ?? 'تحديث'}</span>
+                        </Button>
+                    )}
 
                     {/* Column customization: use Combobox when `columns` prop provided */}
                     {columns ? (

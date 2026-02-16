@@ -1,5 +1,6 @@
 "use client";
 import { useQueryFetch, useMutationFetch } from '@/hooks/useQueryFetch';
+import useRefreshCooldown from '@/hooks/useRefreshCooldown';
 import useSearchPagination from '@/hooks/useSearchPagination';
 import { setBrands, selectBrands } from '@/redux/slices/brandsSlice';
 import { useEffect } from 'react';
@@ -46,7 +47,8 @@ const page = () => {
     const lang = searchParams.get('lang') || 'ar';
     
     // 1. Fetch Brands
-    const { data: apiData, isLoading: isFetching } = useQueryFetch(['allBrands'], '/api/brand/withallname');
+    const { data: apiData, isLoading: isInitialFetching, isFetching: isApiFetching, refetch } = useQueryFetch(['allBrands'], '/api/brand/withallname');
+    const { onClick: handleBrandsRefresh, title: refreshTitleBrands, disabled: refreshDisabledBrands } = useRefreshCooldown({ refetch, successMessage: 'تم تحديث العلامات التجارية' });
 
     // 2. Dispatch to Redux
     useEffect(() => {
@@ -108,7 +110,7 @@ const page = () => {
         fuseOptions: { keys: ["name_AR", "name_EN", "code", "categoryName_AR", "categoryName_EN", "subCategoryName_AR", "subCategoryName_EN"], threshold: 0.3 }
     });
 
-    const isLoading = isFetching || isSearchLoading;
+    const isLoading = isInitialFetching || isSearchLoading;
 
     const deleteMutation = useMutationFetch({
         url: (id) => ({
@@ -145,6 +147,7 @@ const page = () => {
                     onVisibleColumnsChange={setVisibleColumns}
                     apiFilter1={{ title: "تخصيص الأعمدة", onClick: () => console.log("filter 1") }}
                     // apiFilter2={{ title: "تصفية", onClick: () => setFilterSheetOpen(true) }}
+                    apiRefresh={{ title: refreshTitleBrands, onClick: handleBrandsRefresh, isLoading: isApiFetching, disabled: refreshDisabledBrands }}
                     searchPlaceholder="ابحث في العلامات التجارية..."
                     onSearch={(value) => setSearch(value)}
                 />

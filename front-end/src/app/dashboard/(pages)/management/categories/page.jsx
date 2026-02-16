@@ -1,5 +1,6 @@
 "use client";
 import { useQueryFetch, useMutationFetch } from '@/hooks/useQueryFetch';
+import useRefreshCooldown from '@/hooks/useRefreshCooldown';
 import useSearchPagination from '@/hooks/useSearchPagination';
 import { setCategories, selectCategories } from '@/redux/slices/categoriesSlice';
 import { useEffect } from 'react';
@@ -143,7 +144,8 @@ const page = () => {
 
 
     // 1. Fetch Categories
-    const { data: apiData, isLoading: isFetching } = useQueryFetch(['allCategories'], '/api/category/withallname');
+    const { data: apiData, isLoading: isInitialFetching, isFetching: isApiFetching, refetch } = useQueryFetch(['allCategories'], '/api/category/withallname');
+    const { onClick: handleCategoriesRefresh, title: refreshTitleCategories, disabled: refreshDisabledCategories } = useRefreshCooldown({ refetch, successMessage: 'تم تحديث التصنيفات' });
 
     useEffect(() => {
         setVisibleColumns(columns.map(c => c.key));
@@ -187,7 +189,7 @@ const page = () => {
         fuseOptions: { keys: ["name_AR", "name_EN", "code"], threshold: 0.3 }
     });
 
-    const isLoading = isFetching || isSearchLoading;
+    const isLoading = isInitialFetching || isSearchLoading;
 
     const deleteMutation = useMutationFetch({
         url: (id) => ({
@@ -224,6 +226,7 @@ const page = () => {
             onVisibleColumnsChange={setVisibleColumns}
             apiFilter1={{ title: "تخصيص الأعمدة", onClick: () => console.log("filter 1") }}
             // apiFilter2={{ title: "تصفية", onClick: () => setFilterSheetOpen(true) }}
+            apiRefresh={{ title: refreshTitleCategories, onClick: handleCategoriesRefresh, isLoading: isApiFetching, disabled: refreshDisabledCategories }}
             searchPlaceholder="ابحث في التصنيفات..."
             onSearch={(value) => setSearch(value)}
         />

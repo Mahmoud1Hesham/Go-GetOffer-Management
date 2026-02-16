@@ -21,8 +21,9 @@ import { useSearchParams } from "next/navigation"
 import { normalizeErrors } from "@/app/services/errorNormalizer"
 import { getErrorMessage } from "@/app/services/errorHandler"
 import { useValidationI18nSchemas } from "@/hooks/useTranslatedValidation"
-import { Combobox } from "@/components/ui/common/combo-box/comboBox"
-
+import { Combobox } from '@/components/ui/common/combo-box/comboBox';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 export default function BrandDialog({
     triggerNode = null,
     mode = 'create',
@@ -109,6 +110,9 @@ export default function BrandDialog({
         subCategoryId: "",
         bulkCategoryId: "",
         bulkSubCategoryId: "",
+        // bulk upload helpers
+        bulkFile: null,
+        dryRun: false,
     }
 
     const onSubmit = (values) => {
@@ -255,6 +259,10 @@ export default function BrandDialog({
         const formData = new FormData();
         formData.append('File', values.bulkFile);
         formData.append('SubCategoryId', values.bulkSubCategoryId);
+        // include dryRun flag when user enabled it
+        if (values.dryRun) {
+            formData.append('dryRun', String(true));
+        }
         bulkUploadMutation.mutate(formData);
     }
 
@@ -409,13 +417,25 @@ export default function BrandDialog({
                                         subtitle={lang === 'ar' ? "الملفات المدعومة: xlsx" : "Supported files: xlsx"}
                                         acceptedFileTypes={{ '.xlsx': ['.xlsx'] }}
                                     />
+
+                                    <div className="flex items-center gap-3 mt-3">
+                                        <Switch
+                                            id="dryRun"
+                                            checked={values.dryRun}
+                                            onCheckedChange={(checked) => setValues(prev => ({ ...prev, dryRun: checked }))}
+                                        />
+                                        <Label htmlFor="dryRun" className="mr-2 cursor-pointer text-sm">
+                                            {lang === 'ar' ? 'تشغيل وضع التجربة (dryRun)' : 'Dry run (dryRun)'}
+                                        </Label>
+                                    </div>
+
                                     <Button
                                         onClick={handleBulkUpload}
                                         disabled={bulkUploadMutation.isPending}
                                         className="w-full mt-2 bg-teal-500 hover:bg-teal-600 text-white"
                                     >
                                         {bulkUploadMutation.isPending ? (lang === 'ar' ? "جاري الرفع..." : "Uploading...") : (lang === 'ar' ? "رفع الملف" : "Upload File")}
-                                    </Button>
+                                    </Button> 
                                 </div>
                                 <div className="">
                                     {bulkResponse && bulkResponse.data && (

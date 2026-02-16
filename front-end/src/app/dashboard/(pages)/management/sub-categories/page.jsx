@@ -1,5 +1,6 @@
 "use client";
 import { useQueryFetch, useMutationFetch } from '@/hooks/useQueryFetch';
+import useRefreshCooldown from '@/hooks/useRefreshCooldown';
 import useSearchPagination from '@/hooks/useSearchPagination';
 import { setSubCategories, selectSubCategories } from '@/redux/slices/subCategoriesSlice';
 import { useEffect } from 'react';
@@ -27,7 +28,8 @@ const page = () => {
     const lang = searchParams.get('lang') || 'ar';
     
     // 1. Fetch SubCategories
-    const { data: apiData, isLoading: isFetching } = useQueryFetch(['allSubCategories'], '/api/subcategory/withallname');
+    const { data: apiData, isLoading: isInitialFetching, isFetching: isApiFetching, refetch } = useQueryFetch(['allSubCategories'], '/api/subcategory/withallname');
+    const { onClick: handleSubCategoriesRefresh, title: refreshTitleSubCategories, disabled: refreshDisabledSubCategories } = useRefreshCooldown({ refetch, successMessage: 'تم تحديث التصنيفات الفرعية' });
     
     const columns = [
         // { key: 'checkbox', title: '', width: 40 },
@@ -95,7 +97,7 @@ const page = () => {
         fuseOptions: { keys: ["name_AR","name_EN","code","parentCategory_AR","parentCategory_EN"], threshold: 0.3 }
     });
 
-    const isLoading = isFetching || isSearchLoading;
+    const isLoading = isInitialFetching || isSearchLoading;
 
     const deleteMutation = useMutationFetch({
         url: (id) => ({
@@ -132,6 +134,7 @@ const page = () => {
                     onVisibleColumnsChange={setVisibleColumns}
                     apiFilter1={{ title: "تخصيص الأعمدة", onClick: () => console.log("filter 1") }}
                     // apiFilter2={{ title: "تصفية", onClick: () => setFilterSheetOpen(true) }}
+                    apiRefresh={{ title: refreshTitleSubCategories, onClick: handleSubCategoriesRefresh, isLoading: isApiFetching, disabled: refreshDisabledSubCategories }}
                     searchPlaceholder="ابحث في التصنيفات الفرعية..."
                     onSearch={(value) => setSearch(value)}
                 />

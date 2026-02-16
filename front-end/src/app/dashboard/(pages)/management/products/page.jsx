@@ -10,6 +10,7 @@ import DataTable from '@/components/ui/common/dataTable/dataTable';
 import { LuAward, LuPackageCheck, LuPackageX } from 'react-icons/lu';
 import { TbPackages } from 'react-icons/tb';
 import { useQueryFetch } from '@/hooks/useQueryFetch';
+import useRefreshCooldown from '@/hooks/useRefreshCooldown';
 import { useSearchPagination } from '@/hooks/useSearchPagination';
 import { useDispatch } from 'react-redux';
 import { syncProductData, deleteProduct } from '@/redux/slices/productsManagementSlice';
@@ -223,7 +224,7 @@ const ProductsManagementContent = () => {
         apiFilterParams.categories = filters.categories;
     }
 
-    const { data, isLoading, isError } = useQueryFetch(
+    const { data, isLoading, isError, isFetching, refetch } = useQueryFetch(
         ['products', currentPage, limit, apiFilterParams, searchQuery],
         '/api/catalog/search',
         {
@@ -235,6 +236,8 @@ const ProductsManagementContent = () => {
             }
         }
     );
+
+    const { onClick: handleProductsRefresh, title: refreshTitleProducts, disabled: refreshDisabledProducts } = useRefreshCooldown({ refetch, successMessage: 'تم تحديث المنتجات' });
 
     // URL Params are the single source of truth
     const globalParams = useSearchParams();
@@ -388,6 +391,7 @@ const ProductsManagementContent = () => {
                 onVisibleColumnsChange={setVisibleColumns}
                 apiFilter1={{ title: "تخصيص الأعمدة", onClick: () => console.log("filter 1") }}
                 // apiFilter2={{ title: "تصفية", onClick: () => setIsFilterOpen(true) }}
+                apiRefresh={{ title: refreshTitleProducts, onClick: handleProductsRefresh, isLoading: isFetching, disabled: refreshDisabledProducts }}
                 searchPlaceholder="ابحث في المنتجات..."
                 onSearch={setSearch}
             />

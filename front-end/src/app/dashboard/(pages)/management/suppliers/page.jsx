@@ -19,6 +19,7 @@ import UnifiedFilterSheet from '@/components/ui/filters/UnifiedFilterSheet'
 import { applyFilters } from '@/components/ui/filters/filter.service'
 import useSearchPagination from '@/hooks/useSearchPagination'
 import { useQueryFetch } from '@/hooks/useQueryFetch'
+import useRefreshCooldown from '@/hooks/useRefreshCooldown'
 import { toast } from 'sonner';
 
 const columns = [
@@ -233,13 +234,16 @@ const page = () => {
     const searchParams = useSearchParams()
     const lang = searchParams.get('lang') || 'ar'
 
-    const { data: fetchedData, isLoading: isFetchLoading } = useQueryFetch('suppliers', '/api/SupplierProfile', { params: { pageSize: 10000 } });
+    const { data: fetchedData, isLoading: isFetchLoading, isFetching: isFetchFetching, refetch } = useQueryFetch('suppliers', '/api/SupplierProfile', { params: { pageSize: 10000 } });
 
     useEffect(() => {
         if (fetchedData) {
             dispatch(syncSuppliers(fetchedData));
         }
     }, [fetchedData, dispatch])
+
+    // use reusable cooldown hook (calls `refetch` and shows toasts)
+    const { onClick: handleRefetchWithCooldown, title: refreshTitle, disabled: refreshDisabled } = useRefreshCooldown({ refetch, successMessage: 'تم تحديث الموردين' });
 
     const mappedRows = (supplierState.suppliers || []).map((s) => {
         // build docs from commercial registration and tax card URLs + publicIds
@@ -394,6 +398,7 @@ const page = () => {
             onVisibleColumnsChange={setVisibleColumns}
             apiFilter1={{ title: "تخصيص الأعمدة", onClick: () => console.log("filter 1") }}
             apiFilter2={{ title: "تصفية", onClick: () => setFilterSheetOpen(true) }}
+            apiRefresh={{ title: refreshTitle, onClick: handleRefetchWithCooldown, isLoading: isFetchFetching, disabled: refreshDisabled }}
             searchPlaceholder="ابحث في الموردين..."
             onSearch={(value) => setSearch(value)}
         />

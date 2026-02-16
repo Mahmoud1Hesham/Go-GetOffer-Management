@@ -15,6 +15,7 @@ import { fetchSupplierJoinRequests, selectStatusBar, selectItems, syncSupplierJo
 import { FaPeopleGroup } from 'react-icons/fa6';
 import { PiClockUser, PiUserMinusLight, PiUserPlus } from 'react-icons/pi';
 import { useQueryFetch } from '@/hooks/useQueryFetch';
+import useRefreshCooldown from '@/hooks/useRefreshCooldown';
 import Spinner from '@/components/ui/common/spinner/spinner';
 
 const SuppliersContentNoConditions = (props) => <SuppliersContent {...props} showConditions={false} />;
@@ -234,7 +235,8 @@ const page = () => {
   const searchParams = useSearchParams()
   const lang = searchParams.get('lang') || 'ar';
 
-  const { data: fetchedData, isLoading: isFetchLoading } = useQueryFetch('supplierJoinRequests', '/api/SupplierJoinRequest');
+  const { data: fetchedData, isLoading: isFetchLoading, isFetching: isFetchFetching, refetch } = useQueryFetch('supplierJoinRequests', '/api/SupplierJoinRequest');
+  const { onClick: handleRefetchJoinRequests, title: refreshTitleJoin, disabled: refreshDisabledJoin } = useRefreshCooldown({ refetch, successMessage: 'تم تحديث طلبات الموردين' });
 
   useEffect(() => {
     if (fetchedData) {
@@ -392,6 +394,7 @@ const page = () => {
         onVisibleColumnsChange={setVisibleColumns}
         apiFilter1={{ title: "تخصيص الأعمدة", onClick: () => console.log("filter 1") }}
         apiFilter2={{ title: "تصفية الأعمدة", onClick: () => setFilterSheetOpen(true) }}
+        apiRefresh={{ title: refreshTitleJoin, onClick: handleRefetchJoinRequests, isLoading: isFetchFetching, disabled: refreshDisabledJoin }}
         searchPlaceholder="ابحث في الموردين..."
         onSearch={(value) => console.log(value)}
       />

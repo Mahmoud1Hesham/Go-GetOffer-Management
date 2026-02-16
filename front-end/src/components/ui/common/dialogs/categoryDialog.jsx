@@ -13,6 +13,8 @@ import {
 import Input from "@/components/ui/common/reusable-input/reusableInput"
 import FileUploader from "@/components/ui/common/file-uploader/fileUploader"
 import { Button } from "@/components/ui/button"
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import useForm from "@/hooks/useForm"
 import { useMutationFetch } from '@/hooks/useQueryFetch'
 import { useQueryClient } from "@tanstack/react-query"
@@ -46,6 +48,9 @@ export default function CategoryDialog({
         nameAr: "",
         nameEn: "",
         image: null,
+        // bulk upload helpers
+        bulkFile: null,
+        dryRun: false,
     }
 
     const onSubmit = (values) => {
@@ -161,6 +166,12 @@ export default function CategoryDialog({
         }
         const formData = new FormData();
         formData.append('File', values.bulkFile);
+
+        // include dryRun flag when user enabled it
+        if (values.dryRun) {
+            formData.append('dryRun', String(true));
+        }
+
         bulkUploadMutation.mutate(formData);
     }
 
@@ -269,6 +280,18 @@ export default function CategoryDialog({
                                         subtitle={lang === 'ar' ? "الملفات المدعومة: xlsx" : "Supported files: xlsx"}
                                         acceptedFileTypes={{ '.xlsx': ['.xlsx'] }}
                                     />
+
+                                    <div className="flex items-center gap-3 mt-3">
+                                        <Switch
+                                            id="dryRun"
+                                            checked={values.dryRun}
+                                            onCheckedChange={(checked) => setValues(prev => ({ ...prev, dryRun: checked }))}
+                                        />
+                                        <Label htmlFor="dryRun" className="mr-2 cursor-pointer text-sm">
+                                            {lang === 'ar' ? 'تشغيل وضع التجربة (Dry Run)' : 'Dry run (Dry Run)'}
+                                        </Label>
+                                    </div>
+
                                     <Button
                                         onClick={handleBulkUpload}
                                         disabled={bulkUploadMutation.isPending}
