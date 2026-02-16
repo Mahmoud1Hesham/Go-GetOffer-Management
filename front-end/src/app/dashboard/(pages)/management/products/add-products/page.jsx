@@ -14,6 +14,7 @@ import { LuTrash2, LuPlus, LuImage, LuSave } from 'react-icons/lu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useQueryFetch, useMutationFetch } from '@/hooks/useQueryFetch';
@@ -39,7 +40,9 @@ const AddProductPage = () => {
         category: '',
         subCategory: '',
         brand: '',
-        file: null
+        file: null,
+        // dryRun: when true server should not persist changes
+        dryRun: false,
     });
     const [bulkErrors, setBulkErrors] = useState({});
     const [bulkResponse, setBulkResponse] = useState(null);
@@ -254,6 +257,11 @@ const AddProductPage = () => {
         // formData.append('SubCategoryId', bulkValues.subCategory);
         formData.append('BrandId', bulkValues.brand);
         formData.append('File', bulkValues.file);
+
+        // include dryRun flag when user enabled it
+        if (bulkValues.dryRun) {
+            formData.append('dryRun', String(true));
+        }
 
         bulkUpload(formData);
     };
@@ -663,6 +671,18 @@ const AddProductPage = () => {
                                             if (files.length > 0) setBulkErrors(prev => ({ ...prev, file: null }));
                                         }}
                                     />
+
+                                    <div className="flex items-center gap-3 mt-3">
+                                        <Switch
+                                            id="bulkDryRun"
+                                            checked={bulkValues.dryRun}
+                                            onCheckedChange={(checked) => setBulkValues(prev => ({ ...prev, dryRun: checked }))}
+                                        />
+                                        <Label htmlFor="bulkDryRun" className="mr-2 cursor-pointer text-sm">
+                                            {lang === 'ar' ? 'تشغيل وضع التجربة (Dry Run)' : 'Dry run (Dry Run)'}
+                                        </Label>
+                                    </div>
+
                                     {bulkErrors.file && <p className="text-red-500 text-xs mt-2">{bulkErrors.file}</p>}
                                 </div>
                                 <div>
