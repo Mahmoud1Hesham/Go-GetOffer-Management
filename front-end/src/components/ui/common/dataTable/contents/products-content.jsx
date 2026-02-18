@@ -40,7 +40,7 @@ export default function ProductsContent({ row }) {
     const { data: productDetails } = useQueryFetch(
         ['product-details', row.id],
         `/api/Product/id`,
-        { params: { Id: row.id }, enabled: !hasVariants }
+        { params: { ProductId: row.id }, enabled: !hasVariants }
     );
 
     const fetchedVariants = productDetails?.data?.productVariants || [];
@@ -51,16 +51,28 @@ export default function ProductsContent({ row }) {
         : fetchedVariants;
 
     const mappedVariants = React.useMemo(() => variantsList.map((v, idx) => {
-        // Try to find translation
-        const translation = v.productVariantTranslations?.find(t => t.languageCode === 'ar-EG')
-            || v.productVariantTranslations?.[0]
-            || {};
+        // Prefer explicit AR/EN translations where available
+        const tAr = v.productVariantTranslations?.find(t => String(t.languageCode).toLowerCase().startsWith('ar')) || {};
+        const tEn = v.productVariantTranslations?.find(t => String(t.languageCode).toLowerCase().startsWith('en')) || {};
+
+        // Accept new API fields like weightDisplay_AR/EN and description_AR/EN
+        const weightAr = v.weightDisplay_AR || v.weightDisplay || tAr.weightDisplay || '';
+        const weightEn = v.weightDisplay_EN || v.weightDisplay || tEn.weightDisplay || '';
+
+        const descAr = v.description_AR || v.description || tAr.description || '';
+        const descEn = v.description_EN || v.description || tEn.description || '';
+
+        const weight = weightAr || weightEn || '';
 
         return {
             id: v.id || `v-${idx}`,
             image: v.imgUrl || v.imageUrl || row.image, // Use variant image
-            weightMain: v.weightDisplay || translation.weightDisplay,
-            weightSub: v.description || translation.description || '',
+            weightAr: weightAr,
+            weightEn: weightEn,
+            weightMain: weight,
+            weightSub: descAr || descEn || '',
+            descAr,
+            descEn,
             price: v.price || '0',
             active: v.isActive ?? true,
             qty: v.quantity || 0
@@ -110,7 +122,7 @@ export default function ProductsContent({ row }) {
     }
 
     function confirmStatusChange(id, isActive) {
-        const key = registerCallback(() => setVariantActive({ Id: id, IsActive: isActive }));
+        const key = registerCallback(() => setVariantActive({ ProductVariantId: id, IsActive: isActive }));
         openModal({
             type: isActive ? 'success' : 'failure',
             title: isActive ? 'تفعيل الصنف' : 'تعطيل الصنف',
@@ -134,16 +146,30 @@ export default function ProductsContent({ row }) {
             )
         },
         {
-            key: 'weight', title: 'الوزن', width: 180, render: (p) => (
+            key: 'weight_AR', title: 'الوزن (عربي)', width: 160, render: (p) => (
                 <div className="flex flex-col">
-                    <span className="font-semibold">{p.weightMain}</span>
+                    <span className="font-semibold">{p.weightAr || p.weightMain}</span>
                 </div>
             )
         },
         {
-            key: 'description', title: 'الوصف', width: 180, render: (p) => (
+            key: 'weight_EN', title: 'الوزن (إنجليزي)', width: 160, render: (p) => (
+                <div className="flex flex-col" dir="ltr">
+                    <span className="font-semibold">{p.weightEn || p.weightMain}</span>
+                </div>
+            )
+        },
+        {
+            key: 'description_AR', title: 'الوصف (عربي)', width: 200, render: (p) => (
                 <div className="flex flex-col">
-                    <span className="text-xs text-muted-foreground">{p.weightSub}</span>
+                    <span className="text-xs text-muted-foreground">{p.descAr || p.weightSub}</span>
+                </div>
+            )
+        },
+        {
+            key: 'description_EN', title: 'الوصف (إنجليزي)', width: 200, render: (p) => (
+                <div className="flex flex-col" dir="ltr">
+                    <span className="text-xs text-muted-foreground">{p.descEn || ''}</span>
                 </div>
             )
         },
@@ -183,6 +209,12 @@ export default function ProductsContent({ row }) {
         // }
     ];
 
+    const productNameAr = row._raw?.name_AR || row._raw?.nameAr || row.productName || row.name || '';
+    const productNameEn = row._raw?.name_EN || row._raw?.nameEn || '';
+
+    const productDescriptionAr = row._raw?.description_AR || row._raw?.descriptionAr || row.description || '';
+    const productDescriptionEn = row._raw?.description_EN || row._raw?.descriptionEn || '';
+
     return (
         <div ref={panelRef} className="w-full text-sm py-5">
             <div className="grid grid-cols-1 gap-6">
@@ -202,7 +234,10 @@ export default function ProductsContent({ row }) {
                             <div className='flex flex-col justify-center gap-3'>
                                 <div className='flex flex-col gap-3'>
                                     <div className="text-muted-foreground font-figtree">id : {row.sku ?? row.code ?? '—'}</div>
-                                    <div className="text-xl font-semibold">{row.productName}</div>
+                                    <div className="text-xl font-semibold">{productNameAr || productNameEn || '—'}</div>
+                                    {productNameEn && (
+                                        <div className="text-sm text-muted-foreground" dir="ltr">{productNameEn}</div>
+                                    )}
                                 </div>
                                 <div className='flex flex-col gap-3'>
                                     <div className="text-muted-foreground font-figtree">وصف المنتج</div>
@@ -229,8 +264,11 @@ export default function ProductsContent({ row }) {
                                 </div>
                                 <div className='flex flex-col border-r px-4 gap-2'><span className=' text-muted-foreground'>التصنيف</span>
                                     <div className="flex items-center gap-2">
-                                        {categories.length === 0 ? <Badge variant={'outline'} className="px-3 py-1 text-xs">فارغ</Badge> : categories.map((c, i) => (<Badge key={i} variant={'outline'} className="px-3 py-1 text-xs">{c}</Badge>))}
+                                        <div className="font-semibold w-4/5">{productDescriptionAr || productDescriptionEn || '—'}</div>
                                     </div>
+                                    {productDescriptionEn && (
+                                        <div className="text-sm text-muted-foreground mt-1" dir="ltr">{productDescriptionEn}</div>
+                                    )}
                                 </div>
                                 <div className='flex flex-col border-r px-4 gap-2'><span className=' text-muted-foreground'>التصنيف الفرعي</span>
                                     <div className="flex items-center gap-2">

@@ -415,11 +415,11 @@ const page = () => {
                     console.log('Deleting supplier with id:', id);
                     dispatch(deleteSupplier(id));
                     dispatch(fetchSuppliers());
-                    toast.success("تم حذف المنتج بنجاح");
+                    toast.success("تم حذف المورد بنجاح");
 
                 } catch (error) {
                     console.error('Error logging supplier id for deletion:', error);
-                    toast.error(error || "حدث خطأ أثناء حذف المنتج");
+                    toast.error(error || "حدث خطأ أثناء حذف المورد");
                 }
             }}
 

@@ -173,10 +173,13 @@ const UpdateProductPage = () => {
             // Variants
             const variantsSource = p.productVariants || [];
             const variants = variantsSource.map((v, idx) => {
-                // Parse weight from "100 ملي" or similar
-                const weightRaw = v.weightDisplay || '';
-                const parts = weightRaw.trim().split(' ');
-                const weight = parts[0];
+                // Prefer localized fields (weightDisplay_AR/EN, description_AR/EN), fall back to translations
+                const translationAr = v.productVariantTranslations?.find(t => String(t.languageCode).toLowerCase().startsWith('ar')) || v.productVariantTranslations?.[0] || {};
+                const translationEn = v.productVariantTranslations?.find(t => String(t.languageCode).toLowerCase().startsWith('en')) || v.productVariantTranslations?.[0] || {};
+
+                const weightRaw = v.weightDisplay || v.weightDisplay_AR || v.weightDisplay_EN || translationAr.weightDisplay || translationEn.weightDisplay || '';
+                const parts = String(weightRaw).trim().split(' ');
+                const weight = parts[0] || '';
                 const rawUnit = parts.length > 1 ? parts.slice(1).join(' ') : '';
 
                 // Helper to map API unit string to internal unit value
@@ -194,13 +197,16 @@ const UpdateProductPage = () => {
                     return exact ? exact.value : 'milliliter';
                 };
 
+                const descAr = v.description_AR || v.description || translationAr.description || '';
+                const descEn = v.description_EN || v.description || translationEn.description || '';
+
                 return {
                     id: idx + 1,
                     dbId: v.id,
                     weight: weight || '',
                     unit: findUnitValue(rawUnit),
-                    descAr: v.description || '',
-                    descEn: v.description || '', // Fallback
+                    descAr: descAr,
+                    descEn: descEn,
                     image: v.imageUrl ? { previewUrl: v.imageUrl, name: 'Existing Image' } : null,
                     isMain: v.isMainImg
                 };
@@ -211,9 +217,9 @@ const UpdateProductPage = () => {
             }
 
             // Categories/Brands extraction
-            const validCategoryId = p.categories?.[0]?.id || p.categoryId || '';
-            const validSubCategoryId = p.subCategories?.[0]?.id || p.subCategoryId || '';
-            const validBrandId = p.brands?.[0]?.id || p.brandId || '';
+            const validCategoryId = p.categories?.[0]?.id || p.categoryId || p.categoryWithAllNameResponse?.id || p.subCategoryWithAllNameResponse?.categoryWithAllNameResponse?.id || p.brandWithAllNameResponse?.subCategoryWithAllNameResponse?.categoryWithAllNameResponse?.id || '';
+            const validSubCategoryId = p.subCategories?.[0]?.id || p.subCategoryId || p.subCategoryWithAllNameResponse?.id || p.brandWithAllNameResponse?.subCategoryWithAllNameResponse?.id || '';
+            const validBrandId = p.brands?.[0]?.id || p.brandId || p.brandWithAllNameResponse?.id || '';
 
             setValues({
                 category: validCategoryId,

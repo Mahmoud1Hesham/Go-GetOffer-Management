@@ -13,25 +13,40 @@ export const syncProductData = (items) => (dispatch) => {
 	const allVariants = new Map()
 
 	items.forEach(item => {
-		if (Array.isArray(item.brands)) {
-			item.brands.forEach(b => {
-				if (b.id) allBrands.set(b.id, b)
-			})
+		// BRANDS: support old `brands[]` or new `brandWithAllNameResponse`
+		if (Array.isArray(item.brands) && item.brands.length) {
+			item.brands.forEach(b => { if (b?.id) allBrands.set(b.id, b) });
+		} else if (item.brandWithAllNameResponse || item._raw?.brandWithAllNameResponse) {
+			const b = item.brandWithAllNameResponse || item._raw?.brandWithAllNameResponse;
+			if (b?.id) allBrands.set(b.id, b);
 		}
-		if (Array.isArray(item.categories)) {
-			item.categories.forEach(c => {
-				if (c.id) allCategories.set(c.id, c)
-			})
+
+		// SUB-CATEGORIES: support old `subCategories[]`, top-level `subCategoryWithAllNameResponse`,
+		// or nested under brand (`brandWithAllNameResponse.subCategoryWithAllNameResponse`)
+		if (Array.isArray(item.subCategories) && item.subCategories.length) {
+			item.subCategories.forEach(s => { if (s?.id) allSubCategories.set(s.id, s) });
+		} else {
+			const sc = item.subCategoryWithAllNameResponse || item._raw?.subCategoryWithAllNameResponse || item.brandWithAllNameResponse?.subCategoryWithAllNameResponse || item._raw?.brandWithAllNameResponse?.subCategoryWithAllNameResponse;
+			if (sc?.id) {
+				allSubCategories.set(sc.id, sc);
+				// if sub-category carries categoryWithAllNameResponse, add that category too
+				const nestedCat = sc.categoryWithAllNameResponse || sc.CategoryWithAllNameResponse;
+				if (nestedCat?.id) allCategories.set(nestedCat.id, nestedCat);
+			}
 		}
-		if (Array.isArray(item.subCategories)) {
-			item.subCategories.forEach(s => {
-				if (s.id) allSubCategories.set(s.id, s)
-			})
+
+		// CATEGORIES: support old `categories[]`, top-level `categoryWithAllNameResponse`,
+		// or nested inside sub-category / brand
+		if (Array.isArray(item.categories) && item.categories.length) {
+			item.categories.forEach(c => { if (c?.id) allCategories.set(c.id, c) });
+		} else {
+			const cat = item.categoryWithAllNameResponse || item._raw?.categoryWithAllNameResponse || item.subCategoryWithAllNameResponse?.categoryWithAllNameResponse || item.brandWithAllNameResponse?.subCategoryWithAllNameResponse?.categoryWithAllNameResponse;
+			if (cat?.id) allCategories.set(cat.id, cat);
 		}
+
+		// VARIANTS: unchanged
 		if (Array.isArray(item.productVariants)) {
-			item.productVariants.forEach(v => {
-				if (v.id) allVariants.set(v.id, v)
-			})
+			item.productVariants.forEach(v => { if (v?.id) allVariants.set(v.id, v) });
 		}
 	})
 

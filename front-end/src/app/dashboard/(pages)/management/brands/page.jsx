@@ -63,11 +63,16 @@ const page = () => {
     const brands = useSelector(selectBrands);
 
     const mappedRows = (brands || []).map((c) => {
-        const subCategories = c.subCategories || [];
+        const subCategories = (Array.isArray(c.subCategories) && c.subCategories.length)
+            ? c.subCategories
+            : (c.subCategoryWithAllNameResponse ? [c.subCategoryWithAllNameResponse] : []);
         
         const uniqueCategoriesMap = new Map();
         subCategories.forEach(sc => {
-            (sc.categories || []).forEach(cat => {
+            const scCats = (Array.isArray(sc.categories) && sc.categories.length)
+                ? sc.categories
+                : (sc.categoryWithAllNameResponse ? [sc.categoryWithAllNameResponse] : []);
+            scCats.forEach(cat => {
                 uniqueCategoriesMap.set(cat.id || cat.categoryKey, cat);
             });
         });
@@ -116,7 +121,7 @@ const page = () => {
         url: (id) => ({
             url: `/api/brand`,
             method: 'DELETE',
-            params: { Id: id }
+            params: { BrandId: id }
         }),
         mutationOptions: {
             onSuccess: () => {

@@ -69,7 +69,7 @@ export default function CategoryDialog({
         // If update mode and bottom section is used? 
         // Assuming standard create/update for now.
         if (!isCreate) {
-            formData.append('Id', initialData?.id);
+            formData.append('CategoryId', initialData?.id);
         }
 
         if (isCreate) {

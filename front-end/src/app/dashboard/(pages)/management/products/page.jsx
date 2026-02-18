@@ -22,7 +22,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 
 const columns = [
     { key: 'checkbox', title: '', width: 40 },
-    { key: 'code', title: 'كود المنتج', width: 120, render: (r) => <div className="truncate w-full text-right" dir="ltr" title={r.code}>{r.code}</div> },
+    { key: 'code', title: 'كود المنتج', width: 80, render: (r) => <div className="truncate w-full text-right" dir="ltr" title={r.code}>{r.code}</div> },
     { key: 'productName', title: 'اسم المنتج', width: 200 },
     {
         key: 'avatar', title: 'العلامة التجارية', width: 150, render: (r) => (
@@ -226,7 +226,7 @@ const ProductsManagementContent = () => {
 
     const { data, isLoading, isError, isFetching, refetch } = useQueryFetch(
         ['products', currentPage, limit, apiFilterParams, searchQuery],
-        '/api/catalog/search',
+        '/api/product/withallname',
         {
             params: {
                 pageSize: limit,
@@ -294,35 +294,45 @@ const ProductsManagementContent = () => {
     // Map products to table rows
     const allRows = products.map(p => {
         const mainVariant = p.productVariants?.find(v => v.isMainImg) || p.productVariants?.[0] || {};
-        const brand = p.brands?.[0] || {};
 
-        // Helper to validate/clean image URLs to prevent 404s on product names
-        const getValidUrl = (url) => {
-            if (!url || typeof url !== 'string') return null;
-            if (url.startsWith('http') || url.startsWith('/')) return url;
-            // Discard values that look like product names or garbage
-            return null;
-        };
+        // brand may come as `brands[]` (old) or `brandWithAllNameResponse` (new)
+        const brandObj = (Array.isArray(p.brands) && p.brands.length) ? p.brands[0] : (p.brandWithAllNameResponse || p._raw?.brandWithAllNameResponse || {});
 
-        const avatarUrl = getValidUrl(brand.imgUrl) || getValidUrl(p.imageUrl);
+        // Determine sub-categories: prefer `subCategories[]`, then `subCategoryWithAllNameResponse` (top-level or nested under brand)
+        const rawSubCats = (Array.isArray(p.subCategories) && p.subCategories.length)
+            ? p.subCategories
+            : (p.subCategoryWithAllNameResponse ? [p.subCategoryWithAllNameResponse] : (brandObj?.subCategoryWithAllNameResponse ? [brandObj.subCategoryWithAllNameResponse] : []));
+
+        // Determine categories: prefer `categories[]`, otherwise inspect first sub-category or top-level `categoryWithAllNameResponse`
+        const rawCats = (Array.isArray(p.categories) && p.categories.length)
+            ? p.categories
+            : (p.categoryWithAllNameResponse ? [p.categoryWithAllNameResponse] : (rawSubCats[0]?.categoryWithAllNameResponse ? [rawSubCats[0].categoryWithAllNameResponse] : []));
+
+        const getName = (obj = {}) => obj.name_AR || obj.name_EN || obj.name || obj.title || '';
+
+        const avatarUrl = brandObj.imgUrl || p.imageUrl || getValidUrl(p.imageUrl);
 
         return {
             id: p.id,
             type: 'product',
-            productName: p.name,
-            description: mainVariant.description || p.name,
-            avatar: brand.imgUrl || p.imageUrl || avatarUrl, // Fallback to product image if brand image missing
-            name: brand.name || 'Unknown Brand',
+            productName: p.name_AR || p.name_EN || p.name || p.title || '—',
+            description: mainVariant.description_AR || mainVariant.description_EN || mainVariant.description || p.name || '',
+            avatar: brandObj.imgUrl || p.imageUrl || avatarUrl, // Fallback to product image if brand image missing
+            name: getName(brandObj) || 'Unknown Brand',
             code: p.id, // Full ID
-            category: p.categories?.map(c => c.name) || [],
-            subCategory: p.subCategories?.map(s => s.name) || [],
-            status: p.isActive ? 'مفعل' : 'غير مفعل', // Dummy status logic based on isTax
-            image: mainVariant.imageUrl || p.imageUrl,
+            category: (rawCats || []).map(c => getName(c)).filter(Boolean),
+            subCategory: (rawSubCats || []).map(s => getName(s)).filter(Boolean),
+            status: p.isActive ? 'مفعل' : 'غير مفعل',
+            image: mainVariant.imageUrl || mainVariant.imgUrl || p.imageUrl,
             isTax: p.isTax,
-            // Add other fields as needed by the table
-            // Add other fields as needed by the details component
             _raw: p
         };
+
+        function getValidUrl(url) {
+            if (!url || typeof url !== 'string') return null;
+            if (url.startsWith('http') || url.startsWith('/')) return url;
+            return null;
+        }
     });
 
     const rows = allRows; // Client-side filtering removed: Server handles filtering now.

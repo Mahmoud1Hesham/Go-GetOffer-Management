@@ -130,7 +130,7 @@ export default function BrandDialog({
         }
 
         if (!isCreate) {
-            formData.append('Id', initialData?.id);
+            formData.append('BrandId', initialData?.id);
         }
 
         if (isCreate) {
@@ -161,7 +161,7 @@ export default function BrandDialog({
     // Fetch SubCategories
     const subCategoryFetchOptions = React.useMemo(() => ({
         method: 'POST',
-        data: { Id: values.categoryId }
+        data: { CategoryId: values.categoryId }
     }), [values.categoryId]);
 
     const { data: subCategoriesData } = useQueryFetch(

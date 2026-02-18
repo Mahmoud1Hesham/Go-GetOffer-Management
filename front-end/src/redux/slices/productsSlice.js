@@ -5,6 +5,19 @@ const initialState = {
 }
 
 function mapProductItem(item = {}) {
+    // normalize brand/subcategory/category shapes coming from new API
+    const brandsArr = (Array.isArray(item.brands) && item.brands.length)
+        ? item.brands
+        : (item.brandWithAllNameResponse || item._raw?.brandWithAllNameResponse ? [item.brandWithAllNameResponse || item._raw?.brandWithAllNameResponse] : []);
+
+    const subCategoriesArr = (Array.isArray(item.subCategories) && item.subCategories.length)
+        ? item.subCategories
+        : (item.subCategoryWithAllNameResponse ? [item.subCategoryWithAllNameResponse] : (item.brandWithAllNameResponse?.subCategoryWithAllNameResponse ? [item.brandWithAllNameResponse.subCategoryWithAllNameResponse] : []));
+
+    const categoriesArr = (Array.isArray(item.categories) && item.categories.length)
+        ? item.categories
+        : (item.categoryWithAllNameResponse ? [item.categoryWithAllNameResponse] : (subCategoriesArr[0]?.categoryWithAllNameResponse ? [subCategoriesArr[0].categoryWithAllNameResponse] : []));
+
     return {
         id: item.id ?? null,
         name: item.name ?? null,
@@ -12,9 +25,9 @@ function mapProductItem(item = {}) {
         imageUrl: item.imageUrl ?? null,
         imagePublicId: item.imagePublicId ?? null,
         productVariants: Array.isArray(item.productVariants) ? item.productVariants : [],
-        brands: Array.isArray(item.brands) ? item.brands : [],
-        subCategories: Array.isArray(item.subCategories) ? item.subCategories : [],
-        categories: Array.isArray(item.categories) ? item.categories : [],
+        brands: brandsArr,
+        subCategories: subCategoriesArr,
+        categories: categoriesArr,
         _raw: item
     }
 }

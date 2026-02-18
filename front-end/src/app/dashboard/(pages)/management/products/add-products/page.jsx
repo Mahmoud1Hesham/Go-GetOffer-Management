@@ -97,17 +97,17 @@ const AddProductPage = () => {
         formData.append('IsTax', values.hasVat);
 
         // Product Translations
-        formData.append('ProductTranslationDTOs[0].Name', values.nameEn);
-        formData.append('ProductTranslationDTOs[0].LanguageCode', 'en-US');
-        formData.append('ProductTranslationDTOs[1].Name', values.nameAr);
-        formData.append('ProductTranslationDTOs[1].LanguageCode', 'ar-EG');
+        formData.append('ProductTranslations[0].Name', values.nameEn);
+        formData.append('ProductTranslations[0].LanguageCode', 'en-US');
+        formData.append('ProductTranslations[1].Name', values.nameAr);
+        formData.append('ProductTranslations[1].LanguageCode', 'ar-EG');
 
         // Variants
         values.variants.forEach((variant, index) => {
             if (variant.image?.file) {
-                formData.append(`ProductVariantDTOs[${index}].Img`, variant.image.file);
+                formData.append(`ProductVariants[${index}].Img`, variant.image.file);
             }
-            formData.append(`ProductVariantDTOs[${index}].IsMainImg`, variant.isMain);
+            formData.append(`ProductVariants[${index}].IsMainImg`, variant.isMain);
 
             // Dictionary lookup for unit labels
             const unitObj = units.find(u => u.value === variant.unit);
@@ -115,14 +115,14 @@ const AddProductPage = () => {
             const unitAr = unitObj ? unitObj.labelAr : variant.unit;
 
             // Variant Translations - AR
-            formData.append(`ProductVariantDTOs[${index}].ProductVariantTranslationDTOs[0].LanguageCode`, 'ar-EG');
-            formData.append(`ProductVariantDTOs[${index}].ProductVariantTranslationDTOs[0].Description`, variant.descAr);
-            formData.append(`ProductVariantDTOs[${index}].ProductVariantTranslationDTOs[0].WeightDisplay`, `${variant.weight} ${unitAr}`);
+            formData.append(`ProductVariants[${index}].ProductVariantTranslations[0].LanguageCode`, 'ar-EG');
+            formData.append(`ProductVariants[${index}].ProductVariantTranslations[0].Description`, variant.descAr);
+            formData.append(`ProductVariants[${index}].ProductVariantTranslations[0].WeightDisplay`, `${variant.weight} ${unitAr}`);
 
             // Variant Translations - EN
-            formData.append(`ProductVariantDTOs[${index}].ProductVariantTranslationDTOs[1].LanguageCode`, 'en-US');
-            formData.append(`ProductVariantDTOs[${index}].ProductVariantTranslationDTOs[1].Description`, variant.descEn);
-            formData.append(`ProductVariantDTOs[${index}].ProductVariantTranslationDTOs[1].WeightDisplay`, `${variant.weight} ${unitEn}`);
+            formData.append(`ProductVariants[${index}].ProductVariantTranslations[1].LanguageCode`, 'en-US');
+            formData.append(`ProductVariants[${index}].ProductVariantTranslations[1].Description`, variant.descEn);
+            formData.append(`ProductVariants[${index}].ProductVariantTranslations[1].WeightDisplay`, `${variant.weight} ${unitEn}`);
         });
 
         // Log FormData entries for debugging
@@ -156,7 +156,7 @@ const AddProductPage = () => {
     // 3. Fetch SubCategories based on selected Category ID
     const subCategoryFetchOptions = React.useMemo(() => ({
         method: 'POST',
-        data: { Id: values.category }
+        data: { CategoryId: values.category }
     }), [values.category]);
 
     const { data: subCategoriesData } = useQueryFetch(
@@ -169,7 +169,7 @@ const AddProductPage = () => {
     // 4. Fetch Brands based on selected SubCategory ID
     const brandFetchOptions = React.useMemo(() => ({
         method: 'POST',
-        data: { Id: values.subCategory }
+        data: { SubCategoryId: values.subCategory }
     }), [values.subCategory]);
 
     const { data: brandsData } = useQueryFetch(
@@ -186,7 +186,7 @@ const AddProductPage = () => {
     // Bulk SubCategories
     const bulkSubCategoryFetchOptions = React.useMemo(() => ({
         method: 'POST',
-        data: { Id: bulkValues.category }
+        data: { CategoryId: bulkValues.category }
     }), [bulkValues.category]);
 
     const { data: bulkSubCategoriesData } = useQueryFetch(
@@ -199,7 +199,7 @@ const AddProductPage = () => {
     // Bulk Brands
     const bulkBrandFetchOptions = React.useMemo(() => ({
         method: 'POST',
-        data: { Id: bulkValues.subCategory }
+        data: { SubCategoryId: bulkValues.subCategory }
     }), [bulkValues.subCategory]);
 
     const { data: bulkBrandsData } = useQueryFetch(

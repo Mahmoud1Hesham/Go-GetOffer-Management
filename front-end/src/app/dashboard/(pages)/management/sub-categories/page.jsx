@@ -65,7 +65,9 @@ const page = () => {
     const subCategories = useSelector(selectSubCategories);
 
     const mappedRows = (subCategories || []).map((c) => {
-        const categories = c.categories || [];
+        const categories = (Array.isArray(c.categories) && c.categories.length)
+            ? c.categories
+            : (c.categoryWithAllNameResponse ? [c.categoryWithAllNameResponse] : []);
         const parentCategory_AR = categories.map(cat => cat.name_AR || cat.name).filter(Boolean).join(', ');
         const parentCategory_EN = categories.map(cat => cat.name_EN || cat.name).filter(Boolean).join(', ');
 
@@ -103,7 +105,7 @@ const page = () => {
         url: (id) => ({
             url: `/api/subcategory`,
             method: 'DELETE',
-            params: { Id: id }
+            params: { SubCategoryId: id }
         }),
         mutationOptions: {
             onSuccess: () => {

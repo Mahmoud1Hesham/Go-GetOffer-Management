@@ -84,7 +84,7 @@ export default function SubCategoryDialog({
         }
 
         if (!isCreate) {
-            formData.append('Id', initialData?.id);
+            formData.append('SubCategoryId', initialData?.id);
         }
 
         if (isCreate) {

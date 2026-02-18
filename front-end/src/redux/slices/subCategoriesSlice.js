@@ -5,6 +5,11 @@ const initialState = {
 }
 
 function mapSubCategoryItem(item = {}) {
+    // normalize categories: prefer existing `categories[]`, otherwise use new `categoryWithAllNameResponse` shape
+    const rawCategories = (Array.isArray(item.categories) && item.categories.length)
+        ? item.categories
+        : (item.categoryWithAllNameResponse || item.CategoryWithAllNameResponse ? [item.categoryWithAllNameResponse || item.CategoryWithAllNameResponse] : []);
+
     return {
         id: item.id ?? null,
         name: item.name ?? null,
@@ -12,9 +17,9 @@ function mapSubCategoryItem(item = {}) {
         name_EN: item.name_EN ?? null,
         imgUrl: item.imgUrl ?? null,
         imgPublicId: item.imgPublicId ?? null,
-        parentCategoryId: item.parentCategoryId ?? item.ParentCategoryId ?? null,
-        categories: item.categories ?? [],
-        subCategoryTranslations: item.subCategoryTranslations ?? item.SubCategoryTranslations ?? [],
+        parentCategoryId: item.parentCategoryId ?? item.ParentCategoryId ?? rawCategories[0]?.id ?? null,
+        categories: rawCategories,
+        subCategoryTranslations: item.subCategoryTranslations ?? item.SubCategoryTranslations ?? item._raw?.subCategoryTranslations ?? item._raw?.SubCategoryTranslations ?? [],
         _raw: item
     }
 }
