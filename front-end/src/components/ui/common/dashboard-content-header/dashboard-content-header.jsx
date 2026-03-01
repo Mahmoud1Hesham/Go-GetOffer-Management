@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Search, Plus, RotateCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,11 +22,38 @@ export default function DashboardContentHeader({
     apiFilter2,
     apiCreate,
     onSearch,
+    // optional controlled search value (e.g. from URL or parent state)
+    searchValue = "",
     // new props for column visibility control
     columns,
     visibleColumns,
     onVisibleColumnsChange,
 }) {
+    // keep a controlled value locally so the input doesn't reset on every URL push
+    const [searchText, setSearchText] = useState(searchValue || "");
+    const debounceRef = useRef(null);
+
+    // NOTE: do not resync `searchValue` into the local input state after mount.
+    // The input keeps its own debounced state to avoid overwriting user typing
+    // when the parent updates the URL or data. Initial value is taken from
+    // the `searchValue` prop on first render via useState above.
+
+    // clean up on unmount
+    useEffect(() => {
+        return () => {
+            if (debounceRef.current) clearTimeout(debounceRef.current);
+        };
+    }, []);
+
+    const handleSearchInput = (e) => {
+        const v = e.target.value;
+        setSearchText(v);
+        if (debounceRef.current) clearTimeout(debounceRef.current);
+        debounceRef.current = setTimeout(() => {
+            onSearch && onSearch(v);
+        }, 300); // wait 300ms after last keystroke
+    };
+
     return (
         <div className="w-full bg-white border-b border-go-border-l-e flex flex-col py-4">
             {/* title */}
@@ -53,12 +80,13 @@ export default function DashboardContentHeader({
                     </div>
                 ) : (
                     <div className="relative flex-1">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                         <Input
                             className="pl-10 outline-none"
                             type="search"
                             placeholder={searchPlaceholder}
-                            onChange={(e) => onSearch && onSearch(e.target.value)}
+                            value={searchText}
+                            onChange={handleSearchInput}
                         />
                     </div>
                 )}

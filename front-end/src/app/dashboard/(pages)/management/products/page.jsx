@@ -241,9 +241,12 @@ const ProductsManagementContent = () => {
 
     // URL Params are the single source of truth
     const globalParams = useSearchParams();
-    
-    // We use this key to force React to acknowledge URL changes if router is shallow-routing aggressively
-    const routerKey = globalParams.toString();
+
+    // build a key for the main content, but ignore the `search` param so typing
+    // doesn't remount the entire view (which would clear the input state).
+    const routerKey = Array.from(globalParams.entries())
+        .filter(([k]) => k !== 'search')
+        .toString();
 
     const router = useRouter();
     const products = data?.data?.items || [];
@@ -387,6 +390,8 @@ const ProductsManagementContent = () => {
             <div className="w-full">
                 <DashCardGroup statsConfig={statsConfig} />
             </div>
+
+            {/* keep header outside keyed container so input state survives URL changes */}
             <DashboardContentHeader
                 title={
                     <div className="flex items-center gap-2">
@@ -404,6 +409,7 @@ const ProductsManagementContent = () => {
                 apiRefresh={{ title: refreshTitleProducts, onClick: handleProductsRefresh, isLoading: isFetching, disabled: refreshDisabledProducts }}
                 searchPlaceholder="ابحث في المنتجات..."
                 onSearch={setSearch}
+                searchValue={searchQuery}
             />
 
 

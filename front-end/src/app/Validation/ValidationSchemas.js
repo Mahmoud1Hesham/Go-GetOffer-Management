@@ -76,7 +76,7 @@ export const postalCodeRule = Yup.string()
 // Login
 export const loginSchema = Yup.object({
     email: emailRule,
-    passwordHash: passwordRule,
+    Password: passwordRule,
 });
 
 // Signup

@@ -48,12 +48,11 @@ export function useSearchPagination({
     if (!isOnline) setDebouncedSearch(urlSearch);
   }, [urlSearch, isOnline]);
 
-  // Debounce only in online mode
+  // Debounce local search in all modes (URL update controlled separately)
   useEffect(() => {
-    if (!isOnline) return undefined;
     const id = setTimeout(() => setDebouncedSearch(localSearch), 250);
     return () => clearTimeout(id);
-  }, [localSearch, isOnline]);
+  }, [localSearch]);
 
   // helpers to update URL (single source of truth)
   const updateUrl = useCallback((patch = {}) => {
@@ -96,9 +95,8 @@ export function useSearchPagination({
 
   const setSearch = useCallback((value) => {
     setLocalSearch(value ?? "");
-    // reset page to 1 when user changes search
-    updateUrl({ search: value ?? "", page: 1 });
-  }, [updateUrl]);
+    // page reset will be handled when the debounced value propagates below
+  }, []); // no dependencies needed since we don't reference updateUrl here
 
   const setPage = useCallback((p) => {
     updateUrl({ page: p });
@@ -174,6 +172,14 @@ export function useSearchPagination({
 
   // Online parsed data
   const onlineParsed = useMemo(() => parseServer(onlineQuery?.data), [onlineQuery?.data, parseServer]);
+
+  // Update URL when debounced search value changes (handles both online/offline)
+  useEffect(() => {
+    // avoid unnecessary pushes if nothing changed
+    if (debouncedSearch !== urlSearch) {
+      updateUrl({ search: debouncedSearch || "", page: 1 });
+    }
+  }, [debouncedSearch, urlSearch, updateUrl]);
 
   const data = isOnline ? (onlineParsed.items || []) : offlineData;
   const total = isOnline ? (onlineParsed.total || 0) : offlineTotal;

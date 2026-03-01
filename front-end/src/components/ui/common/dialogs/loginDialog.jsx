@@ -35,8 +35,8 @@ export default function LoginDialog() {
     // server / generic error
     const [serverError, setServerError] = useState('')
 
-    // NOTE: use passwordHash as the field name (matches your API & validation)
-    const initialValues = { email: '', passwordHash: '' }
+    // NOTE: backend now expects key `Password` in login payload
+    const initialValues = { email: '', Password: '' }
 
     // keep setErrors available from the hook so we can set field errors returned from backend
     const onSubmit = async (values) => {
@@ -46,19 +46,20 @@ export default function LoginDialog() {
 
         try {
             // call login (await mutateAsync wrapper)
-            const res = await login(values) // values = { email, passwordHash }
+            // build payload using new key name; `values` has { email, Password }
+            const res = await login(values) // values = { email, Password }
 
             if (!res.ok) {
                 const err = res.error || {}
                 const msg = err?.message || (lang === 'en' ? 'Login failed' : 'فشل تسجيل الدخول')
 
-                // backend might return structured field errors: { email: '...', passwordHash: '...' }
+                // backend might return structured field errors: { email: '...', Password: '...' }
                 if (err?.errors && typeof err.errors === 'object') {
                     setErrors?.(err.errors)
                 } else {
                     // heuristic: attach to a field if message mentions it
                     if (msg.toLowerCase().includes('email')) setErrors?.({ email: msg })
-                    else if (msg.toLowerCase().includes('password')) setErrors?.({ passwordHash: msg })
+                    else if (msg.toLowerCase().includes('password')) setErrors?.({ Password: msg })
                     else setServerError(msg)
                 }
                 return false
@@ -173,19 +174,19 @@ export default function LoginDialog() {
                     </div>
 
                     <div>
-                        <Label htmlFor="passwordHash">{lang === 'en' ? 'Password' : 'كلمة السر'}</Label>
+                        <Label htmlFor="Password">{lang === 'en' ? 'Password' : 'كلمة السر'}</Label>
                         <Input
-                            id="passwordHash"
-                            name="passwordHash"
+                            id="Password"
+                            name="Password"
                             type="password"
-                            value={values.passwordHash}
+                            value={values.Password}
                             onChange={handleChange}
                             onBlur={handleBlur}
                             disabled={loginStatus?.isLoading}
-                            aria-invalid={errors.passwordHash && touched.passwordHash ? 'true' : 'false'}
-                            aria-describedby={errors.passwordHash && touched.passwordHash ? 'password-error' : undefined}
+                            aria-invalid={errors.Password && touched.Password ? 'true' : 'false'}
+                            aria-describedby={errors.Password && touched.Password ? 'password-error' : undefined}
                         />
-                        {errors.passwordHash && touched.passwordHash && <p id="password-error" className="text-sm text-red-500">{errors.passwordHash}</p>}
+                        {errors.Password && touched.Password && <p id="password-error" className="text-sm text-red-500">{errors.Password}</p>}
                     </div>
 
                     {serverError && <p className="text-sm text-red-600">{serverError}</p>}
