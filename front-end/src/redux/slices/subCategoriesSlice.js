@@ -1,4 +1,5 @@
-import { createSlice } from '@reduxjs/toolkit'
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
+import axios from '../../lib/axios/axios'
 
 const initialState = {
     subCategories: []
@@ -40,3 +41,16 @@ const subCategoriesSlice = createSlice({
 export const { setSubCategories, clearSubCategories } = subCategoriesSlice.actions
 export const selectSubCategories = state => state.subCategories.subCategories
 export default subCategoriesSlice.reducer
+
+export const permanentDeleteSubCategory = createAsyncThunk(
+    'subCategories/permanentDeleteSubCategory',
+    async (id, { rejectWithValue }) => {
+        try {
+            const res = await axios.delete('/api/subcategory/remove', { data: { SubCategoryId: id } })
+            return res.data
+        } catch (err) {
+            const message = err?.response?.data?.message || err.message || 'Permanent delete failed'
+            return rejectWithValue(message)
+        }
+    }
+)

@@ -13,6 +13,7 @@ import UnifiedFilterSheet from '@/components/ui/filters/UnifiedFilterSheet';
 import { useSearchParams } from 'next/navigation';
 import React, { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
+import { permanentDeleteCategory } from '@/redux/slices/categoriesSlice';
 import { toast } from 'sonner';
 import Spinner from '@/components/ui/common/spinner/spinner';
 import CategoryDialog from '@/components/ui/common/dialogs/categoryDialog';
@@ -241,6 +242,15 @@ const page = () => {
             rowDialog={<CategoryDialog />}
             onDelete={(id) => {
                 deleteMutation.mutate(id);
+            }}
+            onPermanentDelete={async (id) => {
+                try {
+                    const res = await dispatch(permanentDeleteCategory(id)).unwrap();
+                    toast.success(res?.message || (lang === 'en' ? 'Category permanently deleted' : 'تم الحذف نهائيًا'));
+                    try { await refetch(); } catch (e) { queryClient.invalidateQueries({ queryKey: ['allCategories'] }); }
+                } catch (err) {
+                    toast.error(err || (lang === 'en' ? 'Permanent delete failed' : 'فشل الحذف النهائي'));
+                }
             }}
 
             pageSizeOptions={[5, 10, 25]}

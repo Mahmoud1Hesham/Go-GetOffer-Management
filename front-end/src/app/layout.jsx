@@ -51,12 +51,6 @@ const ibm = localFont({
   display: "swap",
 });
 
-const roboto = localFont({
-  src: "../fonts/RobotoFlex-VariableFont_GRAD,XOPQ,XTRA,YOPQ,YTAS,YTDE,YTFI,YTLC,YTUC,opsz,slnt,wdth,wght.ttf",
-  variable: "--font-roboto",
-  display: "swap",
-});
-
 
 export const metadata = {
   title: "Go-GetOffer Management App",
@@ -73,7 +67,7 @@ export default async function RootLayout({ children }) {
   return (
     // hardcode arabic for layout direction, can be dynamic based on user preference lang={lang}
     <html lang="ar" dir="rtl" key="ar" suppressHydrationWarning>
-      <body  className={`font-honor ${figtreeRegular.variable} ${lemands.variable} ${hacen.variable} ${honor.variable} ${bavistage.variable} ${ibm.variable} ${roboto.variable} antialiased`}>
+      <body  className={`font-honor ${figtreeRegular.variable} ${lemands.variable} ${hacen.variable} ${honor.variable} ${bavistage.variable} ${ibm.variable} antialiased`}>
         <LanguageProvider defaultLang="ar">
           <Providers>
             {children}

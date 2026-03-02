@@ -13,6 +13,7 @@ import UnifiedFilterSheet from '@/components/ui/filters/UnifiedFilterSheet';
 import { useSearchParams } from 'next/navigation';
 import React, { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
+import { permanentDeleteBrand } from '@/redux/slices/brandsSlice';
 import { toast } from 'sonner';
 import Spinner from '@/components/ui/common/spinner/spinner';
 import BrandDialog from '@/components/ui/common/dialogs/brandDialog';
@@ -167,6 +168,15 @@ const page = () => {
                     rowDialog={<BrandDialog />}
                     onDelete={(id) => {
                         deleteMutation.mutate(id);
+                    }}
+                    onPermanentDelete={async (id) => {
+                        try {
+                            const res = await dispatch(permanentDeleteBrand(id)).unwrap();
+                            toast.success(res?.message || (lang === 'en' ? 'Brand permanently deleted' : 'تم الحذف نهائيًا'));
+                            try { await refetch(); } catch (e) { queryClient.invalidateQueries({ queryKey: ['allBrands'] }); }
+                        } catch (err) {
+                            toast.error(err || (lang === 'en' ? 'Permanent delete failed' : 'فشل الحذف النهائي'));
+                        }
                     }}
         
                     pageSizeOptions={[5, 10, 25]}

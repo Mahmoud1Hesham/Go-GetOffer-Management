@@ -101,6 +101,20 @@ export const deleteProduct = createAsyncThunk(
 	}
 )
 
+export const permanentDeleteProduct = createAsyncThunk(
+	'productsManagement/permanentDeleteProduct',
+	async (id, { rejectWithValue }) => {
+		try {
+			// DELETE /api/product/remove with body { ProductId }
+			const res = await axios.delete('/api/product/remove', { data: { ProductId: id } })
+			return res.data
+		} catch (err) {
+			const message = err?.response?.data?.message || err.message || 'Permanent delete failed'
+			return rejectWithValue(message)
+		}
+	}
+)
+
 export const updateProduct = createAsyncThunk(
 	'productsManagement/updateProduct',
 	async (data, { rejectWithValue }) => {
@@ -176,6 +190,19 @@ const productsManagementSlice = createSlice({
 			.addCase(deleteProduct.rejected, (state, action) => {
 				state.loading = false
 				state.error = action.payload || action.error?.message || 'Failed to delete product'
+			})
+			.addCase(permanentDeleteProduct.pending, (state) => {
+				state.loading = true
+				state.error = null
+			})
+			.addCase(permanentDeleteProduct.fulfilled, (state, action) => {
+				state.loading = false
+				state.error = null
+				state.message = action.payload?.message ?? 'Product permanently deleted successfully'
+			})
+			.addCase(permanentDeleteProduct.rejected, (state, action) => {
+				state.loading = false
+				state.error = action.payload || action.error?.message || 'Failed to permanently delete product'
 			})
 			.addCase(updateProduct.pending, (state) => {
 				state.loading = true

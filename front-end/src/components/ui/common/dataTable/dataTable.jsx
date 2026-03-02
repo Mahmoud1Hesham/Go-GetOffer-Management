@@ -80,6 +80,8 @@ export default function DataTable({
     onSelectionChange,
     onOrderChange,
     onDelete = null,
+    // Optional permanent delete callback (confirmed via modal)
+    onPermanentDelete = null,
     onEdit = null,
     // Optional: a dialog React element (e.g. <SupplierDialog />) that will be
     // cloned and opened in `update` mode when the row 'تعديل' action is clicked.
@@ -289,6 +291,24 @@ export default function DataTable({
                                         customActionKey: key,
                                     });
                                 }}>حذف</DropdownMenuItem>
+                                <DropdownMenuItem className="w-full justify-end text-right text-red-600" onClick={() => {
+                                    const key = registerCallback(() => {
+                                        if (onPermanentDelete && typeof onPermanentDelete === 'function') {
+                                            onPermanentDelete(row.id);
+                                        } else {
+                                            console.log('permanent delete confirmed', row.id);
+                                        }
+                                    });
+                                    openModal({
+                                        isOpen: true,
+                                        type: 'failure',
+                                        title: 'تأكيد الحذف النهائي',
+                                        message: 'هذا الحذف نهائي ولا يمكن استعادته. هل ترغب بالمتابعة؟',
+                                        actionName: 'حذف نهائي',
+                                        cancelTitle: 'إلغاء',
+                                        customActionKey: key,
+                                    });
+                                }}>حذف نهائي</DropdownMenuItem>
                                 {orderPlacing && <DropdownMenuItem className="w-full justify-end text-right" onClick={() => {
 
                                     console.log('place order confirmed', row.id);

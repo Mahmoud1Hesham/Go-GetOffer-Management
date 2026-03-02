@@ -19,6 +19,7 @@ import Spinner from '@/components/ui/common/spinner/spinner';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { permanentDeleteProduct } from '@/redux/slices/productsManagementSlice';
 
 const columns = [
     { key: 'checkbox', title: '', width: 40 },
@@ -237,6 +238,18 @@ const ProductsManagementContent = () => {
         }
     );
 
+    // Permanent delete handler moved to redux slice
+    const handlePermanentDelete = async (id) => {
+        try {
+            const res = await dispatch(permanentDeleteProduct(id)).unwrap();
+            toast.success(res?.message || 'تم الحذف نهائيًا');
+            try { await refetch(); } catch (e) { queryClient.invalidateQueries(['products']); }
+        } catch (err) {
+            const message = err || 'فشل الحذف النهائي';
+            toast.error(message);
+        }
+    };
+
     const { onClick: handleProductsRefresh, title: refreshTitleProducts, disabled: refreshDisabledProducts } = useRefreshCooldown({ refetch, successMessage: 'تم تحديث المنتجات' });
 
     // URL Params are the single source of truth
@@ -450,6 +463,7 @@ const ProductsManagementContent = () => {
                 }}
                 onSelectionChange={(sel) => console.log('selected', sel)}
                 onOrderChange={(newRows) => console.log('new order', newRows.map(r => r.id))}
+                onPermanentDelete={handlePermanentDelete}
             />
 
             <UnifiedFilterSheet

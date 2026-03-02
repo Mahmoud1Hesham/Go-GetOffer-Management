@@ -278,7 +278,10 @@ export default function CategoryDialog({
                                         autoUpload={false}
                                         title={lang === 'ar' ? "اسحب الملف هنا للبدء بالرفع أو تصفح الملفات" : "Drag file here or browse"}
                                         subtitle={lang === 'ar' ? "الملفات المدعومة: xlsx" : "Supported files: xlsx"}
-                                        acceptedFileTypes={{ '.xlsx': ['.xlsx'] }}
+                                        acceptedFileTypes={{
+                                            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
+                                            'application/vnd.ms-excel': ['.xls', '.xlsx']
+                                        }}
                                     />
 
                                     <div className="flex items-center gap-3 mt-3">

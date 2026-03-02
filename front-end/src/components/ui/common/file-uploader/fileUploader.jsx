@@ -18,8 +18,11 @@ const FileUploader = ({
         "image/png": [],
         "image/jpg": [],
         "image/svg+xml": ['.svg'],
-        "application/pdf": [],
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [],
+        "application/pdf": ['.pdf'],
+        // modern Office Open XML spreadsheets (.xlsx)
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": ['.xlsx'],
+        // legacy Excel MIME (and allow .xls for compatibility)
+        "application/vnd.ms-excel": ['.xls', '.xlsx'],
     },
     acceptedFileTypes = null,
     apiUrl = "",
