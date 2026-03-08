@@ -196,7 +196,7 @@ const page = () => {
         url: (id) => ({
             url: `/api/category`,
             method: 'DELETE',
-            params: { CategoryId: id }
+            data: { CategoryId: id }
         }),
         mutationOptions: {
             onSuccess: () => {

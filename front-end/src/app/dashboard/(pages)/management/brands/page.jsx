@@ -122,7 +122,7 @@ const page = () => {
         url: (id) => ({
             url: `/api/brand`,
             method: 'DELETE',
-            params: { BrandId: id }
+            data: { BrandId: id }
         }),
         mutationOptions: {
             onSuccess: () => {

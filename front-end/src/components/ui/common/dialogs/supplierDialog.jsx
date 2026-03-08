@@ -309,8 +309,7 @@ export default function SupplierDialog({ triggerNode = null, mode = 'create', in
                         }
 
                         try {
-                            // API expects { Id: <governorateId> }
-                            const res = await axios.post('/api/city/gov', { Id: govId })
+                            const res = await axios.post('/api/city/gov', { GovernorateId: govId })
                             const items = res?.data?.data ?? res?.data ?? []
                             if (!mounted) return
                             const mapped = Array.isArray(items)

@@ -39,7 +39,7 @@ const UpdateProductPage = () => {
     // Fetch Product Data
     const { data: productData, isLoading: isFetchingProduct } = useQueryFetch(
         ['product', id],
-        `/api/catalog/search`,
+        `/api/product/id`,
         { params: { ProductId: id }, enabled: !!id }
     );
 
@@ -85,41 +85,41 @@ const UpdateProductPage = () => {
     const onSubmit = (values) => {
         console.log("Submitting update values:", values);
         const formData = new FormData();
-        formData.append('Id', id);
+        formData.append('ProductId', id);
         formData.append('BrandId', values.brand);
         formData.append('IsTax', values.hasVat);
 
         // Product Translations
-        formData.append('ProductTranslationDTOs[0].Name', values.nameEn);
-        formData.append('ProductTranslationDTOs[0].LanguageCode', 'en-US');
-        formData.append('ProductTranslationDTOs[1].Name', values.nameAr);
-        formData.append('ProductTranslationDTOs[1].LanguageCode', 'ar-EG');
+        formData.append('ProductTranslations[0].Name', values.nameEn);
+        formData.append('ProductTranslations[0].LanguageCode', 'en-US');
+        formData.append('ProductTranslations[1].Name', values.nameAr);
+        formData.append('ProductTranslations[1].LanguageCode', 'ar-EG');
 
         // Variants
         values.variants.forEach((variant, index) => {
             if (variant.dbId) {
-                formData.append(`ProductVariantDTOs[${index}].Id`, variant.dbId);
+                formData.append(`ProductVariants[${index}].Id`, variant.dbId);
             }
 
             if (variant.image?.file) {
-                formData.append(`ProductVariantDTOs[${index}].Img`, variant.image.file);
+                formData.append(`ProductVariants[${index}].Img`, variant.image.file);
             }
-            formData.append(`ProductVariantDTOs[${index}].IsMainImg`, variant.isMain);
+            formData.append(`ProductVariants[${index}].IsMainImg`, variant.isMain);
 
             // Dictionary lookup for unit labels
             const unitObj = units.find(u => u.value === variant.unit);
             const unitEn = unitObj ? unitObj.labelEn : variant.unit;
             const unitAr = unitObj ? unitObj.labelAr : variant.unit;
 
-            // Variant Translations - AR
-            formData.append(`ProductVariantDTOs[${index}].ProductVariantTranslationDTOs[0].LanguageCode`, 'ar-EG');
-            formData.append(`ProductVariantDTOs[${index}].ProductVariantTranslationDTOs[0].Description`, variant.descAr);
-            formData.append(`ProductVariantDTOs[${index}].ProductVariantTranslationDTOs[0].WeightDisplay`, `${variant.weight} ${unitAr}`);
+            // Variant Translationss - AR
+            formData.append(`ProductVariants[${index}].ProductVariantTranslations[0].LanguageCode`, 'ar-EG');
+            formData.append(`ProductVariants[${index}].ProductVariantTranslations[0].Description`, variant.descAr);
+            formData.append(`ProductVariants[${index}].ProductVariantTranslations[0].WeightDisplay`, `${variant.weight} ${unitAr}`);
 
-            // Variant Translations - EN
-            formData.append(`ProductVariantDTOs[${index}].ProductVariantTranslationDTOs[1].LanguageCode`, 'en-US');
-            formData.append(`ProductVariantDTOs[${index}].ProductVariantTranslationDTOs[1].Description`, variant.descEn);
-            formData.append(`ProductVariantDTOs[${index}].ProductVariantTranslationDTOs[1].WeightDisplay`, `${variant.weight} ${unitEn}`);
+            // Variant Translationss - EN
+            formData.append(`ProductVariants[${index}].ProductVariantTranslations[1].LanguageCode`, 'en-US');
+            formData.append(`ProductVariants[${index}].ProductVariantTranslations[1].Description`, variant.descEn);
+            formData.append(`ProductVariants[${index}].ProductVariantTranslations[1].WeightDisplay`, `${variant.weight} ${unitEn}`);
         });
 
         // Log FormData entries for debugging
@@ -167,17 +167,17 @@ const UpdateProductPage = () => {
             // The API returns localized flat data (e.g. name, weightDisplay, description)
 
             // Name
-            const nameAr = p.name || '';
-            const nameEn = p.name || ''; // Fallback since API only gives one name
+            const nameAr = p.name_AR || '';
+            const nameEn = p.name_EN || '';
 
             // Variants
             const variantsSource = p.productVariants || [];
             const variants = variantsSource.map((v, idx) => {
-                // Prefer localized fields (weightDisplay_AR/EN, description_AR/EN), fall back to translations
-                const translationAr = v.productVariantTranslations?.find(t => String(t.languageCode).toLowerCase().startsWith('ar')) || v.productVariantTranslations?.[0] || {};
-                const translationEn = v.productVariantTranslations?.find(t => String(t.languageCode).toLowerCase().startsWith('en')) || v.productVariantTranslations?.[0] || {};
+                // Prefer localized fields (weightDisplay_AR/EN, description_AR/EN), fall back to Translationss
+                const TranslationsAr = v.productVariantTranslationss?.find(t => String(t.languageCode).toLowerCase().startsWith('ar')) || v.productVariantTranslationss?.[0] || {};
+                const TranslationsEn = v.productVariantTranslationss?.find(t => String(t.languageCode).toLowerCase().startsWith('en')) || v.productVariantTranslationss?.[0] || {};
 
-                const weightRaw = v.weightDisplay || v.weightDisplay_AR || v.weightDisplay_EN || translationAr.weightDisplay || translationEn.weightDisplay || '';
+                const weightRaw = v.weightDisplay || v.weightDisplay_AR || v.weightDisplay_EN || TranslationsAr.weightDisplay || TranslationsEn.weightDisplay || '';
                 const parts = String(weightRaw).trim().split(' ');
                 const weight = parts[0] || '';
                 const rawUnit = parts.length > 1 ? parts.slice(1).join(' ') : '';
@@ -197,8 +197,8 @@ const UpdateProductPage = () => {
                     return exact ? exact.value : 'milliliter';
                 };
 
-                const descAr = v.description_AR || v.description || translationAr.description || '';
-                const descEn = v.description_EN || v.description || translationEn.description || '';
+                const descAr = v.description_AR || v.description || TranslationsAr.description || '';
+                const descEn = v.description_EN || v.description || TranslationsEn.description || '';
 
                 return {
                     id: idx + 1,
@@ -238,7 +238,7 @@ const UpdateProductPage = () => {
     // 3. Fetch SubCategories based on selected Category ID
     const subCategoryFetchOptions = React.useMemo(() => ({
         method: 'POST',
-        data: { Id: values.category }
+        data: { CategoryId: values.category }
     }), [values.category]);
 
     const { data: subCategoriesData } = useQueryFetch(
@@ -251,7 +251,7 @@ const UpdateProductPage = () => {
     // 4. Fetch Brands based on selected SubCategory ID
     const brandFetchOptions = React.useMemo(() => ({
         method: 'POST',
-        data: { Id: values.subCategory }
+        data: { SubCategoryId: values.subCategory }
     }), [values.subCategory]);
 
     const { data: brandsData } = useQueryFetch(

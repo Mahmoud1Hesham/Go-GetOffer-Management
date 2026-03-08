@@ -92,7 +92,7 @@ export const deleteProduct = createAsyncThunk(
 	'productsManagement/deleteProduct',
 	async (id, { rejectWithValue }) => {
 		try {
-			const res = await axios.delete('/api/product', { data: { Id: id } })
+			const res = await axios.delete('/api/product', { data: { ProductId: id } })
 			return res.data
 		} catch (err) {
 			const message = err?.response?.data?.message || err.message || 'Delete failed'

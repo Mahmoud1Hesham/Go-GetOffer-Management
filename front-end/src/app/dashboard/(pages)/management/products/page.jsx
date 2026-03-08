@@ -481,9 +481,9 @@ const ProductsManagementContent = () => {
             />
         </div>
         {/* Debug Data */}
-        <div className="w-full p-4 bg-gray-100 rounded overflow-auto max-h-60 text-xs" dir="ltr">
+        {/* <div className="w-[70%] justify-start flex p-4 bg-gray-100 rounded overflow-auto max-h-60 text-xs" dir="ltr">
             <pre>{JSON.stringify(products, null, 2)}</pre>
-        </div>
+        </div> */}
 
     </>
 

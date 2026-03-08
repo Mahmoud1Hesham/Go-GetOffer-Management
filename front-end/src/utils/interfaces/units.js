@@ -1,4 +1,6 @@
 export const units = [
+
+    { value: "tag", labelEn: "Tag", labelAr: "فتلة" },
     { value: "envelope", labelEn: "Envelope", labelAr: "ظرف" },
     { value: "bag", labelEn: "Bag", labelAr: "كيس" },
     { value: "can", labelEn: "Can", labelAr: "علبة" },
