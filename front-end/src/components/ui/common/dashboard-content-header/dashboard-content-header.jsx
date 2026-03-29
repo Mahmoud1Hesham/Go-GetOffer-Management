@@ -4,9 +4,11 @@ import React, { useState, useRef, useEffect } from "react";
 import { Search, Plus, RotateCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Switch } from '@/components/ui/switch';
 import { Combobox } from "../combo-box/comboBox";
 import { IoFilter } from "react-icons/io5";
 import { GoColumns } from "react-icons/go";
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import Tabs, { TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function DashboardContentHeader({
@@ -28,6 +30,11 @@ export default function DashboardContentHeader({
     columns,
     visibleColumns,
     onVisibleColumnsChange,
+    // optional show-deleted toggle (default: hidden). When enabled renders a switch and
+    // notifies parent via `onShowDeletedChange`. Parent should include the value in the query key.
+    showDeletedToggle = false,
+    showDeleted,
+    onShowDeletedChange,
 }) {
     // keep a controlled value locally so the input doesn't reset on every URL push
     const [searchText, setSearchText] = useState(searchValue || "");
@@ -44,6 +51,18 @@ export default function DashboardContentHeader({
             if (debounceRef.current) clearTimeout(debounceRef.current);
         };
     }, []);
+
+    const isShowDeletedControlled = typeof showDeleted === 'boolean';
+    const [localShowDeleted, setLocalShowDeleted] = useState(showDeleted ?? false);
+
+    useEffect(() => {
+        if (isShowDeletedControlled) setLocalShowDeleted(showDeleted);
+    }, [showDeleted, isShowDeletedControlled]);
+
+    const handleShowDeletedToggle = (checked) => {
+        if (!isShowDeletedControlled) setLocalShowDeleted(checked);
+        onShowDeletedChange && onShowDeletedChange(checked);
+    };
 
     const handleSearchInput = (e) => {
         const v = e.target.value;
@@ -93,18 +112,33 @@ export default function DashboardContentHeader({
                 {/* buttons group */}
                 <div className="flex items-center gap-2">
 
-                    {/* Optional refresh button (presentation-only; handler supplied by page) */}
-                    {apiRefresh && (
-                        <Button
-                            variant="outline"
-                            className="rounded-lg flex items-center gap-2"
-                            onClick={() => apiRefresh.onClick && apiRefresh.onClick()}
-                            disabled={apiRefresh.isLoading || apiRefresh.disabled}
-                        >
-                            <RotateCw className={apiRefresh.isLoading ? 'animate-spin' : ''} />
-                            <span className="text-sm">{apiRefresh.title ?? 'تحديث'}</span>
-                        </Button>
-                    )}
+                        {showDeletedToggle && (
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <div className="flex items-center px-2">
+                                        <Switch
+                                            id="showDeletedToggle"
+                                            checked={localShowDeleted}
+                                            onCheckedChange={handleShowDeletedToggle}
+                                        />
+                                    </div>
+                                </TooltipTrigger>
+                                <TooltipContent side="bottom">إظهار المحذوفات</TooltipContent>
+                            </Tooltip>
+                        )}
+
+                        {/* Optional refresh button (presentation-only; handler supplied by page) */}
+                        {apiRefresh && (
+                            <Button
+                                variant="outline"
+                                className="rounded-lg flex items-center gap-2"
+                                onClick={() => apiRefresh.onClick && apiRefresh.onClick()}
+                                disabled={apiRefresh.isLoading || apiRefresh.disabled}
+                            >
+                                <RotateCw className={apiRefresh.isLoading ? 'animate-spin' : ''} />
+                                <span className="text-sm">{apiRefresh.title ?? 'تحديث'}</span>
+                            </Button>
+                        )}
 
                     {/* Column customization: use Combobox when `columns` prop provided */}
                     {columns ? (
@@ -152,6 +186,7 @@ export default function DashboardContentHeader({
                         </Button>
                     )}
 
+
                     {/* Build the header button once so we can either render it directly
                         or inject it as the dialog trigger into a provided `createComponent`. */}
                     {(() => {
@@ -187,6 +222,7 @@ export default function DashboardContentHeader({
                             )
                         )
                     })()}
+                    
                 </div>
 
             </div>

@@ -102,7 +102,6 @@ export default function SupplierDialog({ triggerNode = null, mode = 'create', in
 
         const activitiesArr = Array.isArray(values.activities) ? values.activities : (values.activities ? [values.activities] : [])
         activitiesArr.forEach((a) => formData.append('ActivityType[]', a))
-        phoneArr.forEach((p) => formData.append('PhoneNumbers[]', p))
 
         const attachFiles = (list, key) => {
             if (!list) return 0
@@ -235,13 +234,16 @@ export default function SupplierDialog({ triggerNode = null, mode = 'create', in
                 function mapInitial(data) {
                     if (!data) return initialValues;
 
+                    const raw = data._raw || data;
+                    const mainNumber = raw.number || data.companyNumber || data.number;
+
                     // Support both raw API shape and the mapped supplier object from the slice.
                     // The slice maps `profile.activityType` -> `categories` and branch -> `branchName`.
                     return {
                         id: data.id ?? data.supplierId ?? null,
                         companyName: data.companyName ?? data.name ?? "",
                         fullName: data.fullName ?? "",
-                        phoneNumbers: data.phoneNumbers ?? (data.phone ? [data.phone] : [""]),
+                        phoneNumbers: mainNumber ? [mainNumber] : (data.phoneNumbers ?? (data.phone ? [data.phone] : [""])),
                         email: data.email ?? "",
                         // activities can come as `activities`, `activityType`, or `categories` (from slice)
                         activities: data.activities ?? data.activityType ?? data.categories ?? [],

@@ -21,6 +21,7 @@ import useSearchPagination from '@/hooks/useSearchPagination'
 import { useQueryFetch } from '@/hooks/useQueryFetch'
 import useRefreshCooldown from '@/hooks/useRefreshCooldown'
 import { toast } from 'sonner';
+import useFetch from '@/hooks/useFetch';
 
 const columns = [
     { key: 'checkbox', title: '', width: 40 },
@@ -56,16 +57,20 @@ const columns = [
         key: 'status', title: 'الحالة', width: 120, render: (r) => {
             const raw = String(r.status ?? '').trim();
             const lower = raw.toLowerCase();
-
             // Map common Arabic/English variants to states
             const isRejected = /رفض|مرفوض|rejected/.test(lower);
             const isApproved = /مقبول|موافق|approved|active/.test(lower);
             const isPending = /قيد الانتظار|قيد|pending/.test(lower);
 
+            // Detect deleted state from text or raw payload
+            const isDeleted = /محذوف|deleted/.test(lower) || (!!r._raw && (r._raw.isDeleted === true || r._raw.IsDeleted === true)) || (r.isDeleted === true);
+
             const base = 'px-3 py-5! text-xs rounded-xl';
             let classes = '';
 
-            if (isRejected) {
+            if (isDeleted) {
+                classes = `${base} bg-gray-100 text-gray-600`;
+            } else if (isRejected) {
                 classes = `${base} bg-red-50 text-red-600`;
             } else if (isApproved) {
                 classes = `${base} bg-green-50 text-green-500`;
@@ -76,7 +81,11 @@ const columns = [
                 classes = `${base} bg-[#FDEDCE] text-go-primary-o`;
             }
 
-            return <span className={classes}>{raw}</span>;
+            return (
+                <div className="flex justify-center w-full">
+                    <span className={classes}>{isDeleted ? 'محذوف' : raw}</span>
+                </div>
+            );
         }
     },
     { key: 'actions', title: 'خيارات', width: 120 },
@@ -234,7 +243,10 @@ const page = () => {
     const searchParams = useSearchParams()
     const lang = searchParams.get('lang') || 'ar'
 
-    const { data: fetchedData, isLoading: isFetchLoading, isFetching: isFetchFetching, refetch } = useQueryFetch('suppliers', '/api/SupplierProfile', { params: { pageSize: 10000 } });
+    const [showDeleted, setShowDeleted] = useState(false);
+
+    const { data: fetchedData, isLoading: isFetchLoading, isFetching: isFetchFetching, refetch } = useQueryFetch(['suppliers', showDeleted], '/api/SupplierProfile', { params: { pageSize: 10000, ...(showDeleted ? { isDeleted: true } : {}) } });
+    const { run: restoreSupplier } = useFetch('/api/Supplier/restore', { method: 'POST', manual: true });
 
     useEffect(() => {
         if (fetchedData) {
@@ -305,6 +317,8 @@ const page = () => {
             maximumProcessingDays: s.maximumProcessingDays,
             hasElectronicInvoice: s.hasElectronicInvoice,
             hasDeliveryService: s.hasDeliveryService,
+            isDeleted: s.isDeleted || s.IsDeleted || false,
+            _raw: s,
         }
     })
 
@@ -401,6 +415,9 @@ const page = () => {
             apiRefresh={{ title: refreshTitle, onClick: handleRefetchWithCooldown, isLoading: isFetchFetching, disabled: refreshDisabled }}
             searchPlaceholder="ابحث في الموردين..."
             onSearch={(value) => setSearch(value)}
+            showDeletedToggle={true}
+            showDeleted={showDeleted}
+            onShowDeletedChange={(val) => { setShowDeleted(val); setPage(1); }}
         />
         <DataTable
             columns={columns}
@@ -420,6 +437,15 @@ const page = () => {
                 } catch (error) {
                     console.error('Error logging supplier id for deletion:', error);
                     toast.error(error || "حدث خطأ أثناء حذف المورد");
+                }
+            }}
+            onRestore={async (id) => {
+                const res = await restoreSupplier({ data: { supplierId: id } });
+                if (res.ok) {
+                    toast.success("تم استعادة المورد بنجاح");
+                    refetch();
+                } else {
+                    toast.error("حدث خطأ أثناء الاستعادة");
                 }
             }}
 

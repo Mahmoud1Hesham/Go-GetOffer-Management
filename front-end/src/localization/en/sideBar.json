@@ -10,6 +10,7 @@
             "Departments": {
                 "join": "Joining Requests",
                 "order": "Orders Tracking",
+                "info-change": "Supplier Info Change requests",
                 "purchase": "Purchases",
                 "complains":"Complains"
             }

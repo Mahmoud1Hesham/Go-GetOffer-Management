@@ -20,6 +20,7 @@ import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { permanentDeleteProduct } from '@/redux/slices/productsManagementSlice';
+import useFetch from '@/hooks/useFetch';
 
 const columns = [
     { key: 'checkbox', title: '', width: 40 },
@@ -70,10 +71,14 @@ const columns = [
             const isRejected = /غير مفعل|مرفوض|rejected/.test(lower);
             const isApproved = /مفعل|موافق|approved|active/.test(lower);
 
+            const isDeleted = /محذوف|deleted/.test(lower) || (!!r._raw && (r._raw.isDeleted === true || r._raw.IsDeleted === true));
+
             const base = 'px-3 py-5! text-xs rounded-xl';
             let classes = '';
 
-            if (isRejected) {
+            if (isDeleted) {
+                classes = `${base} bg-gray-100 text-gray-600`;
+            } else if (isRejected) {
                 classes = `${base} bg-red-50 text-red-600`;
             } else if (isApproved) {
                 classes = `${base} bg-green-50 text-green-500`;
@@ -82,7 +87,7 @@ const columns = [
                 classes = `${base} bg-[#FDEDCE] text-go-primary-o`;
             }
 
-            return <span className={classes}>{raw}</span>;
+            return <span className={classes}>{isDeleted ? 'محذوف' : raw}</span>;
         }
     },
     // { key: 'branch', title: 'الفرع الرئيسى', width: 90, render: (r) => <div>{r.branch}</div> },
@@ -212,6 +217,7 @@ const ProductsManagementContent = () => {
     const [visibleColumns, setVisibleColumns] = useState(columns.map(c => c.key));
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [filters, setFilters] = useState({});
+    const [showDeleted, setShowDeleted] = useState(false);
 
     // Prepare API params from filters
     const apiFilterParams = {};
@@ -226,17 +232,20 @@ const ProductsManagementContent = () => {
     }
 
     const { data, isLoading, isError, isFetching, refetch } = useQueryFetch(
-        ['products', currentPage, limit, apiFilterParams, searchQuery],
+        ['products', currentPage, limit, apiFilterParams, searchQuery, showDeleted],
         '/api/product/withallname',
         {
             params: {
                 pageSize: limit,
                 page: currentPage,
                 search: searchQuery,
-                ...apiFilterParams
+                ...apiFilterParams,
+                        ...(showDeleted ? { isDeleted: true } : {})
             }
         }
     );
+
+    const { run: restoreProduct } = useFetch('/api/Product/restore', { method: 'POST', manual: true });
 
     // Permanent delete handler moved to redux slice
     const handlePermanentDelete = async (id) => {
@@ -338,7 +347,7 @@ const ProductsManagementContent = () => {
             code: p.id, // Full ID
             category: (rawCats || []).map(c => getName(c)).filter(Boolean),
             subCategory: (rawSubCats || []).map(s => getName(s)).filter(Boolean),
-            status: p.isActive ? 'مفعل' : 'غير مفعل',
+            status: p.isDeleted ? 'محذوف' : (p.isActive ? 'مفعل' : 'غير مفعل'),
             image: mainVariant.imageUrl || mainVariant.imgUrl || p.imageUrl,
             isTax: p.isTax,
             _raw: p
@@ -423,6 +432,9 @@ const ProductsManagementContent = () => {
                 searchPlaceholder="ابحث في المنتجات..."
                 onSearch={setSearch}
                 searchValue={searchQuery}
+                showDeletedToggle={true}
+                showDeleted={showDeleted}
+                onShowDeletedChange={(val) => { setShowDeleted(val); setPage(1); }}
             />
 
 
@@ -438,6 +450,16 @@ const ProductsManagementContent = () => {
                         queryClient.invalidateQueries(['products']);
                     } catch (error) {
                         toast.error(error || "حدث خطأ أثناء حذف المنتج");
+                    }
+                }}
+                onPermanentDelete={handlePermanentDelete}
+                onRestore={async (id) => {
+                    const res = await restoreProduct({ data: { productId: id } });
+                    if (res.ok) {
+                        toast.success("تم استعادة المنتج بنجاح");
+                        refetch();
+                    } else {
+                        toast.error("حدث خطأ أثناء الاستعادة");
                     }
                 }}
                 onEdit={(r) => router.push(`/dashboard/management/products/update-product?id=${r.id}`)}
@@ -463,7 +485,6 @@ const ProductsManagementContent = () => {
                 }}
                 onSelectionChange={(sel) => console.log('selected', sel)}
                 onOrderChange={(newRows) => console.log('new order', newRows.map(r => r.id))}
-                onPermanentDelete={handlePermanentDelete}
             />
 
             <UnifiedFilterSheet

@@ -18,6 +18,7 @@ import { toast } from 'sonner';
 import Spinner from '@/components/ui/common/spinner/spinner';
 import BrandDialog from '@/components/ui/common/dialogs/brandDialog';
 import { useQueryClient } from '@tanstack/react-query';
+import useFetch from '@/hooks/useFetch';
 
 const columns = [
     // { key: 'checkbox', title: '', width: 40 },
@@ -40,6 +41,7 @@ const columns = [
 
 const page = () => {
     const [visibleColumns, setVisibleColumns] = useState(columns.map(c => c.key));
+    const [showDeleted, setShowDeleted] = useState(false);
     const [filterSheetOpen, setFilterSheetOpen] = useState(false);
     const [appliedFilters, setAppliedFilters] = useState({});
     const dispatch = useDispatch();
@@ -48,7 +50,12 @@ const page = () => {
     const lang = searchParams.get('lang') || 'ar';
     
     // 1. Fetch Brands
-    const { data: apiData, isLoading: isInitialFetching, isFetching: isApiFetching, refetch } = useQueryFetch(['allBrands'], '/api/brand/withallname');
+    const { data: apiData, isLoading: isInitialFetching, isFetching: isApiFetching, refetch } = useQueryFetch(['allBrands', showDeleted], '/api/brand/withallname', {
+        params: {
+            ...(showDeleted ? { isDeleted: true } : {})
+        }
+    });
+    const { run: restoreBrand } = useFetch('/api/Brand/restore', { method: 'POST', manual: true });
     const { onClick: handleBrandsRefresh, title: refreshTitleBrands, disabled: refreshDisabledBrands } = useRefreshCooldown({ refetch, successMessage: 'تم تحديث العلامات التجارية' });
 
     // 2. Dispatch to Redux
@@ -156,6 +163,9 @@ const page = () => {
                     apiRefresh={{ title: refreshTitleBrands, onClick: handleBrandsRefresh, isLoading: isApiFetching, disabled: refreshDisabledBrands }}
                     searchPlaceholder="ابحث في العلامات التجارية..."
                     onSearch={(value) => setSearch(value)}
+                    showDeletedToggle={true}
+                    showDeleted={showDeleted}
+                    onShowDeletedChange={(val) => { setShowDeleted(val); setPage(1); }}
                 />
                 <DataTable
                     columns={columns}
@@ -176,6 +186,15 @@ const page = () => {
                             try { await refetch(); } catch (e) { queryClient.invalidateQueries({ queryKey: ['allBrands'] }); }
                         } catch (err) {
                             toast.error(err || (lang === 'en' ? 'Permanent delete failed' : 'فشل الحذف النهائي'));
+                        }
+                    }}
+                    onRestore={async (id) => {
+                        const res = await restoreBrand({ data: { brandId: id } });
+                        if (res.ok) {
+                            toast.success("تم استعادة العلامة التجارية بنجاح");
+                            refetch();
+                        } else {
+                            toast.error("حدث خطأ أثناء الاستعادة");
                         }
                     }}
         

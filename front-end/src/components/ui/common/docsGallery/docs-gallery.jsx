@@ -17,6 +17,7 @@ export default function DocsGallery({ items = [], thumbWidth = 160, thumbHeight 
     const [open, setOpen] = useState(false);
     const [active, setActive] = useState(null); // active item
     const [blobMap, setBlobMap] = useState({});
+    const [imgErrors, setImgErrors] = useState({});
 
     // Fetch a given URL as blob and store object URL in blobMap[src] = { url, loading, error }
     const fetchAsBlob = async (src) => {
@@ -104,38 +105,24 @@ export default function DocsGallery({ items = [], thumbWidth = 160, thumbHeight 
                             style={{ height: thumbHeight }}
                         >
                             {it.type === 'image' ? (
-                                <img
-                                    src={it.src}
-                                    alt={it.title || 'image thumbnail'}
-                                    className="object-contain max-h-full max-w-full"
-                                    loading="lazy"
-                                />
+                                imgErrors[it.src] ? (
+                                    <div className="w-full h-full flex flex-col items-center justify-center gap-2 p-2 bg-gray-100">
+                                        <div className="text-3xl">📄</div>
+                                        <div className="text-xs text-center text-gray-500">ملف غير قابل للمعاينة</div>
+                                    </div>
+                                ) : (
+                                    <img
+                                        src={it.src}
+                                        alt={it.title || 'image thumbnail'}
+                                        className="object-contain max-h-full max-w-full"
+                                        loading="lazy"
+                                        onError={() => setImgErrors(prev => ({ ...prev, [it.src]: true }))}
+                                    />
+                                )
                             ) : (
-                                // PDF thumbnail: prefer to render the PDF via a same-origin
-                                // object URL created from a fetched blob to avoid X-Frame-Options
-                                // restrictions. If fetch fails or is pending, show a fallback
-                                // placeholder with an open-in-new-tab link.
-                                <div className="w-full h-full flex items-center justify-center p-2">
-                                    {blobMap[it.src] && blobMap[it.src].url ? (
-                                        <embed
-                                            src={blobMap[it.src].url}
-                                            type="application/pdf"
-                                            title={it.title || 'pdf-preview'}
-                                            className="w-full h-full"
-                                            style={{ border: 'none' }}
-                                        />
-                                    ) : blobMap[it.src] && blobMap[it.src].loading ? (
-                                        <div className="text-sm">جاري التحميل...</div>
-                                    ) : (
-                                        <div className="w-full h-full flex flex-col items-center justify-center gap-2 p-2">
-                                            <div className="text-3xl">📄</div>
-                                            <div className="text-xs truncate text-center">{it.title || 'PDF'}</div>
-                                            <div className=" flex flex-col items-center gap-2 w-full">
-                                                <a href={blobMap[it.src]?.url ?? it.src} target="_blank" rel="noopener noreferrer" className="text-xs px-2 py-1 rounded bg-gray-100 w-full text-center">فتح في نافذة جديدة</a>
-                                                <button onClick={() => fetchAsBlob(it.src)} className="text-xs px-2 py-1 rounded bg-primary-600 text-white w-3/4">محاولة التحميل</button>
-                                            </div>
-                                        </div>
-                                    )}
+                                <div className="w-full h-full flex flex-col items-center justify-center gap-2 p-2 bg-gray-100">
+                                    <div className="text-3xl">📄</div>
+                                    <div className="text-xs text-center text-gray-500">ملف غير قابل للمعاينة</div>
                                 </div>
                             )}
                         </div>
@@ -178,11 +165,20 @@ export default function DocsGallery({ items = [], thumbWidth = 160, thumbHeight 
                         {/* body */}
                         <div className="flex-1 overflow-auto p-4 flex items-start justify-center">
                             {active.type === 'image' ? (
-                                <img
-                                    src={active.src}
-                                    alt={active.title || 'image preview'}
-                                    className="max-w-full max-h-[80vh] object-contain"
-                                />
+                                imgErrors[active.src] ? (
+                                    <div className="flex flex-col items-center justify-center p-8 bg-gray-100 rounded-lg">
+                                        <div className="text-8xl mb-4">📄</div>
+                                        <div className="text-lg text-gray-500 mb-4">لا يمكن عرض المعاينة داخليًا.</div>
+                                        <a href={active.src} target="_blank" rel="noopener noreferrer" className="text-sm px-4 py-2 rounded bg-primary-600 text-white">تحميل الملف</a>
+                                    </div>
+                                ) : (
+                                    <img
+                                        src={active.src}
+                                        alt={active.title || 'image preview'}
+                                        className="max-w-full max-h-[80vh] object-contain"
+                                        onError={() => setImgErrors(prev => ({ ...prev, [active.src]: true }))}
+                                    />
+                                )
                             ) : (
                                 <div className="w-full max-h-[80vh] overflow-auto">
                                     {blobMap[active.src] && blobMap[active.src].url ? (

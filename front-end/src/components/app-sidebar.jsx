@@ -118,6 +118,10 @@ export function AppSidebar({
             url: "/dashboard/divisions/follow-up/supplier-order-tracking",
           },
           {
+            title: t("divisions.follow-up.Departments.info-change"),
+            url: "/dashboard/divisions/follow-up/supplier-info-change",
+          },
+          {
             title: t("divisions.follow-up.Departments.purchase"),
             url: "/dashboard/divisions/follow-up/purchase",
           },

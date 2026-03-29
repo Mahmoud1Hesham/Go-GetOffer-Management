@@ -18,6 +18,7 @@ import { toast } from 'sonner';
 import Spinner from '@/components/ui/common/spinner/spinner';
 import CategoryDialog from '@/components/ui/common/dialogs/categoryDialog';
 import { useQueryClient } from '@tanstack/react-query';
+import useFetch from '@/hooks/useFetch';
 
 const columns = [
     // { key: 'checkbox', title: '', width: 40 },
@@ -145,7 +146,14 @@ const page = () => {
 
 
     // 1. Fetch Categories
-    const { data: apiData, isLoading: isInitialFetching, isFetching: isApiFetching, refetch } = useQueryFetch(['allCategories'], '/api/category/withallname');
+    const [showDeleted, setShowDeleted] = useState(false);
+
+    const { data: apiData, isLoading: isInitialFetching, isFetching: isApiFetching, refetch } = useQueryFetch(['allCategories', showDeleted], '/api/category/withallname', {
+        params: {
+            ...(showDeleted ? { isDeleted: true } : {})
+        }
+    });
+    const { run: restoreCategory } = useFetch('/api/Category/restore', { method: 'POST', manual: true });
     const { onClick: handleCategoriesRefresh, title: refreshTitleCategories, disabled: refreshDisabledCategories } = useRefreshCooldown({ refetch, successMessage: 'تم تحديث التصنيفات' });
 
     useEffect(() => {
@@ -230,6 +238,9 @@ const page = () => {
             apiRefresh={{ title: refreshTitleCategories, onClick: handleCategoriesRefresh, isLoading: isApiFetching, disabled: refreshDisabledCategories }}
             searchPlaceholder="ابحث في التصنيفات..."
             onSearch={(value) => setSearch(value)}
+            showDeletedToggle={true}
+            showDeleted={showDeleted}
+            onShowDeletedChange={(val) => { setShowDeleted(val); setPage(1); }}
         />
         <DataTable
             columns={columns}
@@ -250,6 +261,15 @@ const page = () => {
                     try { await refetch(); } catch (e) { queryClient.invalidateQueries({ queryKey: ['allCategories'] }); }
                 } catch (err) {
                     toast.error(err || (lang === 'en' ? 'Permanent delete failed' : 'فشل الحذف النهائي'));
+                }
+            }}
+            onRestore={async (id) => {
+                const res = await restoreCategory({ data: { categoryId: id } });
+                if (res.ok) {
+                    toast.success("تم استعادة التصنيف بنجاح");
+                    refetch();
+                } else {
+                    toast.error("حدث خطأ أثناء الاستعادة");
                 }
             }}
 

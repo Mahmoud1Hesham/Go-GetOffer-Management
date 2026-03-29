@@ -18,9 +18,11 @@ import { toast } from 'sonner';
 import Spinner from '@/components/ui/common/spinner/spinner';
 import SubCategoryDialog from '@/components/ui/common/dialogs/subCategoryDialog';
 import { useQueryClient } from '@tanstack/react-query';
+import useFetch from '@/hooks/useFetch';
 
 const page = () => {
     const [visibleColumns, setVisibleColumns] = useState([]);
+    const [showDeleted, setShowDeleted] = useState(false);
     const [filterSheetOpen, setFilterSheetOpen] = useState(false);
     const [appliedFilters, setAppliedFilters] = useState({});
     const dispatch = useDispatch();
@@ -29,7 +31,12 @@ const page = () => {
     const lang = searchParams.get('lang') || 'ar';
     
     // 1. Fetch SubCategories
-    const { data: apiData, isLoading: isInitialFetching, isFetching: isApiFetching, refetch } = useQueryFetch(['allSubCategories'], '/api/subcategory/withallname');
+    const { data: apiData, isLoading: isInitialFetching, isFetching: isApiFetching, refetch } = useQueryFetch(['allSubCategories', showDeleted], '/api/subcategory/withallname', {
+        params: {
+            ...(showDeleted ? { isDeleted: true } : {})
+        }
+    });
+    const { run: restoreSubCategory } = useFetch('/api/SubCategory/restore', { method: 'POST', manual: true });
     const { onClick: handleSubCategoriesRefresh, title: refreshTitleSubCategories, disabled: refreshDisabledSubCategories } = useRefreshCooldown({ refetch, successMessage: 'تم تحديث التصنيفات الفرعية' });
     
     const columns = [
@@ -140,6 +147,9 @@ const page = () => {
                     apiRefresh={{ title: refreshTitleSubCategories, onClick: handleSubCategoriesRefresh, isLoading: isApiFetching, disabled: refreshDisabledSubCategories }}
                     searchPlaceholder="ابحث في التصنيفات الفرعية..."
                     onSearch={(value) => setSearch(value)}
+                    showDeletedToggle={true}
+                    showDeleted={showDeleted}
+                    onShowDeletedChange={(val) => { setShowDeleted(val); setPage(1); }}
                 />
                 <DataTable
                     columns={columns}
@@ -160,6 +170,15 @@ const page = () => {
                             try { await refetch(); } catch (e) { queryClient.invalidateQueries({ queryKey: ['allSubCategories'] }); }
                         } catch (err) {
                             toast.error(err || (lang === 'en' ? 'Permanent delete failed' : 'فشل الحذف النهائي'));
+                        }
+                    }}
+                    onRestore={async (id) => {
+                        const res = await restoreSubCategory({ data: { subCategoryId: id } });
+                        if (res.ok) {
+                            toast.success("تم استعادة التصنيف الفرعي بنجاح");
+                            refetch();
+                        } else {
+                            toast.error("حدث خطأ أثناء الاستعادة");
                         }
                     }}
         

@@ -82,6 +82,8 @@ export default function DataTable({
     onDelete = null,
     // Optional permanent delete callback (confirmed via modal)
     onPermanentDelete = null,
+    // Optional restore callback for soft-deleted items
+    onRestore = null,
     onEdit = null,
     // Optional: a dialog React element (e.g. <SupplierDialog />) that will be
     // cloned and opened in `update` mode when the row 'تعديل' action is clicked.
@@ -256,9 +258,18 @@ export default function DataTable({
         const cls = cellClass(key, widthCls);
 
         if (key === 'actions') {
+            const isDeletedRow = row.isDeleted === true || (row._raw && (row._raw.isDeleted === true || row._raw.IsDeleted === true));
             return (
                 <div key={key} className={cls} style={style}>
                     {content || (
+                        isDeletedRow ? (
+                            <Button size="sm" variant="outline" className="text-green-600 border-green-600 hover:text-white hover:bg-green-600 rounded-2xl" onClick={(e) => {
+                                e.stopPropagation();
+                                if (onRestore) onRestore(row.id || row.code);
+                            }}>
+                                استعادة
+                            </Button>
+                        ) : (
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button asChild size="sm" className='rounded-2xl' variant="outline">
@@ -317,6 +328,7 @@ export default function DataTable({
                                 }}>وضع طلب</DropdownMenuItem>}
                             </DropdownMenuContent>
                         </DropdownMenu>
+                        )
                     )}
                     {idx < renderedColumns.length - 1 && <div className="absolute end-0 top-1/2 transform -translate-y-1/2 h-6 w-px bg-gray-200" />}
                 </div>
