@@ -246,7 +246,7 @@ const page = () => {
     const [showDeleted, setShowDeleted] = useState(false);
 
     const { data: fetchedData, isLoading: isFetchLoading, isFetching: isFetchFetching, refetch } = useQueryFetch(['suppliers', showDeleted], '/api/SupplierProfile', { params: { pageSize: 10000, ...(showDeleted ? { isDeleted: true } : {}) } });
-    const { run: restoreSupplier } = useFetch('/api/Supplier/restore', { method: 'POST', manual: true });
+    const { run: restoreSupplier } = useFetch('/api/SupplierProfile/restore', { method: 'POST', manual: true });
 
     useEffect(() => {
         if (fetchedData) {
