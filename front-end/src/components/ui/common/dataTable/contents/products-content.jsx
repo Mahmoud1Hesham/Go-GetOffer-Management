@@ -114,7 +114,7 @@ export default function ProductsContent({ row }) {
     });
 
     function doAction(action, idx) {
-        console.log('action', action, 'on', row.id, idx);
+        process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log('action', action, 'on', row.id, idx);
         if (action === 'delete') {
             setWeights(prev => prev.filter((_, i) => i !== idx));
             setShowRemoveConfirm(false);
@@ -305,7 +305,7 @@ export default function ProductsContent({ row }) {
                             showDragHandle={true}
                             showPagination={false}
                             showCheckbox={false}
-                            onDelete={(id) => { console.log('delete via table', id); }}
+                            onDelete={(id) => { process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log('delete via table', id); }}
                         />
                     </div>
                 </div>

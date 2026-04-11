@@ -38,7 +38,7 @@ try {
   }
 
   const roleCount = roleSet.size;
-  console.log(JSON.stringify({ pathCount, roleCount }));
+  process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log(JSON.stringify({ pathCount, roleCount }));
 } catch (err) {
   console.error('error', err && err.stack ? err.stack : err);
   process.exit(2);

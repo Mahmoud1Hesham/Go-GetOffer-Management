@@ -27,7 +27,7 @@ const page = () => {
             const result = await forgotPassword(values.email);
             if (result?.ok) {
                 try { localStorage.setItem('forgotEmail', values.email); } catch (e) { }
-                console.log(result)
+                process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log(result)
                 toast.success('تم إرسال رابط إعادة التعيين إلى بريدك');
                 router.push('/dashboard/auth/check-otp');
                 return;

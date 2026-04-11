@@ -18,10 +18,10 @@ const rows = [
 
 export default function DataTableRunner() {
     const handleSelection = (selectedIds) => {
-        console.log('selected:', selectedIds);
+        process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log('selected:', selectedIds);
     };
     const handleOrder = (newRows) => {
-        console.log('new order:', newRows.map(r => r.id));
+        process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log('new order:', newRows.map(r => r.id));
     };
 
     return (

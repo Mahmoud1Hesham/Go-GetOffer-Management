@@ -69,7 +69,7 @@ export default function SubCategoryDialog({
     }
 
     const onSubmit = (values) => {
-        console.log("Submitting values:", values);
+        process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log("Submitting values:", values);
         const formData = new FormData();
 
         // Translations

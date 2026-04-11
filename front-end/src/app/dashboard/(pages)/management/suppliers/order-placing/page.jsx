@@ -364,7 +364,7 @@ export default function OrderPlacingPage() {
           columns={columns}
           visibleColumns={visibleColumns}
           onVisibleColumnsChange={setVisibleColumns}
-          apiFilter1={{ title: "تخصيص الأعمدة", onClick: () => console.log("filter 1") }}
+          apiFilter1={{ title: "تخصيص الأعمدة", onClick: () => process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log("filter 1") }}
           apiFilter2={{ title: "تصفية", onClick: () => setFilterSheetOpen(true) }}
           searchPlaceholder="ابحث في الموردين..."
           onSearch={(value) => setSearch(value)}
@@ -381,8 +381,8 @@ export default function OrderPlacingPage() {
           initialPageSize={limit}
           totalRows={searchedData?.length || 0}
           onPageChange={(p, s) => { setPage(p); setLimit(s); }}
-          onSelectionChange={(sel) => console.log('selected', sel)}
-          onOrderChange={(newRows) => console.log('new order', newRows.map(r => r.id))}
+          onSelectionChange={(sel) => process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log('selected', sel)}
+          onOrderChange={(newRows) => process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log('new order', newRows.map(r => r.id))}
         />
 
         <h1 className="text-xl font-semibold mt-5">تأكيد تفاصيل الطلب</h1>
@@ -395,8 +395,8 @@ export default function OrderPlacingPage() {
               columns={orderColumns}
               data={orderRows}
               disableAccordion={true}
-              onSelectionChange={(sel) => console.log('selected', sel)}
-              onOrderChange={(newRows) => console.log('new order', newRows.map(r => r.id))}
+              onSelectionChange={(sel) => process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log('selected', sel)}
+              onOrderChange={(newRows) => process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log('new order', newRows.map(r => r.id))}
             />
           </div>
           <div className="w-1/4 max-w-sm rounded-xl border border-gray-200 bg-white p-4 shadow-sm">

@@ -121,7 +121,7 @@ const AppInitializer = ({ children }) => {
                     { withCredentials: true }
                 );
 
-                console.log("🔄 Refresh Response:", data);
+                process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log("🔄 Refresh Response:", data);
 
                 const newAccessToken = data.data?.accessToken;
                 if (!newAccessToken) {
@@ -136,8 +136,8 @@ const AppInitializer = ({ children }) => {
                 // const isInfoReview = data.data?.isInfoReview ?? null;
 
                 const decoded = jwtDecode(newAccessToken);
-                console.log("✅ Decoded:", decoded);
-                console.log({
+                process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log("✅ Decoded:", decoded);
+                process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log({
                     'api data :': {
                         email: decoded.emailAddress,
                         user: decoded.user,
@@ -199,13 +199,13 @@ const AppInitializer = ({ children }) => {
                 try {
                     if (process.env.NODE_ENV !== 'prod') {
                         // print a concise snapshot
-                        console.log('[AppInitializer] auth slice after setCredentials:', store.getState().auth);
+                        process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log('[AppInitializer] auth slice after setCredentials:', store.getState().auth);
                     }
                 } catch (e) {
                     // ignore in environments where store isn't accessible
                 }
             } catch (error) {
-                console.log("❌ Rehydration failed:", error.response?.data || error.message);
+                process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log("❌ Rehydration failed:", error.response?.data || error.message);
                 dispatch(logout());
                 // router.push("/login");
             } finally {

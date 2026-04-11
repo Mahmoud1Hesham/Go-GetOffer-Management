@@ -83,7 +83,7 @@ const UpdateProductPage = () => {
     });
 
     const onSubmit = (values) => {
-        console.log("Submitting update values:", values);
+        process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log("Submitting update values:", values);
         const formData = new FormData();
         formData.append('ProductId', id);
         formData.append('BrandId', values.brand);
@@ -123,9 +123,9 @@ const UpdateProductPage = () => {
         });
 
         // Log FormData entries for debugging
-        console.log("FormData Entries:");
+        process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log("FormData Entries:");
         for (let pair of formData.entries()) {
-            console.log(pair[0], pair[1]);
+            process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log(pair[0], pair[1]);
         }
 
         updateProduct(formData);
@@ -161,7 +161,7 @@ const UpdateProductPage = () => {
                 return;
             }
 
-            console.log("Product Data for Update (Processed):", p);
+            process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log("Product Data for Update (Processed):", p);
 
             // 1. Direct Mapping (Priority based on User Provided API Response)
             // The API returns localized flat data (e.g. name, weightDisplay, description)
@@ -380,7 +380,7 @@ const UpdateProductPage = () => {
                                         options={categoryOptions}
                                         value={values.category}
                                         onChange={(v) => {
-                                            console.log("Selected Category ID:", v);
+                                            process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log("Selected Category ID:", v);
                                             setValues(prev => ({ ...prev, category: v }));
                                         }}
                                         placeholder="اختر التصنيف"

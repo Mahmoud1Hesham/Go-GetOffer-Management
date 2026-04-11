@@ -38,7 +38,7 @@ export function Combobox({ options = [], value, onChange, placeholder = "Select.
     }, [options, value, multiple]);
 
     const handleSelect = (selectedValue) => {
-        console.log("[Combobox] handleSelect ->", selectedValue, "current value:", value);
+        process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log("[Combobox] handleSelect ->", selectedValue, "current value:", value);
         // Special handling for select-all marker
         if (multiple && String(selectedValue) === '__all__') {
             const allVals = options.map(o => o.value);
