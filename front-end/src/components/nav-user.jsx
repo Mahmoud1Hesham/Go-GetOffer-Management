@@ -1,12 +1,19 @@
 "use client"
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   ChevronsUpDown,
   LogOut,
   Sparkles,
 } from "lucide-react"
 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog"
 import {
   Avatar,
   AvatarFallback,
@@ -32,6 +39,9 @@ import { useSearchParams, useRouter } from "next/navigation.js"
 import { GoPasskeyFill } from "react-icons/go";
 import useAuth from "@/hooks/useAuth"
 import LoginDialog from "./ui/common/dialogs/loginDialog"
+import useFetch from "@/hooks/useFetch"
+import { toast } from "sonner"
+
 export function NavUser({
   user
 }) {
@@ -45,6 +55,42 @@ export function NavUser({
   const { login,logout,isAuthenticated } = useAuth();
   const [showLogin, setShowLogin] = useState(false);
 
+  const [isMaintenanceEnabled, setIsMaintenanceEnabled] = useState(false);
+  const [maintenanceDialogOpen, setMaintenanceDialogOpen] = useState(false);
+  const [maintenanceStep, setMaintenanceStep] = useState(1);
+
+  const { data: maintenanceData, loading: isInitMaintenanceLoading } = useFetch("/api/Maintenance", {
+    method: "GET",
+  });
+
+  const { run: setMaintenanceRun, loading: isMaintenanceLoading } = useFetch("/api/Maintenance/set-maintenance", {
+    method: "POST",
+    manual: true
+  });
+
+  useEffect(() => {
+    if (maintenanceData) {
+      // Set initial status based on API response
+      // Structure logic depending on how the backend returns it. Usually maintenanceData.isInMaintenanceMode
+      setIsMaintenanceEnabled(!!maintenanceData.isInMaintenanceMode);
+    }
+  }, [maintenanceData]);
+
+  const toggleMaintenanceStatus = async () => {
+    const newState = !isMaintenanceEnabled;
+    const response = await setMaintenanceRun({
+      data: { isInMaintenanceMode: newState }
+    });
+
+    if (response?.ok) {
+      setIsMaintenanceEnabled(newState);
+      toast.success(isRtl ? "تم تغيير وضع الصيانة بنجاح" : "Maintenance mode updated successfully");
+      setMaintenanceDialogOpen(false);
+      setTimeout(() => setMaintenanceStep(1), 300); // reset step after closing
+    } else {
+      toast.error(isRtl ? "حدث خطأ أثناء تغيير وضع الصيانة" : "Failed to update maintenance mode");
+    }
+  };
 
   return (
     <SidebarMenu>
@@ -90,6 +136,13 @@ export function NavUser({
                 <GoPasskeyFill />
                 <span className={`${isRtl ? "text-right" : "text-left"}`}>{t("user-menu.change-password")}</span>
               </DropdownMenuItem>
+              
+              <DropdownMenuItem onClick={() => !isInitMaintenanceLoading && setMaintenanceDialogOpen(true)} className={`${isRtl ? "flex-row-reverse" : "flex-row"} flex items-center justify-between gap-2 cursor-pointer w-full ${isInitMaintenanceLoading ? "opacity-50 cursor-not-allowed" : ""}`}>
+                <span className={`${isRtl ? "text-right" : "text-left"}`}>وضع الصيانة</span>
+                <span className={`px-2 py-0.5 rounded text-xs text-white ${isInitMaintenanceLoading ? "bg-gray-300" : isMaintenanceEnabled ? "bg-[#14b8a6]" : "bg-gray-400"}`}>
+                  {isInitMaintenanceLoading ? "..." : isMaintenanceEnabled ? "مفعل" : "غير مفعل"}
+                </span>
+              </DropdownMenuItem>
             </DropdownMenuGroup>
             {/* <DropdownMenuGroup>
               <DropdownMenuItem className={`${isRtl ? "flex-row-reverse" : "flex-row"} flex items-center gap-2`}>
@@ -133,6 +186,74 @@ export function NavUser({
           </DropdownMenuContent>
         </DropdownMenu>
         {showLogin && <LoginDialog />}
+
+        <Dialog open={maintenanceDialogOpen} onOpenChange={setMaintenanceDialogOpen}>
+          <DialogContent className="sm:max-w-md" dir={isRtl ? "rtl" : "ltr"}>
+            <DialogHeader>
+              <DialogTitle className={`font-bold ${isRtl ? "text-right" : "text-left"} text-gray-800`}>
+                تحديد حالة وضع الصيانة
+              </DialogTitle>
+            </DialogHeader>
+
+            {maintenanceStep === 1 ? (
+              <div className="flex flex-col gap-6 py-4">
+                <p className={`text-sm text-gray-600 ${isRtl ? "text-right" : "text-left"}`}>
+                  حدّد إذا كنت تريد تفعيل وضع الصيانة أو إيقافه.
+                </p>
+                <div className="flex justify-between items-center gap-4">
+                  <button
+                    onClick={() => {
+                      if (!isMaintenanceEnabled) setMaintenanceStep(2);
+                    }}
+                    disabled={isMaintenanceEnabled}
+                    className={`flex-1 py-2.5 rounded text-white font-medium transition-colors ${
+                      isMaintenanceEnabled ? "bg-gray-300 cursor-not-allowed" : "bg-[#14b8a6] hover:bg-teal-600"
+                    }`}
+                  >
+                    تفعيل
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (isMaintenanceEnabled) setMaintenanceStep(2);
+                    }}
+                    disabled={!isMaintenanceEnabled}
+                    className={`flex-1 py-2.5 rounded text-white font-medium transition-colors ${
+                      !isMaintenanceEnabled ? "bg-gray-300 cursor-not-allowed" : "bg-[#14b8a6] hover:bg-teal-600"
+                    }`}
+                  >
+                    إيقاف
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-6 py-4">
+                <p className={`text-sm font-semibold text-gray-800 ${isRtl ? "text-right" : "text-left"}`}>
+                  هل أنت متأكد من تغيير حالة وضع الصيانة؟
+                </p>
+                <p className={`text-sm text-gray-600 ${isRtl ? "text-right" : "text-left"}`}>
+                  سيؤدي هذا الإجراء إلى تفعيل/إيقاف وضع الصيانة على النظام.
+                </p>
+                <div className="flex justify-between items-center gap-4 mt-2">
+                  <button
+                    onClick={toggleMaintenanceStatus}
+                    disabled={isMaintenanceLoading}
+                    className="flex-1 py-2.5 rounded bg-[#14b8a6] hover:bg-teal-600 text-white font-medium transition-colors outline-none disabled:opacity-70 flex justify-center items-center"
+                  >
+                    {isMaintenanceLoading ? "جاري الحفظ..." : "تأكيد"}
+                  </button>
+                  <button
+                    onClick={() => setMaintenanceStep(1)}
+                    disabled={isMaintenanceLoading}
+                    className="flex-1 py-2.5 rounded border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 font-medium transition-colors outline-none"
+                  >
+                    رجوع
+                  </button>
+                </div>
+              </div>
+            )}
+            <DialogDescription className="sr-only">نافذة تأكيد تغيير وضع الصيانة</DialogDescription>
+          </DialogContent>
+        </Dialog>
       </SidebarMenuItem>
     </SidebarMenu>
   );
