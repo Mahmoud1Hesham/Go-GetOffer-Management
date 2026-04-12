@@ -72,7 +72,7 @@ export function NavUser({
     if (maintenanceData) {
       // Set initial status based on API response
       // Structure logic depending on how the backend returns it. Usually maintenanceData.isInMaintenanceMode
-      setIsMaintenanceEnabled(!!maintenanceData.isInMaintenanceMode);
+      setIsMaintenanceEnabled(!!maintenanceData.isMaintenance);
     }
   }, [maintenanceData]);
 
