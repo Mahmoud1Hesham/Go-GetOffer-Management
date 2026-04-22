@@ -15,7 +15,7 @@ export default function RouteGuard({ children }) {
     const pathname = usePathname() || "/";
 
     // DEBUG: log auth state and requested pathname
-    try { process.env.NEXT_PUBLIC_MOOD === 'DEV' && process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log('[RouteGuard] isAuthenticated=', isAuthenticated, 'pathname=', pathname); } catch(e){}
+    try { process.env.NODE_ENV !== "production" && console.log('[RouteGuard] isAuthenticated=', isAuthenticated, 'pathname=', pathname); } catch(e){}
 
     if (!isAuthenticated) {
         // allow unauthenticated users to access password-reset related pages
@@ -34,9 +34,9 @@ export default function RouteGuard({ children }) {
     try {
         const canViewResult = typeof canView === 'function' ? canView(pathname) : Boolean(canView);
         const firstAllowed = typeof firstAllowedPath === 'function' ? firstAllowedPath() : firstAllowedPath;
-        process.env.NEXT_PUBLIC_MOOD === 'DEV' && process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log(`[RouteGuard] role=${selectRoleKeyValue} isAuthenticated=${isAuthenticated} canView=${canViewResult} firstAllowedPath=${firstAllowed}`);
+        process.env.NODE_ENV !== "production" && console.log(`[RouteGuard] role=${selectRoleKeyValue} isAuthenticated=${isAuthenticated} canView=${canViewResult} firstAllowedPath=${firstAllowed}`);
     } catch (e) {
-        process.env.NEXT_PUBLIC_MOOD === 'DEV' && process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log('[RouteGuard] debug log error', e);
+        process.env.NODE_ENV !== "production" && console.log('[RouteGuard] debug log error', e);
     }
     // allow authenticated users to access any /dashboard/auth/* pages as public
     if (typeof pathname === 'string' && pathname.startsWith('/dashboard/auth')) {
@@ -45,7 +45,7 @@ export default function RouteGuard({ children }) {
 
     // if user is authenticated but not allowed to view this route
     if (!canView(pathname)) {
-        process.env.NEXT_PUBLIC_MOOD === 'DEV' && process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log('[RouteGuard] canView=false for', pathname);
+        process.env.NODE_ENV !== "production" && console.log('[RouteGuard] canView=false for', pathname);
         return <NotAuthorized />;
     }
 

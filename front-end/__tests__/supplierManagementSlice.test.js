@@ -149,19 +149,19 @@ describe('supplierManagement slice / API integration', () => {
     try {
       rawResp = await axiosRequester.get('/api/SupplierProfile')
       // eslint-disable-next-line no-console
-      process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log('RAW API RESPONSE:', JSON.stringify(rawResp.data, null, 2))
+      process.env.NODE_ENV !== "production" && console.log('RAW API RESPONSE:', JSON.stringify(rawResp.data, null, 2))
     } catch (e) {
       // print full response when available
       if (e && e.response) {
         // eslint-disable-next-line no-console
-        process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log('RAW API REQUEST FAILED: status=', e.response.status)
+        process.env.NODE_ENV !== "production" && console.log('RAW API REQUEST FAILED: status=', e.response.status)
         // eslint-disable-next-line no-console
-        process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log('RAW API RESPONSE DATA:', JSON.stringify(e.response.data, null, 2))
+        process.env.NODE_ENV !== "production" && console.log('RAW API RESPONSE DATA:', JSON.stringify(e.response.data, null, 2))
         // eslint-disable-next-line no-console
-        process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log('RAW API RESPONSE HEADERS:', JSON.stringify(e.response.headers || {}, null, 2))
+        process.env.NODE_ENV !== "production" && console.log('RAW API RESPONSE HEADERS:', JSON.stringify(e.response.headers || {}, null, 2))
       } else {
         // eslint-disable-next-line no-console
-        process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log('RAW API REQUEST FAILED:', e && e.message)
+        process.env.NODE_ENV !== "production" && console.log('RAW API REQUEST FAILED:', e && e.message)
       }
     }
 
@@ -172,7 +172,7 @@ describe('supplierManagement slice / API integration', () => {
     // API may return different status/message depending on environment; record them
     expect(typeof state.status).toBe('boolean')
     // eslint-disable-next-line no-console
-    process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log('EVIDENCE: apiStatus=', state.status, 'message=', state.message)
+    process.env.NODE_ENV !== "production" && console.log('EVIDENCE: apiStatus=', state.status, 'message=', state.message)
     // we expect at least the mocked structure to be present in response
     expect(state.statusBar.length).toBeGreaterThanOrEqual(0)
     expect(state.suppliers.length).toBeGreaterThanOrEqual(0)
@@ -188,16 +188,16 @@ describe('supplierManagement slice / API integration', () => {
     // concise summary plus the first and third supplier payloads
     // This will appear in test console output when running `npm test`
     // eslint-disable-next-line no-console
-    process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log('EVIDENCE: supplierManagement -> suppliers=', state.suppliers.length, 'statusBar=', state.statusBar.length)
+    process.env.NODE_ENV !== "production" && console.log('EVIDENCE: supplierManagement -> suppliers=', state.suppliers.length, 'statusBar=', state.statusBar.length)
     // eslint-disable-next-line no-console
-    process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log('EVIDENCE: firstSupplier:', JSON.stringify(s, null, 2))
+    process.env.NODE_ENV !== "production" && console.log('EVIDENCE: firstSupplier:', JSON.stringify(s, null, 2))
     const third = state.suppliers[2]
     if (third) {
       // eslint-disable-next-line no-console
-      process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log('EVIDENCE: thirdSupplier:', JSON.stringify(third, null, 2))
+      process.env.NODE_ENV !== "production" && console.log('EVIDENCE: thirdSupplier:', JSON.stringify(third, null, 2))
     } else {
       // eslint-disable-next-line no-console
-      process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log('EVIDENCE: thirdSupplier: not present (suppliers.length=', state.suppliers.length, ')')
+      process.env.NODE_ENV !== "production" && console.log('EVIDENCE: thirdSupplier: not present (suppliers.length=', state.suppliers.length, ')')
     }
   })
 })

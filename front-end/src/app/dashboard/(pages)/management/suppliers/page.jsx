@@ -410,7 +410,7 @@ const page = () => {
             columns={columns}
             visibleColumns={visibleColumns}
             onVisibleColumnsChange={setVisibleColumns}
-            apiFilter1={{ title: "تخصيص الأعمدة", onClick: () => process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log("filter 1") }}
+            apiFilter1={{ title: "تخصيص الأعمدة", onClick: () => process.env.NODE_ENV !== "production" && console.log("filter 1") }}
             apiFilter2={{ title: "تصفية", onClick: () => setFilterSheetOpen(true) }}
             apiRefresh={{ title: refreshTitle, onClick: handleRefetchWithCooldown, isLoading: isFetchFetching, disabled: refreshDisabled }}
             searchPlaceholder="ابحث في الموردين..."
@@ -429,7 +429,7 @@ const page = () => {
             rowDialog={<SupplierDialog />}
             onDelete={(id) => {
                 try {
-                    process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log('Deleting supplier with id:', id);
+                    process.env.NODE_ENV !== "production" && console.log('Deleting supplier with id:', id);
                     dispatch(deleteSupplier(id));
                     dispatch(fetchSuppliers());
                     toast.success("تم حذف المورد بنجاح");
@@ -453,8 +453,8 @@ const page = () => {
             initialPageSize={limit}
             totalRows={searchedData?.length || 0}
             onPageChange={(page, size) => { setPage(page); setLimit(size); }}
-            onSelectionChange={(sel) => process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log('selected', sel)}
-            onOrderChange={(newRows) => process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log('new order', newRows.map(r => r.id))}
+            onSelectionChange={(sel) => process.env.NODE_ENV !== "production" && console.log('selected', sel)}
+            onOrderChange={(newRows) => process.env.NODE_ENV !== "production" && console.log('new order', newRows.map(r => r.id))}
             orderPlacing={true}
         />
         <UnifiedFilterSheet

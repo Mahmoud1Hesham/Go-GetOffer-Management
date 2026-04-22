@@ -121,7 +121,7 @@ const AppInitializer = ({ children }) => {
                     { withCredentials: true }
                 );
 
-                process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log("🔄 Refresh Response:", data);
+                process.env.NODE_ENV !== "production" && console.log("🔄 Refresh Response:", data);
 
                 const newAccessToken = data.data?.accessToken;
                 if (!newAccessToken) {
@@ -136,8 +136,8 @@ const AppInitializer = ({ children }) => {
                 // const isInfoReview = data.data?.isInfoReview ?? null;
 
                 const decoded = jwtDecode(newAccessToken);
-                process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log("✅ Decoded:", decoded);
-                process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log({
+                process.env.NODE_ENV !== "production" && console.log("✅ Decoded:", decoded);
+                process.env.NODE_ENV !== "production" && console.log({
                     'api data :': {
                         email: decoded.emailAddress,
                         user: decoded.user,
@@ -199,13 +199,13 @@ const AppInitializer = ({ children }) => {
                 try {
                     if (process.env.NODE_ENV !== 'prod') {
                         // print a concise snapshot
-                        process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log('[AppInitializer] auth slice after setCredentials:', store.getState().auth);
+                        process.env.NODE_ENV !== "production" && console.log('[AppInitializer] auth slice after setCredentials:', store.getState().auth);
                     }
                 } catch (e) {
                     // ignore in environments where store isn't accessible
                 }
             } catch (error) {
-                process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log("❌ Rehydration failed:", error.response?.data || error.message);
+                process.env.NODE_ENV !== "production" && console.log("❌ Rehydration failed:", error.response?.data || error.message);
                 dispatch(logout());
                 // router.push("/login");
             } finally {

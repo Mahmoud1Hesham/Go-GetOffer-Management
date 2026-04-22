@@ -130,7 +130,7 @@ export function NavMain({
                       <Link href={item.url} onClick={(e) => e.stopPropagation()} className="flex-1 inline-flex items-center gap-2">
                         {item.icon && <item.icon />}
                         <span>{item.title}</span>
-                        {process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log && process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log("NavMain active:", item.title, itemActive)}
+                        {process.env.NODE_ENV !== "production" && console.log && process.env.NODE_ENV !== "production" && console.log("NavMain active:", item.title, itemActive)}
                         {!isRtl ? (
                           <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                         ) : (

@@ -46,7 +46,7 @@ async function main() {
     const apiUrl = args[0];
     // Respect NEXT_PUBLIC_BASE_URL when a relative path is provided
     const API_BASE = process.env.NEXT_PUBLIC_BASE_URL ? String(process.env.NEXT_PUBLIC_BASE_URL).replace(/\/$/, '') : '';
-    if (API_BASE) process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log('Using NEXT_PUBLIC_BASE_URL =', API_BASE);
+    if (API_BASE) process.env.NODE_ENV !== "production" && console.log('Using NEXT_PUBLIC_BASE_URL =', API_BASE);
     const method = (args[1] || 'GET').toUpperCase();
     const rawPayload = args[2] || null;
     // If the caller provided a JSON payload as the third arg, the role path may be the 4th arg
@@ -96,8 +96,8 @@ async function main() {
 
     const roleIds = collectRoleIds(appMap);
 
-    process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log('Loaded appMap from', appMapPath);
-    process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log('Found', roleIds.size, 'role IDs in appMap');
+    process.env.NODE_ENV !== "production" && console.log('Loaded appMap from', appMapPath);
+    process.env.NODE_ENV !== "production" && console.log('Found', roleIds.size, 'role IDs in appMap');
 
     // perform the request (GET or POST/login) OR use fixture
     let res;
@@ -147,13 +147,13 @@ async function main() {
                 }
             }
             opts.headers['Accept-Language'] = opts.headers['Accept-Language'] ?? acceptLang;
-            if (process.env.MOOD === 'dev') {
+            if (process.env.NODE_ENV !== 'production') {
                 opts.headers['ngrok-skip-browser-warning'] = 'true';
             }
 
             // If apiUrl is a relative path (starts with '/'), prefix with NEXT_PUBLIC_BASE_URL when available
             const resolvedUrl = apiUrl.startsWith('/') && API_BASE ? (API_BASE + apiUrl) : apiUrl;
-            if (resolvedUrl !== apiUrl) process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log('Resolved relative apiUrl to', resolvedUrl);
+            if (resolvedUrl !== apiUrl) process.env.NODE_ENV !== "production" && console.log('Resolved relative apiUrl to', resolvedUrl);
             res = await fetch(resolvedUrl, opts);
         } catch (err) {
             console.error('Fetch failed:', err && err.message ? err.message : err);
@@ -226,7 +226,7 @@ async function main() {
         process.exit(2);
     }
 
-    process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log('Role id(s) returned by API:', foundRoles.join(', '));
+    process.env.NODE_ENV !== "production" && console.log('Role id(s) returned by API:', foundRoles.join(', '));
 
     // Also collect possible roleKey names from appMap (object keys like 'SuperAdmin')
     function collectKeys(o, set = new Set()) {
@@ -258,15 +258,15 @@ async function main() {
         // If everything missing is only UUID-like values, consider this a success.
         const nonUuidMissing = missing.filter(r => !looksLikeUuid(r));
         if (nonUuidMissing.length === 0) {
-            process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log('Role key(s) returned by API and matched in appMap:', matchedRoleKeys.join(', '));
-            process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log('Ignoring backend GUID-only role ids and treating roleKey as authoritative ✅');
+            process.env.NODE_ENV !== "production" && console.log('Role key(s) returned by API and matched in appMap:', matchedRoleKeys.join(', '));
+            process.env.NODE_ENV !== "production" && console.log('Ignoring backend GUID-only role ids and treating roleKey as authoritative ✅');
             process.exit(0);
         }
         // Otherwise fall through and report missing non-UUID items.
     }
 
     if (missing.length === 0) {
-        process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log('All returned role id(s) are present in appMap ✅');
+        process.env.NODE_ENV !== "production" && console.log('All returned role id(s) are present in appMap ✅');
         process.exit(0);
     } else {
         console.error('The following role id(s) were NOT found in appMap:', missing.join(', '));

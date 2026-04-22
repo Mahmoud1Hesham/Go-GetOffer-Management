@@ -289,7 +289,7 @@ export default function DataTable({
                                         if (onDelete && typeof onDelete === 'function') {
                                             onDelete(row.id);
                                         } else {
-                                            process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log('delete confirmed', row.id);
+                                            process.env.NODE_ENV !== "production" && console.log('delete confirmed', row.id);
                                         }
                                     });
                                     openModal({
@@ -307,7 +307,7 @@ export default function DataTable({
                                         if (onPermanentDelete && typeof onPermanentDelete === 'function') {
                                             onPermanentDelete(row.id);
                                         } else {
-                                            process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log('permanent delete confirmed', row.id);
+                                            process.env.NODE_ENV !== "production" && console.log('permanent delete confirmed', row.id);
                                         }
                                     });
                                     openModal({
@@ -322,7 +322,7 @@ export default function DataTable({
                                 }}>حذف نهائي</DropdownMenuItem>
                                 {orderPlacing && <DropdownMenuItem className="w-full justify-end text-right" onClick={() => {
 
-                                    process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log('place order confirmed', row.id);
+                                    process.env.NODE_ENV !== "production" && console.log('place order confirmed', row.id);
                                     router.push(`/dashboard/management/suppliers/order-placing?supplierId=${row.id}`);
 
                                 }}>وضع طلب</DropdownMenuItem>}

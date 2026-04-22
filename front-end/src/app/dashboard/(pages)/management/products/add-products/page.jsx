@@ -60,7 +60,7 @@ const AddProductPage = () => {
         return categoriesData.data.map(cat => {
             // Match categoryKey from API with value in activities
             const activity = arActivities.find(a => a.value === (cat.categorykey || cat.categoryKey));
-            process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log(activity)
+            process.env.NODE_ENV !== "production" && console.log(activity)
             return {
                 ...cat,
                 icon: activity?.icon,
@@ -91,7 +91,7 @@ const AddProductPage = () => {
     });
 
     const onSubmit = (values) => {
-        process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log("Submitting values:", values);
+        process.env.NODE_ENV !== "production" && console.log("Submitting values:", values);
         const formData = new FormData();
         formData.append('BrandId', values.brand);
         formData.append('IsTax', values.hasVat);
@@ -126,9 +126,9 @@ const AddProductPage = () => {
         });
 
         // Log FormData entries for debugging
-        process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log("FormData Entries:");
+        process.env.NODE_ENV !== "production" && console.log("FormData Entries:");
         for (let pair of formData.entries()) {
-            process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log(pair[0], pair[1]);
+            process.env.NODE_ENV !== "production" && console.log(pair[0], pair[1]);
         }
 
         createProduct(formData);
@@ -383,7 +383,7 @@ const AddProductPage = () => {
                                             options={categoryOptions}
                                             value={values.category}
                                             onChange={(v) => {
-                                                process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log("Selected Category ID:", v);
+                                                process.env.NODE_ENV !== "production" && console.log("Selected Category ID:", v);
                                                 setValues(prev => ({ ...prev, category: v }));
                                             }}
                                             placeholder="اختر التصنيف"

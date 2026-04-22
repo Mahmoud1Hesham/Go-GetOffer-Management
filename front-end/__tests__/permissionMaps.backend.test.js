@@ -49,8 +49,8 @@ describe('permission maps - backend role reporting', () => {
         const arr = Array.from(allowed).sort();
 
         // Report to test output so CI/user can see which paths are allowed
-        // Jest captures process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log and prints it on failure or with --verbose
-        process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log(`Allowed paths for role ${roleKey}:`, arr);
+        // Jest captures process.env.NODE_ENV !== "production" && console.log and prints it on failure or with --verbose
+        process.env.NODE_ENV !== "production" && console.log(`Allowed paths for role ${roleKey}:`, arr);
 
         expect(Array.isArray(arr)).toBe(true);
     });

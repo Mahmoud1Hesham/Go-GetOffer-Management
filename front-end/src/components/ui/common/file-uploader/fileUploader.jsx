@@ -45,7 +45,7 @@ const FileUploader = ({
 
     const notifyParent = (updatedFiles) => {
         if (updatedFiles.length > 0 && onFilesChange) {
-            process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log("FileUploader notifyParent - sending to parent:", updatedFiles);
+            process.env.NODE_ENV !== "production" && console.log("FileUploader notifyParent - sending to parent:", updatedFiles);
             onFilesChange(updatedFiles);
         }
     };
@@ -55,7 +55,7 @@ const FileUploader = ({
         filesArray.forEach(file => formData.append(formKey, file));
 
         try {
-            process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log("FileUploader uploading files:", filesArray);
+            process.env.NODE_ENV !== "production" && console.log("FileUploader uploading files:", filesArray);
             const response = await useFetch(apiUrl, { method: "POST", data: formData });
             const uploadedUrls = response?.data?.data?.[responseKey] || [];
             const urlsCopy = Array.isArray(uploadedUrls) ? [...uploadedUrls] : [];
@@ -75,7 +75,7 @@ const FileUploader = ({
 
             setTimeout(() => {
                 const validFiles = files.filter(f => f.file); // only keep files with data
-                process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log("FileUploader upload finished, valid files:", validFiles);
+                process.env.NODE_ENV !== "production" && console.log("FileUploader upload finished, valid files:", validFiles);
                 notifyParent(validFiles);
             });
         } catch (error) {
@@ -89,7 +89,7 @@ const FileUploader = ({
             );
             setTimeout(() => {
                 const validFiles = files.filter(f => f.file);
-                process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log("FileUploader upload failed, valid files:", validFiles);
+                process.env.NODE_ENV !== "production" && console.log("FileUploader upload failed, valid files:", validFiles);
                 notifyParent(validFiles);
             });
         }
@@ -108,7 +108,7 @@ const FileUploader = ({
                             error: "Unsupported file type",
                         },
                     ];
-                    process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log("FileUploader rejected files:", rej.file);
+                    process.env.NODE_ENV !== "production" && console.log("FileUploader rejected files:", rej.file);
                     notifyParent(updated);
                     return updated;
                 });
@@ -130,7 +130,7 @@ const FileUploader = ({
 
         const updatedFiles = [...files, ...mappedFiles];
         setFiles(updatedFiles);
-        process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log("FileUploader onDrop updated files:", updatedFiles);
+        process.env.NODE_ENV !== "production" && console.log("FileUploader onDrop updated files:", updatedFiles);
         notifyParent(updatedFiles);
 
         // only trigger server upload when autoUpload is true
@@ -145,13 +145,13 @@ const FileUploader = ({
     const removeFile = (file) => {
         const updated = files.filter((f) => f.file !== file);
         setFiles(updated);
-        process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log("FileUploader removeFile updated files:", updated);
+        process.env.NODE_ENV !== "production" && console.log("FileUploader removeFile updated files:", updated);
         notifyParent(updated);
     };
 
     const clearAllFiles = () => {
         setFiles([]);
-        process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log("FileUploader cleared all files");
+        process.env.NODE_ENV !== "production" && console.log("FileUploader cleared all files");
         // do NOT notify parent with empty array to prevent clearing state unintentionally
     };
 

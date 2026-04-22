@@ -392,11 +392,11 @@ const page = () => {
         onTabChange={setActiveTab}
         isLoading={isLoading}
         onVisibleColumnsChange={setVisibleColumns}
-        apiFilter1={{ title: "تخصيص الأعمدة", onClick: () => process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log("filter 1") }}
+        apiFilter1={{ title: "تخصيص الأعمدة", onClick: () => process.env.NODE_ENV !== "production" && console.log("filter 1") }}
         apiFilter2={{ title: "تصفية الأعمدة", onClick: () => setFilterSheetOpen(true) }}
         apiRefresh={{ title: refreshTitleJoin, onClick: handleRefetchJoinRequests, isLoading: isFetchFetching, disabled: refreshDisabledJoin }}
         searchPlaceholder="ابحث في الموردين..."
-        onSearch={(value) => process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log(value)}
+        onSearch={(value) => process.env.NODE_ENV !== "production" && console.log(value)}
       />
       <DataTable
         columns={columns}
@@ -409,9 +409,9 @@ const page = () => {
         pageSizeOptions={[5, 10, 25]}
         initialPageSize={5}
         // totalRows={80} // لو server-side pagination
-        onPageChange={(page, size) => process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log('page', page, 'size', size)}
-        onSelectionChange={(sel) => process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log('selected', sel)}
-        onOrderChange={(newRows) => process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log('new order', newRows.map(r => r.id))}
+        onPageChange={(page, size) => process.env.NODE_ENV !== "production" && console.log('page', page, 'size', size)}
+        onSelectionChange={(sel) => process.env.NODE_ENV !== "production" && console.log('selected', sel)}
+        onOrderChange={(newRows) => process.env.NODE_ENV !== "production" && console.log('new order', newRows.map(r => r.id))}
       />
       <UnifiedFilterSheet
         open={filterSheetOpen}

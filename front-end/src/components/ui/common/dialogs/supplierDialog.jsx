@@ -156,7 +156,7 @@ export default function SupplierDialog({ triggerNode = null, mode = 'create', in
                     if (typeof onOpenChangeProp === 'function') onOpenChangeProp(false);
                     else setOpen(false);
                     setIsEditing(mode === 'create');
-                    process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log('supplier created successfully !')
+                    process.env.NODE_ENV !== "production" && console.log('supplier created successfully !')
                     toast.success('تم إنشاء المورد بنجاح')
                 },
                 onError: (err) => {

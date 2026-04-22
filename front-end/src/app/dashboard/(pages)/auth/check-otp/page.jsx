@@ -33,7 +33,7 @@ export default function Page() {
         }
             try {
             const otp = (vals && vals.Otp) || values.Otp;
-            process.env.NEXT_PUBLIC_MOOD === 'DEV' && console.log('verifyPasswordOtp payload', { email, otp });
+            process.env.NODE_ENV !== "production" && console.log('verifyPasswordOtp payload', { email, otp });
             const result = await verifyPasswordOtp(email, otp);
             if (result?.ok) {
                 try { localStorage.setItem('forgotResetCode', otp); } catch (e) {}
