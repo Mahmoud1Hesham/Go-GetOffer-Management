@@ -1,5 +1,5 @@
 "use client";
-import { Avatar } from '@/components/ui/avatar';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import DashboardContentHeader from '@/components/ui/common/dashboard-content-header/dashboard-content-header';
 import DashCardGroup from '@/components/ui/common/dashCard/dashCardGroup';
@@ -26,7 +26,10 @@ const columns = [
   {
     key: 'avatar', title: 'اسم الكيان', width: 180, render: (r) => (
       <div className="flex items-center gap-2">
-        <Avatar><img src={r.avatar} alt={r.name} className="w-8 h-8 rounded-full object-cover" /></Avatar>
+        <Avatar className="w-8 h-8 rounded-full overflow-hidden">
+          <AvatarImage src={r.avatar && r.avatar !== 'null' ? r.avatar : '/assets/other/shadcn.jpg'} alt={r.name} className="object-cover" />
+          <AvatarFallback className="bg-gray-200 text-gray-500 font-bold text-xs">{r.name ? r.name.slice(0, 2).toUpperCase() : 'SH'}</AvatarFallback>
+        </Avatar>
         <div className="text-sm truncate">{r.name}</div>
       </div>
     )
@@ -82,7 +85,7 @@ const columns = [
 
 // const rows = [
 //   {
-//     id: '1', type: 'supplier', name: 'محمد سمير', avatar: 'https://avatars.githubusercontent.com/u/124599?v=4', code: 83513, date: '25 نوفمبر 2025', category: 'منتجات غذائية', status: 'قيد الانتظار', branch: 'المعادى', accessedFrom: 'وسائل التواصل الاجتماعي', address: 'العاشر من رمضان', governorate: 'cairo', city: 'nasr', phone: '01010000001', fullName: 'محمد سمير', email: 'supplier1@example.com', activities: ['food products'], branches: ['السادس من أكتوبر', 'الاسماعيلية'], postalCode: '12345', docs: [
+//     id: '1', type: 'supplier', name: 'محمد سمير', avatar: '/assets/other/shadcn.jpg', code: 83513, date: '25 نوفمبر 2025', category: 'منتجات غذائية', status: 'قيد الانتظار', branch: 'المعادى', accessedFrom: 'وسائل التواصل الاجتماعي', address: 'العاشر من رمضان', governorate: 'cairo', city: 'nasr', phone: '01010000001', fullName: 'محمد سمير', email: 'supplier1@example.com', activities: ['food products'], branches: ['السادس من أكتوبر', 'الاسماعيلية'], postalCode: '12345', docs: [
 //       { id: 'i1', type: 'image', src: 'https://picsum.photos/800/600?1', title: 'صورة 1' },
 //       { id: 'i2', type: 'image', src: 'https://picsum.photos/800/600?2', title: 'صورة 2' },
 //       { id: 'p1', type: 'pdf', src: 'https://unec.edu.az/application/uploads/2014/12/pdf-sample.pdf', title: 'تقرير PDF' },
@@ -262,7 +265,7 @@ const page = () => {
       type: s.userType ? s.userType.toLowerCase() : 'supplier',
       name: s.name || s.email || '—',
       fullName: profile.fullName || '',
-      avatar: profile.logoUrl || s.avatar || 'https://avatars.githubusercontent.com/u/124599?v=4',
+      avatar: s.iconAvatarImg || profile.iconAvatarImg || s.avatar || '/assets/other/shadcn.jpg',
       code: profile.code || '',
       date: s.requestedAt ? new Date(s.requestedAt).toLocaleDateString('en-EG') : '',
       dateRaw: s.requestedAt || null,

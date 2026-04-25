@@ -9,7 +9,7 @@ import DashboardContentHeader from '@/components/ui/common/dashboard-content-hea
 import SupplierDialog from '@/components/ui/common/dialogs/supplierDialog'
 import Spinner from '@/components/ui/common/spinner/spinner';
 
-import { Avatar } from '@/components/ui/avatar';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import DataTable from '@/components/ui/common/dataTable/dataTable';
 import SuppliersContent from '@/components/ui/common/dataTable/contents/suppliers-content';
@@ -29,7 +29,12 @@ const columns = [
     {
         key: 'avatar', title: 'اسم الكيان', width: 200, render: (r) => (
             <div className="flex items-center gap-2">
-                <Avatar><img src={r.avatar} alt={r.name} className="w-8 h-8 rounded-full object-cover" /></Avatar>
+                <Avatar className="w-8 h-8 rounded-full overflow-hidden">
+                    <AvatarImage src={r.avatar && r.avatar !== 'null' ? r.avatar : '/assets/other/shadcn.jpg'} alt={r.name} className="object-cover" />
+                    <AvatarFallback className="bg-gray-200 text-gray-500 font-bold text-xs">
+                        {r.name ? r.name.slice(0, 2).toUpperCase() : 'SH'}
+                    </AvatarFallback>
+                </Avatar>
                 <div className="text-sm truncate">{r.name}</div>
             </div>
         )
@@ -273,12 +278,7 @@ const page = () => {
             name: s.companyName || '—',
             fullName: s.fullName || '',
             // prefer explicit logo/profile image fields; avoid using commercial registration docs as avatar
-            avatar:
-                s.logoUrl || s.avatar || s.profileImage || s.profileImageUrl ||
-                (s._raw && s._raw.supplierProfile && (
-                    s._raw.supplierProfile.logoUrl || s._raw.supplierProfile.profileImageUrl
-                )) ||
-                'https://avatars.githubusercontent.com/u/124599?v=4',
+            avatar: s.iconAvatarImg || s.logoUrl || s.avatar || (s.supplierProfile && s.supplierProfile.iconAvatarImg) || '/assets/other/shadcn.jpg',
             code: s.code || s.companyNumber || '',
             // human-friendly display date and a raw ISO date for filtering
             date: s.joinDate ? new Date(s.joinDate).toLocaleDateString('en-EG') : '',

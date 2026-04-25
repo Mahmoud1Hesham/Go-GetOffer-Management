@@ -1,5 +1,4 @@
 import axios from "axios";
-// import { store } from "@/redux/store.js"; // removed to fix circular dependency
 import { logout, setCredentials } from "@/redux/slices/authSlice.js";
 import { mapUserRole } from "@/app/services/workers/userRoleMapper.js";
 
@@ -24,7 +23,8 @@ const axiosRequester = axios.create({
         "Cache-Control": "no-cache, no-store, must-revalidate",
         "Pragma": "no-cache",
         "Expires": "0",
-        'ngrok-skip-browser-warning': process.env.NODE_ENV !== 'production' ? 'true' : 'false'
+        // 'ngrok-skip-browser-warning': 'true'
+        // 'ngrok-skip-browser-warning': process.env.NODE_ENV !== 'production' ? 'true' : 'false'
     },
 });
 

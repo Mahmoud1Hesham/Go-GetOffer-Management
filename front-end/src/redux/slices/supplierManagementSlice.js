@@ -87,6 +87,7 @@ function mapSupplierItem(item = {}) {
 		isBanned: item.isBanned ?? false,
 		isDeleted: item.isDeleted ?? false,
 		joinDate: item.createdAt ?? null,
+		iconAvatarImg: item.iconAvatarImg ?? null,
 
 		fullName: profile.fullName ?? null,
 		commercialRegistrationDocumentUrl: profile.commercialRegistrationDocumentUrl ?? [],

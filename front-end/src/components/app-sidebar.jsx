@@ -52,7 +52,8 @@ export function AppSidebar({
   const isRtl = lang !== "en"
   const username = useSelector(selectUsername) || ''
   const emailAddr = useSelector(selectEmail) || ''
-  const avatar = useSelector(selectAvatar) || ''
+  const rawAvatar = useSelector(selectAvatar);
+  const avatar = rawAvatar && rawAvatar !== "null" ? rawAvatar : "";
   const roleKey = useSelector(selectRoleKey) || null
   const branches = useSelector(selectBranches) || []
 
@@ -99,7 +100,7 @@ export function AppSidebar({
     user: {
       name: displayName,
       email: emailAddr || 'm@example.com',
-      avatar: avatar || 'https://github.com/shadcn.png',
+      avatar: avatar || '/assets/other/shadcn.jpg',
     },
     teams,
     navMain: [

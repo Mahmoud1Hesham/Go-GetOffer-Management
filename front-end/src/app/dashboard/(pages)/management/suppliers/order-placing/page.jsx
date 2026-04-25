@@ -13,6 +13,8 @@ import { Badge } from '@/components/ui/badge'
 import ProductsContent from '@/components/ui/common/dataTable/contents/products-content'
 import Counter from '@/components/ui/common/counter/counter'
 import { FaRegTrashCan } from 'react-icons/fa6'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Search, ChevronDown, ListFilter } from 'lucide-react'
 
 
 export default function OrderPlacingPage() {
@@ -20,6 +22,15 @@ export default function OrderPlacingPage() {
     { key: 'checkbox', title: '', width: 40 },
     { key: 'code', title: 'كود المنتج', width: 60, render: (r) => <div className="truncate w-full text-right" dir="ltr" title={r.code}>{r.code}</div> },
     { key: 'productName', title: 'اسم المنتج', width: 180 },
+    {
+      key: 'tax', title: 'القيمة المضافة', width: 100, render: (r) => {
+        const raw = String(r.isTax ?? '').trim();
+        const lower = raw.toLowerCase();
+        const isTaxTrue = /نعم|yes|true/.test(lower);
+        
+        return <Badge variant="outline" className="px-2 py-1 text-xs bg-gray-50 text-gray-600 border-gray-200">{isTaxTrue ? 'نعم' : 'لا'}</Badge>;
+      }
+    },
     {
       key: 'avatar', title: 'العلامة التجارية', width: 150, render: (r) => (
         <div className="flex items-center gap-2">
@@ -57,61 +68,15 @@ export default function OrderPlacingPage() {
       }
     },
     {
-      key: 'status', title: 'الحالة', width: 100, render: (r) => {
-        const raw = String(r.status ?? '').trim();
-        const lower = raw.toLowerCase();
-
-        // Map common Arabic/English variants to states
-        const isRejected = /غير مفعل|مرفوض|rejected/.test(lower);
-        const isApproved = /مفعل|موافق|approved|active/.test(lower);
-
-        const base = 'px-3 py-5! text-xs rounded-xl';
-        let classes = '';
-
-        if (isRejected) {
-          classes = `${base} bg-red-50 text-red-600`;
-        } else if (isApproved) {
-          classes = `${base} bg-green-50 text-green-500`;
-        } else {
-          // default / unknown -> pending-style fallback
-          classes = `${base} bg-[#FDEDCE] text-go-primary-o`;
-        }
-
-        return <span className={classes}>{raw}</span>;
-      }
-    },
-    {
-      key: 'tax', title: 'القيمة المضافة', width: 100, render: (r) => {
-        const raw = String(r.isTax ?? '').trim();
-        const lower = raw.toLowerCase();
-
-        // Map common Arabic/English variants to states
-        const isTaxTrue = /نعم|yes|true/.test(lower);
-        const isTaxFalse = /لا|no|false/.test(lower);
-
-        const base = 'px-3 py-5! text-xs rounded-xl';
-        let classes = '';
-
-        if (isTaxTrue) {
-          classes = `${base} bg-green-50 text-green-500`;
-        } else if (isTaxFalse) {
-          classes = `${base} bg-red-50 text-red-600`;
-        } else {
-          // default / unknown -> pending-style fallback
-          classes = `${base} bg-[#FDEDCE] text-go-primary-o`;
-        }
-
-        return <span className={classes}>{raw}</span>;
-      }
+      key: "quantity", title: "الكمية", width: 120, render: (r) => <div> <span> <strong>
+        <Counter
+          value={quantities[r.id]}
+          min={1}
+          max={100}
+          onChange={(v) => updateQuantity(r.id, v)}
+        /></strong> </span> </div>
     },
     { key: 'price', title: 'السعر', width: 100, render: (r) => <div>{r.price ? `${r.price} ج.م` : 'N/A'}</div> },
-    // {key:"quantity", title:"الكمية", width:120, render: (r)=><div> <span> <strong>
-    //   <Counter
-    //     value={quantities[r.id]}
-    //     min={1}
-    //     max={100}
-    //     onChange={(v) => updateQuantity(r.id, v)}
-    //   /></strong> </span> </div>},
     // { key: 'branch', title: 'الفرع الرئيسى', width: 90, render: (r) => <div>{r.branch}</div> },
     // { key: 'assigned-to', title: 'مكلٌف إلى', width: 90, render: (r) => <div>{r.assignedTo}</div> },
     // { key: 'accessed-from', title: 'وسيلة الوصول', width: 120, render: (r) => <div>{r.accessedFrom}</div> },
@@ -312,141 +277,221 @@ export default function OrderPlacingPage() {
 
   return (
     <>
-      <header className="">
-        <div className="supplier-header flex gap-5 justify-between p-6 bg-white rounded-lg">
-
-          <div className="info flex gap-4 w-1/2">
-            <div className="image">
-              {/* optional supplier image */}
-              <Avatar className="w-16 h-16">
-                <img
-                  src='https://avatars.githubusercontent.com/u/124599?v=4'
-                  alt="Supplier Image"
-                />
-              </Avatar>
-            </div>
-            <div className="details">
-              <h1 className="company-name font-bold text-xl">{supplierData.companyName}</h1>
-              <h2 className='text-sm text-gray-500'>كود المورد : <span className='text-black'>{supplierData.code}</span></h2>
-              <h2 className='text-sm text-gray-500'>رقم الكيان : <span className='text-black'>{supplierData.phone}</span></h2>
-              <p className='text-sm text-gray-500 mt-2'>
-                صفحه معلومات المورد لعملية وضع الطلبات. تعرض هذه الصفحة تفاصيل المورد مثل اسم الشركة، الاسم الكامل، البريد الإلكتروني، رقم الهاتف، العنوان، تاريخ الانضمام، الفئات التي ينتمي إليها المورد، وشروط المورد مثل الحد الأدنى والأقصى لقيمة الفاتورة، الحد الأقصى لأيام المعالجة، وتوفر الفاتورة الإلكترونية وخدمة التوصيل.
-              </p>
-            </div>
-          </div>
-          <div className="terms shadow-md px-4 py-3 w-1/2 rounded-lg bg-white">
-            <h2 className='font-bold text-xl pb-3'>شروط المورد</h2>
-            <div className="info flex justify-around gap-4">
-              <div className="right flex flex-col gap-2">
-                <p className='text-sm font-semibold'>الحد الأدنى لعدد الأصناف في الفاتورة : {supplierData.minimumItemInInvoice} منتج</p>
-                <p className='text-sm font-semibold'>الحد الأدنى لقيمة الفاتورة : {supplierData.minimumInvoiceAmount} جنيه</p>
-                <p className='text-sm font-semibold'>الحد الأقصى لقيمة الفاتورة : {supplierData.maximumInvoiceAmount} جنيه</p>
-              </div>
-              <div className="border border-gray-300"></div>
-              <div className="left flex flex-col gap-2">
-                <p className='text-sm font-semibold'>الحد الأقصى لأيام المعالجة : {supplierData.maximumProcessingDays} يوم</p>
-                <p className='text-sm font-semibold'>الفاتورة الإلكترونية : {supplierData.hasElectronicInvoice ? 'متوفر' : 'غير متوفر'}</p>
-                <p className='text-sm font-semibold'>خدمة التوصيل : {supplierData.hasDeliveryService ? 'متوفر' : 'غير متوفر'}</p>
-              </div>
-            </div>
-          </div>
+      <div className="flex flex-col gap-2 p-4" dir="rtl">
+        {/* Title area as shown top right */}
+        <div className="flex  p-4 rounded-xl">
+          <h1 className="text-3xl font-bold text-[#144f5c]">{supplierData.companyName}</h1>
         </div>
-      </header>
-      <div className="supplier's-products flex flex-col gap-4">
-        <DashboardContentHeader
-          title={
-            <div className="flex items-center gap-2">
-              <span>منتجات المورد</span>
-              {/* {isLoading && <Spinner />} */}
+
+        <Tabs defaultValue="supplier-details" className="w-full bg-white rounded-xl shadow-sm overflow-hidden">
+          <div className="flex justify-end border-b border-gray-100 bg-white px-6">
+            <TabsList className="bg-transparent border-0 flex gap-10 h-auto p-0">
+              <TabsTrigger 
+                value="order-details" 
+                className="rounded-none border-b-[3px] border-transparent data-[state=active]:border-[#20c9a6] data-[state=active]:text-[#20c9a6] text-gray-500 data-[state=active]:bg-transparent py-4 px-1 font-bold text-lg flex items-center gap-2 transition-none shadow-none data-[state=active]:shadow-none"
+              >
+                <div className="flex items-center gap-3 w-full justify-end">
+                  <Badge className="bg-[#20c9a6] hover:bg-[#1db897] text-white rounded-full px-2 py-0.5 text-sm">{orderRows.length}</Badge>
+                  <span>تفاصيل الطلب</span>
+                </div>
+              </TabsTrigger>
+              
+              <TabsTrigger 
+                value="supplier-details" 
+                className="rounded-none border-b-[3px] border-transparent data-[state=active]:border-[#20c9a6] data-[state=active]:text-[#20c9a6] text-gray-500 data-[state=active]:bg-transparent py-4 px-1 font-bold text-lg transition-none shadow-none data-[state=active]:shadow-none"
+              >
+                تفاصيل المورد
+              </TabsTrigger>
+            </TabsList>
+          </div>
+
+          <TabsContent value="supplier-details" className="bg-white p-8 outline-none mt-0 rounded-b-xl" dir="rtl">
+            <div className="flex flex-col gap-8">
+              {/* Top Info */}
+              <div className="flex flex-col gap-4 w-full">
+                <div className="flex justify-start items-center w-full gap-4">
+                  <h2 className="text-xl font-bold text-[#144f5c]">
+                    {supplierData.code} / {supplierData.companyName}
+                  </h2>
+                  <div className="flex gap-3">
+                    {supplierData.hasElectronicInvoice ? (
+                      <span className="bg-gray-100 text-gray-800 px-4 py-2 rounded-lg text-sm font-medium">
+                        (توجد فاتورة الكترونية)
+                      </span>
+                    ) : <span className="bg-gray-100 text-gray-800 px-4 py-2 rounded-lg text-sm font-medium">
+                        (لا توجد فاتورة الكترونية)
+                      </span>}
+                    {supplierData.hasDeliveryService ? (
+                      <span className="bg-gray-100 text-gray-800 px-4 py-2 rounded-lg text-sm font-medium">
+                        (توجد خدمة توصيل)
+                      </span>
+                    ) : (
+                      <span className="bg-gray-100 text-gray-800 px-4 py-2 rounded-lg text-sm font-medium">
+                        (لا توجد خدمة توصيل)
+                      </span>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="text-gray-600 text-base font-medium">
+                  <p>رقم الهاتف: {supplierData.phone} - البريد الالكتروني: {supplierData.email}</p>
+                </div>
+              </div>
+
+              {/* Categories */}
+              <div className="mt-2">
+                <h3 className="text-xl font-bold text-[#144f5c] mb-4">الانشطة / الفئة الرئيسية</h3>
+                <div className="flex flex-wrap gap-x-12 gap-y-4">
+                  {Array.isArray(supplierData.categories) && supplierData.categories.length > 0 ? (
+                    supplierData.categories.map((cat, idx) => {
+                      const name = typeof cat === 'object' ? (cat.name || cat.nameAr || 'غير محدد') : cat;
+                      const subCount = typeof cat === 'object' && Array.isArray(cat.subCategories) ? cat.subCategories.length : 0;
+                      return (
+                        <p key={idx} className="text-gray-600 text-base font-medium">
+                          {name}: <span className="font-bold text-[#144f5c]">{subCount}</span> فئات فرعية
+                        </p>
+                      );
+                    })
+                  ) : (typeof supplierData.categories === 'string' && supplierData.categories !== 'N/A') ? (
+                    <p className="text-gray-600 text-base font-medium">{supplierData.categories}</p>
+                  ) : (
+                    <p className="text-gray-500 text-base italic">لا توجد أنشطة مسجلة</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Terms */}
+              <div className="mt-2 mb-4">
+                <h3 className="text-xl font-bold text-[#144f5c] mb-4">شروط المورد</h3>
+                <div className="flex justify-start gap-32">
+                  <div className="flex flex-col gap-4">
+                    <p className="text-gray-600 text-base font-medium">الحد الأدنى لعدد الأصناف في الفاتورة: <span className="font-bold text-gray-900">{supplierData.minimumItemInInvoice}</span> منتج</p>
+                    <p className="text-gray-600 text-base font-medium">الحد الأدنى لقيمة الفاتورة: <span className="font-bold text-gray-900">{supplierData.minimumInvoiceAmount}</span> جنيه</p>
+                  </div>
+                  <div className="flex flex-col gap-4">
+                    <p className="text-gray-600 text-base font-medium">الحد الأقصى لأيام المعالجة: <span className="font-bold text-gray-900">{supplierData.maximumProcessingDays}</span> يوم</p>
+                    <p className="text-gray-600 text-base font-medium">الحد الأقصى لقيمة الفاتورة: <span className="font-bold text-gray-900">{supplierData.maximumInvoiceAmount}</span> جنيه</p>
+                  </div>
+                </div>
+              </div>
             </div>
-          }
+          </TabsContent>
 
-          columns={columns}
-          visibleColumns={visibleColumns}
-          onVisibleColumnsChange={setVisibleColumns}
-          apiFilter1={{ title: "تخصيص الأعمدة", onClick: () => process.env.NODE_ENV !== "production" && console.log("filter 1") }}
-          apiFilter2={{ title: "تصفية", onClick: () => setFilterSheetOpen(true) }}
-          searchPlaceholder="ابحث في الموردين..."
-          onSearch={(value) => setSearch(value)}
-        />
+          <TabsContent value="order-details" className="bg-transparent outline-none mt-0">
+            <div className="flex flex-col lg:flex-row-reverse gap-4 w-full items-start px-6 py-3">
+              
+              {/* Order Cart Table - Right side as shown in screenshot (First in RTL DOM structure) */}
+              <div className="w-full lg:w-2/3 xl:w-3/4 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden" dir="rtl">
+                <div className="flex flex-row-reverse justify-between items-center px-6 py-8 border-b border-gray-50">
+                  <div className="flex flex-row-reverse gap-2 relative">
+                    <button className="border border-gray-200 px-5 py-2.5 text-sm font-bold rounded-lg text-gray-700 flex items-center gap-2 hover:bg-gray-50 transition-colors">
+                      <ListFilter className="w-4 h-4 text-gray-500" /> تصفية حسب
+                    </button>
+                    <button className="border border-gray-200 px-5 py-2.5 text-sm font-bold rounded-lg text-gray-700 flex items-center gap-2 flex-row hover:bg-gray-50 transition-colors">
+                      حدد خيار <ChevronDown className="w-4 h-4 text-gray-500" />
+                    </button>
+                  </div>
+                  <div className="relative flex justify-end">
+                    <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <input 
+                      type="text" 
+                      placeholder="ابحث هنا" 
+                      className="pl-4 pr-12 py-2.5 border border-gray-200 rounded-lg text-sm w-72 focus:outline-none focus:border-[#20c9a6] focus:ring-1 focus:ring-[#20c9a6] text-right placeholder:text-gray-400 font-medium transition-colors"
+                      dir="rtl"
+                    />
+                  </div>
+                </div>
+                <div className="p-2" dir="rtl">
+                  <DataTable
+                    showCheckboxes={true}
+                    showDragHandles={false}
+                    columns={orderColumns}
+                    data={orderRows}
+                    disableAccordion={true}
+                  />
+                </div>
+              </div>
 
-        <DataTable
-          // isLoading={isLoading}
-          columns={columns}
-          visibleColumns={visibleColumns}
-          data={searchedData}
-          detailsComponentMap={{ product: ProductsContent }}
+              {/* Order summary - Left side as shown in screenshot (Second in RTL DOM structure) */}
+              <div className="w-full lg:w-1/3 xl:w-1/4 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+                <h3 className="mb-6 text-right text-xl font-bold text-gray-900">
+                  ملخص الطلب
+                </h3>
 
-          pageSizeOptions={[5, 10, 25]}
-          initialPageSize={limit}
-          totalRows={searchedData?.length || 0}
-          onPageChange={(p, s) => { setPage(p); setLimit(s); }}
-          onSelectionChange={(sel) => process.env.NODE_ENV !== "production" && console.log('selected', sel)}
-          onOrderChange={(newRows) => process.env.NODE_ENV !== "production" && console.log('new order', newRows.map(r => r.id))}
-        />
+                <div className="space-y-5 text-sm text-gray-800 font-bold">
+                  <div className="flex justify-between flex-row-reverse">
+                    <span>إجمالي المبلغ</span>
+                    <span className="text-[#144f5c]">4750 جنيه</span>
+                  </div>
 
-        <h1 className="text-xl font-semibold mt-5">تأكيد تفاصيل الطلب</h1>
-        <div className="flex gap-4 items-start">
-          <div className="w-3/4">
-            <DataTable
-              // isLoading={isLoading}
-              showCheckboxes={false}
-              showDragHandles={false}
-              columns={orderColumns}
-              data={orderRows}
-              disableAccordion={true}
-              onSelectionChange={(sel) => process.env.NODE_ENV !== "production" && console.log('selected', sel)}
-              onOrderChange={(newRows) => process.env.NODE_ENV !== "production" && console.log('new order', newRows.map(r => r.id))}
+                  <div className="flex justify-between flex-row-reverse">
+                    <span>إجمالي عدد الأصناف</span>
+                    <span className="text-[#144f5c]">5</span>
+                  </div>
+
+                  <div className="flex justify-between flex-row-reverse">
+                    <span>قيمة العمولة (%4)</span>
+                    <span className="text-[#144f5c]">200 جنيه</span>
+                  </div>
+
+                  <div className="flex justify-between flex-row-reverse">
+                    <span className="line-through text-gray-400">قيمة الشحن</span>
+                    <span className="line-through text-gray-400">100 جنيه</span>
+                  </div>
+
+                  <div className="flex justify-between flex-row-reverse">
+                    <span>القيمة المضافة</span>
+                    <span className="text-[#144f5c]">0 جنيه</span>
+                  </div>
+                </div>
+
+                <hr className="my-6 border-gray-200" />
+
+                <div className="flex justify-between flex-row-reverse font-bold text-lg text-gray-900">
+                  <span className="text-sm">المبلغ الإجمالي</span>
+                  <span className="text-[#144f5c]">5050 <span className="text-sm">جنيه</span></span>
+                </div>
+
+                <div className="mt-8 flex flex-col gap-4">
+                  <button className="w-full rounded-lg bg-[#20c9a6] py-3.5 text-base font-bold text-white hover:bg-[#1db897] transition-colors shadow-sm">
+                    تأكيد الطلب
+                  </button>
+
+                  <button className="w-full rounded-lg border border-gray-200 bg-white py-3.5 text-base font-bold text-gray-700 hover:bg-gray-50 transition-colors shadow-sm">
+                    إلغاء الطلب
+                  </button>
+                </div>
+              </div>
+              
+            </div>
+          </TabsContent>
+        </Tabs>
+
+        {/* Supplier Products Table - Extracted OUTSIDE the tabs */}
+        <div className="w-full bg-white rounded-xl shadow-sm outline-none mt-4 px-8 py-6">
+          <div className="mb-6 flex flex-col pt-2 border-gray-100">
+            <DashboardContentHeader
+              title={<span className="text-2xl font-bold text-[#144f5c]">منتجات المورد</span>}
+              columns={columns}
+              visibleColumns={visibleColumns}
+              onVisibleColumnsChange={setVisibleColumns}
+              apiFilter1={{ title: "تخصيص الأعمدة", onClick: () => console.log("filter 1") }}
+              apiFilter2={{ title: "تصفية", onClick: () => setFilterSheetOpen(true) }}
+              searchPlaceholder="ابحث في المنتجات..."
+              onSearch={setSearch}
             />
           </div>
-          <div className="w-1/4 max-w-sm rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-            <h3 className="mb-4 text-center text-lg font-semibold text-gray-800">
-              ملخص الطلب
-            </h3>
-
-            <div className="space-y-2 text-sm text-gray-700">
-              <div className="flex justify-between">
-                <span>إجمالي المبلغ</span>
-                <span>5,000 جنيه</span>
-              </div>
-
-              <div className="flex justify-between">
-                <span>إجمالي عدد الأصناف</span>
-                <span>4</span>
-              </div>
-
-              <div className="flex justify-between">
-                <span>قيمة العمولة (%4)</span>
-                <span>500 جنيه</span>
-              </div>
-
-              <div className="flex justify-between">
-                <span>قيمة الشحن</span>
-                <span>500 جنيه</span>
-              </div>
-
-              <div className="flex justify-between">
-                <span>القيمة المضافة (%14)</span>
-                <span>0 جنيه</span>
-              </div>
-            </div>
-
-            <hr className="my-4" />
-
-            <div className="flex justify-between font-semibold text-gray-900">
-              <span>المبلغ الإجمالي</span>
-              <span>6,000 جنيه</span>
-            </div>
-
-            <div className="mt-5 flex gap-3">
-              <button className="flex-1 rounded-lg bg-teal-500 py-2 text-sm font-medium text-white hover:bg-teal-600 transition">
-                تأكيد الأوردر
-              </button>
-
-              <button className="flex-1 rounded-lg border border-gray-300 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition">
-                إلغاء
-              </button>
-            </div>
+          <div dir="rtl">
+            <DataTable
+              columns={columns}
+              visibleColumns={visibleColumns}
+              data={searchedData}
+              detailsComponentMap={{ product: ProductsContent }}
+              pageSizeOptions={[5, 10, 25]}
+              initialPageSize={limit}
+              totalRows={searchedData?.length || 0}
+              onPageChange={(p, s) => { setPage(p); setLimit(s); }}
+            />
           </div>
         </div>
 
@@ -459,7 +504,6 @@ export default function OrderPlacingPage() {
           showDate={false}
           showStatus={true}
         />
-
       </div>
     </>
   )

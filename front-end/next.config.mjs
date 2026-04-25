@@ -6,10 +6,10 @@ const isDev = process.env.NODE_ENV !== 'production';
 // We restrict connect-src to the API URL and WebSockets
 const cspHeader = `
   default-src 'self';
-  script-src 'self' 'unsafe-eval' 'unsafe-inline';
+  script-src 'self' 'unsafe-eval' 'unsafe-inline' https://static.cloudflareinsights.com;
   style-src 'self' 'unsafe-inline';
   img-src 'self' blob: data: https://res.cloudinary.com;
-  connect-src 'self' ${process.env.NEXT_PUBLIC_BASE_URL || ''} ws: wss:;
+  connect-src 'self' ${process.env.NEXT_PUBLIC_BASE_URL || ''} ws: wss: https://cloudflareinsights.com;
   font-src 'self' data:;
   frame-src 'none';
   object-src 'self' blob:;
